@@ -1,0 +1,115 @@
+.configuracion-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.configuracion-page h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  font-family: 'Playfair Display', serif;
+  letter-spacing: -0.02em;
+  transition: color 0.3s ease;
+}
+
+.error-message {
+  background: rgba(255, 59, 48, 0.1);
+  color: var(--error);
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  border: 1px solid rgba(255, 59, 48, 0.2);
+  font-weight: 500;
+  margin-bottom: var(--spacing-md);
+  transition: all 0.3s ease;
+}
+
+html.dark .error-message {
+  background: rgba(255, 69, 58, 0.15);
+  border-color: rgba(255, 69, 58, 0.3);
+}
+
+.success-message {
+  background: rgba(52, 199, 89, 0.1);
+  color: var(--success);
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  border: 1px solid rgba(52, 199, 89, 0.2);
+  font-weight: 500;
+  margin-bottom: var(--spacing-md);
+  transition: all 0.3s ease;
+}
+
+html.dark .success-message {
+  background: rgba(48, 209, 88, 0.15);
+  border-color: rgba(48, 209, 88, 0.3);
+}
+
+.config-form {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+}
+
+.form-section {
+  margin-bottom: var(--spacing-xl);
+}
+
+.form-section:last-of-type {
+  margin-bottom: var(--spacing-md);
+}
+
+.form-section h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-md) 0;
+  font-family: 'Playfair Display', serif;
+  letter-spacing: -0.02em;
+  transition: color 0.3s ease;
+}
+
+.modulos-checkbox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  cursor: pointer;
+  font-size: 0.9375rem;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 1.25rem;
+  height: 1.25rem;
+  cursor: pointer;
+  accent-color: var(--accent-primary);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-xl);
+  border-top: 1px solid var(--border-color);
+  transition: border-color 0.3s ease;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .config-form {
+    padding: var(--spacing-lg);
+  }
+}

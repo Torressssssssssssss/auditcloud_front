@@ -1,0 +1,89 @@
+import { Component, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
+import { AuthService } from '../../services/auth.service';
+import { Rol } from '../../models/usuario.model';
+import { ThemeToggleComponent } from '../../shared/components/theme-toggle/theme-toggle.component';
+
+@Component({
+  selector: 'app-login',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, ThemeToggleComponent],
+  templateUrl: './login.component.html',
+  styleUrl: './login.component.css'
+})
+export class LoginComponent {
+  loginForm: FormGroup;
+  errorMessage = signal<string>('');
+  loading = signal<boolean>(false);
+
+  constructor(
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private router: Router
+  ) {
+    this.loginForm = this.fb.group({
+      correo: ['', [Validators.required, Validators.email]],
+      password: ['', [Validators.required, Validators.minLength(6)]]
+    });
+  }
+
+  onSubmit(): void {
+    if (this.loginForm.invalid) {
+      this.markFormGroupTouched(this.loginForm);
+      return;
+    }
+
+    this.loading.set(true);
+    this.errorMessage.set('');
+
+    const { correo, password } = this.loginForm.value;
+
+    this.authService.login(correo, password).subscribe({
+      next: () => {
+        const rol = this.authService.getRol();
+        if (rol === Rol.SUPERVISOR) {
+          this.router.navigate(['/supervisor/dashboard']);
+        } else if (rol === Rol.AUDITOR) {
+          this.router.navigate(['/auditor/dashboard']);
+        } else if (rol === Rol.CLIENTE) {
+          this.router.navigate(['/cliente/dashboard']);
+        }
+      },
+      error: (error) => {
+        this.errorMessage.set('Correo o contraseña incorrectos');
+        this.loading.set(false);
+      }
+    });
+  }
+
+  private markFormGroupTouched(formGroup: FormGroup): void {
+    Object.keys(formGroup.controls).forEach(key => {
+      const control = formGroup.get(key);
+      control?.markAsTouched();
+    });
+  }
+
+  get correo() { return this.loginForm.get('correo'); }
+  get password() { return this.loginForm.get('password'); }
+
+  toggleTheme(): void {
+    const root = document.documentElement;
+    const isDark = root.classList.toggle('dark');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  }
+
+  ngOnInit(): void {
+    const saved = localStorage.getItem('theme');
+    if (saved === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }
+}
+
+
+
+

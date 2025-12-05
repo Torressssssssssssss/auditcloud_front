@@ -1,0 +1,32 @@
+<nav class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">A</div>
+    <span class="logo-text">AuditCloud</span>
+  </div>
+  
+  <ul class="nav-list">
+    @for (item of items; track item.ruta) {
+      <li>
+        <a 
+          [routerLink]="item.ruta" 
+          routerLinkActive="active"
+          [class.active]="isActive(item.ruta)"
+          class="nav-item">
+          <app-icon [name]="item.icono" [size]="20" class="nav-icon"></app-icon>
+          <span class="nav-label">{{ item.etiqueta }}</span>
+          @if (item.badge && item.badge > 0) {
+            <span class="badge">{{ item.badge }}</span>
+          }
+        </a>
+      </li>
+    }
+  </ul>
+
+  <div class="nav-footer">
+    <a (click)="onLogout()" class="nav-item logout">
+      <app-icon name="logout" [size]="20" class="nav-icon"></app-icon>
+      <span class="nav-label">Salir</span>
+    </a>
+  </div>
+</nav>
+

@@ -1,0 +1,83 @@
+.usuarios-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.page-header h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  font-family: 'Playfair Display', serif;
+  letter-spacing: -0.02em;
+  transition: color 0.3s ease;
+}
+
+.form-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+}
+
+.form-card h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 var(--spacing-md) 0;
+  color: var(--text-primary);
+  font-family: 'Playfair Display', serif;
+  letter-spacing: -0.02em;
+  transition: color 0.3s ease;
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: flex-end;
+  margin-top: var(--spacing-md);
+}
+
+.status-badge {
+  padding: 0.375rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: all 0.3s ease;
+}
+
+.status-badge.active {
+  background: rgba(52, 199, 89, 0.1);
+  color: var(--success);
+}
+
+html.dark .status-badge.active {
+  background: rgba(48, 209, 88, 0.2);
+}
+
+.status-badge.inactive {
+  background: rgba(255, 59, 48, 0.1);
+  color: var(--error);
+}
+
+html.dark .status-badge.inactive {
+  background: rgba(255, 69, 58, 0.2);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+  }
+}

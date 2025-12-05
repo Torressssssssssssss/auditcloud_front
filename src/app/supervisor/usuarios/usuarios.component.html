@@ -1,0 +1,108 @@
+<div class="usuarios-page">
+  <div class="page-header">
+    <h2>Usuarios Internos</h2>
+    <button class="btn btn-primary" (click)="showForm.set(!showForm())">
+      {{ showForm() ? 'Cancelar' : '+ Crear Auditor' }}
+    </button>
+  </div>
+
+  @if (showForm()) {
+    <div class="form-card">
+      <h3>Crear Nuevo Auditor</h3>
+      @if (errorMessage()) {
+        <div class="error-message">{{ errorMessage() }}</div>
+      }
+      <form [formGroup]="usuarioForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label>Nombre</label>
+          <input type="text" formControlName="nombre" [class.error]="nombre?.invalid && nombre?.touched" />
+          @if (nombre?.invalid && nombre?.touched) {
+            <span class="field-error">El nombre es obligatorio</span>
+          }
+        </div>
+        <div class="form-group">
+          <label>Correo</label>
+          <input type="email" formControlName="correo" [class.error]="correo?.invalid && correo?.touched" />
+          @if (correo?.invalid && correo?.touched) {
+            <span class="field-error">
+              @if (correo?.errors?.['required']) {
+                El correo es obligatorio
+              } @else if (correo?.errors?.['email']) {
+                El correo no es válido
+              }
+            </span>
+          }
+        </div>
+        <div class="form-group">
+          <label>Contraseña</label>
+          <input type="password" formControlName="password" [class.error]="password?.invalid && password?.touched" />
+          @if (password?.invalid && password?.touched) {
+            <span class="field-error">
+              @if (password?.errors?.['required']) {
+                La contraseña es obligatoria
+              } @else if (password?.errors?.['minlength']) {
+                Mínimo 6 caracteres
+              }
+            </span>
+          }
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" [disabled]="usuarioForm.invalid">
+            Crear Auditor
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  @if (loading()) {
+    <app-loading-spinner />
+  } @else if (usuarios().length === 0) {
+    <app-empty-state mensaje="No hay usuarios internos registrados" />
+  } @else {
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Rol</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (usuario of usuarios(); track usuario.id_usuario) {
+            <tr>
+              <td>{{ usuario.nombre }}</td>
+              <td>{{ usuario.correo }}</td>
+              <td>Auditor</td>
+              <td>
+                <span [class]="'status-badge ' + (usuario.activo ? 'active' : 'inactive')">
+                  {{ usuario.activo ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td>
+                <button class="btn btn-secondary" (click)="toggleActivo(usuario)">
+                  {{ usuario.activo ? 'Desactivar' : 'Activar' }}
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <app-confirm-dialog
+    [visible]="showConfirm()"
+    titulo="Confirmar acción"
+    [mensaje]="'¿Estás seguro de ' + (usuarioToToggle?.activo ? 'desactivar' : 'activar') + ' este usuario?'"
+    (confirm)="confirmToggle()"
+    (cancel)="cancelToggle()">
+  </app-confirm-dialog>
+</div>
+
+
+
+

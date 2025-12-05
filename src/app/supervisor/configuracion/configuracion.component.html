@@ -1,0 +1,78 @@
+<div class="configuracion-page">
+  <h2>Configuración de Empresa</h2>
+
+  @if (loading()) {
+    <app-loading-spinner />
+  } @else {
+    @if (errorMessage()) {
+      <div class="error-message">{{ errorMessage() }}</div>
+    }
+    @if (successMessage()) {
+      <div class="success-message">{{ successMessage() }}</div>
+    }
+
+    <form [formGroup]="configForm" (ngSubmit)="guardar()" class="config-form">
+      <div class="form-section">
+        <h3>Datos Generales</h3>
+        <div class="form-group">
+          <label>Nombre de la Empresa *</label>
+          <input type="text" formControlName="nombre" [class.error]="nombre?.invalid && nombre?.touched" />
+          @if (nombre?.invalid && nombre?.touched) {
+            <span class="field-error">El nombre es obligatorio</span>
+          }
+        </div>
+        <div class="form-group">
+          <label>RFC</label>
+          <input type="text" formControlName="rfc" />
+        </div>
+        <div class="form-group">
+          <label>Dirección</label>
+          <textarea formControlName="direccion" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input type="tel" formControlName="telefono" />
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>Módulos que Ofrece</h3>
+        <div class="modulos-checkbox">
+          <label class="checkbox-label">
+            <input 
+              type="checkbox" 
+              [checked]="modulosSeleccionados().includes(1)" 
+              (change)="toggleModulo(1)" 
+            />
+            <span>Agua</span>
+          </label>
+          <label class="checkbox-label">
+            <input 
+              type="checkbox" 
+              [checked]="modulosSeleccionados().includes(2)" 
+              (change)="toggleModulo(2)" 
+            />
+            <span>Residuos</span>
+          </label>
+          <label class="checkbox-label">
+            <input 
+              type="checkbox" 
+              [checked]="modulosSeleccionados().includes(3)" 
+              (change)="toggleModulo(3)" 
+            />
+            <span>Energía</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="configForm.invalid">
+          Guardar Configuración
+        </button>
+      </div>
+    </form>
+  }
+</div>
+
+
+

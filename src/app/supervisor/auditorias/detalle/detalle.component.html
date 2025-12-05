@@ -1,0 +1,137 @@
+<div class="detalle-page">
+  @if (loading()) {
+    <app-loading-spinner />
+  } @else if (!auditoria()) {
+    <app-empty-state mensaje="Auditoría no encontrada" />
+  } @else {
+    <div class="page-header">
+      <div>
+        <button class="btn btn-secondary" (click)="router.navigate(['/supervisor/auditorias'])">
+          ← Volver
+        </button>
+        <h2>Auditoría #{{ auditoria()!.id_auditoria }}</h2>
+      </div>
+      <app-status-badge [estado]="auditoria()!.id_estado" tipo="auditoria" />
+    </div>
+
+    <div class="detalle-grid">
+      <!-- Información General -->
+      <div class="info-card">
+        <h3>Información General</h3>
+        <div class="info-item">
+          <label>Cliente:</label>
+          <span>{{ auditoria()!.cliente?.nombre_empresa || auditoria()!.cliente?.nombre || 'N/A' }}</span>
+        </div>
+        <div class="info-item">
+          <label>Objetivo:</label>
+          <span>{{ auditoria()!.objetivo || 'No especificado' }}</span>
+        </div>
+        <div class="info-item">
+          <label>Fecha Creación:</label>
+          <span>{{ auditoria()!.fecha_creacion | date:'short' }}</span>
+        </div>
+        <div class="info-item">
+          <label>Fecha Inicio:</label>
+          <span>{{ auditoria()!.fecha_inicio ? (auditoria()!.fecha_inicio | date:'short') : 'No iniciada' }}</span>
+        </div>
+        <div class="info-item">
+          <label>Fecha Fin:</label>
+          <span>{{ auditoria()!.fecha_fin ? (auditoria()!.fecha_fin | date:'short') : 'En progreso' }}</span>
+        </div>
+      </div>
+
+      <!-- Módulos -->
+      <div class="info-card">
+        <h3>Módulos Ambientales</h3>
+        <div class="modulos-list">
+            @if (auditoria()!.modulos && auditoria()!.modulos!.length > 0) {
+            @for (modulo of auditoria()!.modulos; track modulo) {
+              <span class="modulo-tag">{{ getModuloNombre(modulo) }}</span>
+            }
+          } @else {
+            <p class="text-muted">No hay módulos asignados</p>
+          }
+        </div>
+        <div class="modulos-actions">
+          <button class="btn btn-secondary" (click)="agregarModulo(1)">+ Agua</button>
+          <button class="btn btn-secondary" (click)="agregarModulo(2)">+ Residuos</button>
+          <button class="btn btn-secondary" (click)="agregarModulo(3)">+ Energía</button>
+        </div>
+      </div>
+
+      <!-- Auditores Asignados -->
+      <div class="info-card">
+        <h3>Auditores Asignados</h3>
+        @if (auditoresAsignados().length === 0) {
+          <p class="text-muted">No hay auditores asignados</p>
+        } @else {
+          <ul class="auditores-list">
+            @for (auditor of auditoresAsignados(); track auditor.id_usuario) {
+              <li>{{ auditor.nombre }} ({{ auditor.correo }})</li>
+            }
+          </ul>
+        }
+        <button class="btn btn-primary" (click)="showAsignacion.set(!showAsignacion())">
+          {{ showAsignacion() ? 'Cancelar' : '+ Asignar Auditor' }}
+        </button>
+        
+        @if (showAsignacion()) {
+          <form [formGroup]="asignacionForm" (ngSubmit)="asignarAuditor()" class="asignacion-form">
+            <div class="form-group">
+              <label>Seleccionar Auditor:</label>
+              <select formControlName="id_auditor" [class.error]="id_auditor?.invalid && id_auditor?.touched">
+                <option value="">Seleccionar...</option>
+                @for (auditor of auditoresDisponibles(); track auditor.id_usuario) {
+                  <option [value]="auditor.id_usuario">{{ auditor.nombre }}</option>
+                }
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary" [disabled]="asignacionForm.invalid">
+              Asignar
+            </button>
+          </form>
+        }
+      </div>
+
+      <!-- Cambiar Estado -->
+      <div class="info-card">
+        <h3>Gestión de Estado</h3>
+        <p>Estado actual: <strong>{{ getEstadoNombre(auditoria()!.id_estado) }}</strong></p>
+        <div class="estado-actions">
+          @if (auditoria()!.id_estado === 1) {
+            <button class="btn btn-primary" (click)="solicitarCambioEstado(2)">
+              Marcar como EN_PROCESO
+            </button>
+          }
+          @if (auditoria()!.id_estado === 2) {
+            <button class="btn btn-primary" (click)="solicitarCambioEstado(3)">
+              Marcar como FINALIZADA
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Acciones Rápidas -->
+      <div class="info-card">
+        <h3>Acciones Rápidas</h3>
+        <div class="quick-actions">
+          <a [routerLink]="['/supervisor/evidencias']" [queryParams]="{auditoria: auditoria()!.id_auditoria}" class="btn btn-secondary">
+            Ver Evidencias
+          </a>
+          <a [routerLink]="['/supervisor/reportes']" [queryParams]="{auditoria: auditoria()!.id_auditoria}" class="btn btn-secondary">
+            Ver Reportes
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <app-confirm-dialog
+      [visible]="showConfirmEstado()"
+      titulo="Confirmar cambio de estado"
+      [mensaje]="'¿Estás seguro de cambiar el estado a ' + (nuevoEstado() ? getEstadoNombre(nuevoEstado()!) : '') + '?'"
+      (confirm)="confirmarCambioEstado()"
+      (cancel)="cancelarCambioEstado()">
+    </app-confirm-dialog>
+  }
+</div>
+

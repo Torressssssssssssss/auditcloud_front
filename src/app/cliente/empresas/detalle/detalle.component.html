@@ -1,0 +1,75 @@
+<div class="detalle-page">
+  @if (loading()) {
+    <app-loading-spinner />
+  } @else if (!empresa()) {
+    <app-empty-state mensaje="Empresa no encontrada" />
+  } @else {
+    <div class="page-header">
+      <button class="btn btn-secondary" (click)="router.navigate(['/cliente/empresas'])">
+        ← Volver
+      </button>
+      <h2>{{ empresa()!.nombre }}</h2>
+    </div>
+
+    <div class="detalle-grid">
+      <div class="info-card">
+        <h3>Información General</h3>
+        <div class="info-item">
+          <label>Nombre:</label>
+          <span>{{ empresa()!.nombre }}</span>
+        </div>
+        @if (empresa()!.rfc) {
+          <div class="info-item">
+            <label>RFC:</label>
+            <span>{{ empresa()!.rfc }}</span>
+          </div>
+        }
+        <div class="info-item">
+          <label>Ubicación:</label>
+          <span>{{ empresa()!.pais || 'N/A' }}{{ empresa()!.estado ? ', ' + empresa()!.estado : '' }}</span>
+        </div>
+        @if (empresa()!.direccion) {
+          <div class="info-item">
+            <label>Dirección:</label>
+            <span>{{ empresa()!.direccion }}</span>
+          </div>
+        }
+        @if (empresa()!.telefono) {
+          <div class="info-item">
+            <label>Teléfono:</label>
+            <span>{{ empresa()!.telefono }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="info-card">
+        <h3>Módulos que Ofrece</h3>
+        <div class="modulos-list">
+          @if (empresa()!.modulos && empresa()!.modulos!.length > 0) {
+            @for (modulo of empresa()!.modulos; track modulo) {
+              <span class="modulo-tag">{{ getModulosTexto([modulo]) }}</span>
+            }
+          } @else {
+            <p class="text-muted">No especificado</p>
+          }
+        </div>
+      </div>
+
+      @if (empresa()!.descripcion) {
+        <div class="info-card full-width">
+          <h3>Descripción</h3>
+          <p>{{ empresa()!.descripcion }}</p>
+        </div>
+      }
+
+      <div class="info-card full-width">
+        <h3>Acciones</h3>
+        <button class="btn btn-primary" (click)="contactar()">
+          <app-icon name="chat" [size]="18"></app-icon>
+          Contactar Empresa
+        </button>
+      </div>
+    </div>
+  }
+</div>
+

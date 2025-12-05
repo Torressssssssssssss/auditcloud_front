@@ -1,0 +1,71 @@
+<div class="dashboard">
+  <div class="dashboard-header">
+    <h2>Mi Dashboard</h2>
+  </div>
+
+  @if (loading()) {
+    <app-loading-spinner />
+  } @else {
+    <div class="stats-grid">
+      <div class="stat-card card" (click)="navigateTo('/cliente/auditorias')" style="cursor: pointer;">
+        <div class="stat-icon-wrapper">
+          <app-icon name="document" [size]="32" class="stat-icon"></app-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ getTotalAuditorias() }}</h3>
+          <p>Auditorías Activas</p>
+        </div>
+      </div>
+
+      <div class="stat-card card" (click)="navigateTo('/cliente/pagos')" style="cursor: pointer;">
+        <div class="stat-icon-wrapper">
+          <app-icon name="credit-card" [size]="32" class="stat-icon"></app-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ solicitudesPendientes() }}</h3>
+          <p>Solicitudes Pendientes</p>
+        </div>
+      </div>
+
+      <div class="stat-card card" (click)="navigateTo('/cliente/mensajes')" style="cursor: pointer;">
+        <div class="stat-icon-wrapper">
+          <app-icon name="chat" [size]="32" class="stat-icon"></app-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ ultimosMensajes().length }}</h3>
+          <p>Conversaciones</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-sections">
+      <div class="dashboard-section card-xl">
+        <div class="section-header">
+          <h3>Últimos Mensajes</h3>
+          <a routerLink="/cliente/mensajes" class="view-all btn btn-outline">Ver todos</a>
+        </div>
+        @if (ultimosMensajes().length === 0) {
+          <app-empty-state mensaje="No hay mensajes" />
+        } @else {
+          <div class="messages-list">
+            @for (conversacion of ultimosMensajes(); track conversacion.id_conversacion) {
+              <div class="message-item" [routerLink]="['/cliente/mensajes', conversacion.id_conversacion]">
+                <div class="message-info">
+                  <h4>{{ conversacion.empresa?.nombre || 'Empresa' }}</h4>
+                  <p>{{ conversacion.ultimo_mensaje?.contenido || 'Sin mensajes' }}</p>
+                </div>
+                <span class="message-time">
+                  {{ formatDate(conversacion.ultimo_mensaje?.fecha_envio || conversacion.fecha_creacion) }}
+                </span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+
+
+

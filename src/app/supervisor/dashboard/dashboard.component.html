@@ -1,0 +1,91 @@
+<div class="dashboard">
+  <div class="dashboard-header">
+    <h2>Resumen General</h2>
+  </div>
+
+  @if (loading()) {
+    <app-loading-spinner />
+  } @else {
+    <div class="stats-grid">
+      <div class="stat-card card">
+        <div class="stat-icon-wrapper">
+          <app-icon name="building" [size]="32" class="stat-icon"></app-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ totalClientes() }}</h3>
+          <p>Empresas Cliente</p>
+        </div>
+      </div>
+
+      <div class="stat-card card">
+        <div class="stat-icon-wrapper">
+          <app-icon name="credit-card" [size]="32" class="stat-icon"></app-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ solicitudesPendientes() }}</h3>
+          <p>Solicitudes Pendientes</p>
+        </div>
+      </div>
+
+      <div class="stat-card card">
+        <div class="stat-icon-wrapper">
+          <app-icon name="document" [size]="32" class="stat-icon"></app-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ auditoriasActivas().length }}</h3>
+          <p>Auditorías Activas</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-section card-xl">
+      <h3>Auditorías Activas</h3>
+      @if (auditoriasActivas().length === 0) {
+        <app-empty-state mensaje="No hay auditorías activas" />
+      } @else {
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Estado</th>
+                <th>Módulos</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (auditoria of auditoriasActivas(); track auditoria.id_auditoria) {
+                <tr>
+                  <td>{{ auditoria.cliente?.nombre_empresa || 'N/A' }}</td>
+                  <td>
+                    <app-status-badge [estado]="auditoria.id_estado" tipo="auditoria" />
+                  </td>
+                  <td>
+                    @if (auditoria.modulos && auditoria.modulos.length > 0) {
+                      <span class="modulos">
+                        @for (modulo of auditoria.modulos; track modulo) {
+                          <span class="modulo-tag">{{ modulo }}</span>
+                        }
+                      </span>
+                    } @else {
+                      <span>-</span>
+                    }
+                  </td>
+                  <td>
+                    <a [routerLink]="['/supervisor/auditorias', auditoria.id_auditoria]" class="btn btn-outline">
+                      Ver detalle
+                    </a>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+
+
+

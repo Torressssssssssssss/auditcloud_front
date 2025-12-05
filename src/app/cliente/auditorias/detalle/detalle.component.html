@@ -1,0 +1,106 @@
+<div class="detalle-page">
+  @if (loading()) {
+    <app-loading-spinner />
+  } @else if (!auditoria()) {
+    <app-empty-state mensaje="Auditoría no encontrada" />
+  } @else {
+    <div class="page-header">
+      <div>
+        <button class="btn btn-secondary" (click)="router.navigate(['/cliente/auditorias'])">
+          ← Volver
+        </button>
+        <h2>Auditoría #{{ auditoria()!.id_auditoria }}</h2>
+      </div>
+      <app-status-badge [estado]="auditoria()!.id_estado" tipo="auditoria" />
+    </div>
+
+    <div class="detalle-grid">
+      <div class="info-card">
+        <h3>Información General</h3>
+        <div class="info-item">
+          <label>Empresa Auditora:</label>
+          <span>{{ auditoria()!.empresa?.nombre || 'N/A' }}</span>
+        </div>
+        <div class="info-item">
+          <label>Objetivo:</label>
+          <span>{{ auditoria()!.objetivo || 'No especificado' }}</span>
+        </div>
+        <div class="info-item">
+          <label>Estado:</label>
+          <span>
+            <app-status-badge [estado]="auditoria()!.id_estado" tipo="auditoria" />
+          </span>
+        </div>
+        <div class="info-item">
+          <label>Fecha Creación:</label>
+          <span>{{ auditoria()!.fecha_creacion | date:'short' }}</span>
+        </div>
+        <div class="info-item">
+          <label>Fecha Inicio:</label>
+          <span>{{ auditoria()!.fecha_inicio ? (auditoria()!.fecha_inicio | date:'short') : 'No iniciada' }}</span>
+        </div>
+        <div class="info-item">
+          <label>Fecha Fin:</label>
+          <span>{{ auditoria()!.fecha_fin ? (auditoria()!.fecha_fin | date:'short') : 'En progreso' }}</span>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <h3>Módulos Incluidos</h3>
+        <div class="modulos-list">
+            @if (auditoria()!.modulos && auditoria()!.modulos!.length > 0) {
+            @for (modulo of auditoria()!.modulos; track modulo) {
+              <span class="modulo-tag">{{ getModuloNombre(modulo) }}</span>
+            }
+          } @else {
+            <p class="text-muted">No hay módulos asignados</p>
+          }
+        </div>
+      </div>
+
+      <div class="info-card">
+        <h3>Timeline</h3>
+        <div class="timeline">
+          <div class="timeline-item" [class.active]="auditoria()!.id_estado >= 1" [class.completed]="auditoria()!.id_estado > 1">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <strong>CREADA</strong>
+              <span>{{ auditoria()!.fecha_creacion | date:'short' }}</span>
+            </div>
+          </div>
+          <div class="timeline-item" [class.active]="auditoria()!.id_estado >= 2" [class.completed]="auditoria()!.id_estado > 2">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <strong>EN_PROCESO</strong>
+              <span>{{ auditoria()!.fecha_inicio ? (auditoria()!.fecha_inicio | date:'short') : 'Pendiente' }}</span>
+            </div>
+          </div>
+          <div class="timeline-item" [class.active]="auditoria()!.id_estado >= 3" [class.completed]="auditoria()!.id_estado === 3">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <strong>FINALIZADA</strong>
+              <span>{{ auditoria()!.fecha_fin ? (auditoria()!.fecha_fin | date:'short') : 'Pendiente' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      @if (puedeDescargarReporte()) {
+        <div class="info-card">
+          <h3>Reporte Final</h3>
+          <p>El reporte final está disponible para descarga.</p>
+          <button class="btn btn-primary" (click)="descargarReporte()">
+            <app-icon name="download" [size]="18"></app-icon>
+            Descargar Reporte Final
+          </button>
+        </div>
+      } @else {
+        <div class="info-card">
+          <h3>Reporte Final</h3>
+          <p class="text-muted">El reporte final aún no está disponible. Se publicará cuando la auditoría esté finalizada.</p>
+        </div>
+      }
+    </div>
+  }
+</div>
+

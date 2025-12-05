@@ -1,0 +1,70 @@
+<div class="reportes-page">
+  <div class="page-header">
+    <h2>Reportes</h2>
+  </div>
+
+  <div class="filters">
+    <div class="filter-group">
+      <label>Filtrar por auditoría:</label>
+      <select [value]="filtroAuditoria() ?? ''" (change)="onAuditoriaChange($event)">
+        <option value="">Todas</option>
+        @for (auditoria of auditorias(); track auditoria.id_auditoria) {
+          <option [value]="auditoria.id_auditoria">
+            #{{ auditoria.id_auditoria }} - {{ auditoria.cliente?.nombre_empresa || 'N/A' }}
+          </option>
+        }
+      </select>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <app-loading-spinner />
+  } @else if (reportesFiltrados.length === 0) {
+    <app-empty-state mensaje="No hay reportes" />
+  } @else {
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Auditoría</th>
+            <th>Nombre del Reporte</th>
+            <th>Fecha Elaboración</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (reporte of reportesFiltrados; track reporte.id_reporte) {
+            <tr>
+              <td>
+                <a [routerLink]="['/supervisor/auditorias', reporte.id_auditoria]" class="btn-link">
+                  #{{ reporte.id_auditoria }}
+                </a>
+              </td>
+              <td>{{ reporte.nombre }}</td>
+              <td>{{ reporte.fecha_elaboracion | date:'short' }}</td>
+              <td>
+                @if (reporte.aprobado) {
+                  <span class="badge-approved">Aprobado</span>
+                } @else {
+                  <span class="badge-pending">Pendiente</span>
+                }
+              </td>
+              <td>
+                @if (reporte.url) {
+                  <button class="btn btn-secondary" (click)="descargarReporte(reporte)">
+                    <app-icon name="download" [size]="18"></app-icon>
+                    Descargar
+                  </button>
+                } @else {
+                  <span class="text-muted">Sin archivo</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+

@@ -1,0 +1,80 @@
+<div class="dashboard">
+  <div class="dashboard-header">
+    <h2>Mi Dashboard</h2>
+  </div>
+
+  @if (loading()) {
+    <app-loading-spinner />
+  } @else {
+    <div class="stats-grid">
+      <div class="stat-card card">
+        <div class="stat-icon-wrapper">
+          <app-icon name="document" [size]="32" class="stat-icon"></app-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ getTotalAuditorias() }}</h3>
+          <p>Total Auditorías</p>
+        </div>
+      </div>
+
+      <div class="stat-card card">
+        <div class="stat-icon-wrapper">
+          <app-icon name="clock" [size]="32" class="stat-icon"></app-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ auditoriasPorEstado()[2] || 0 }}</h3>
+          <p>En Proceso</p>
+        </div>
+      </div>
+
+      <div class="stat-card card">
+        <div class="stat-icon-wrapper">
+          <app-icon name="check-circle" [size]="32" class="stat-icon"></app-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ auditoriasPorEstado()[3] || 0 }}</h3>
+          <p>Finalizadas</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="dashboard-section card-xl">
+      <h3>Próximas Visitas</h3>
+      @if (proximasVisitas().length === 0) {
+        <app-empty-state mensaje="No hay visitas programadas" />
+      } @else {
+        <div class="visits-list">
+          @for (auditoria of proximasVisitas(); track auditoria.id_auditoria) {
+            <div class="visit-card card">
+              <div class="visit-info">
+                <h4>{{ auditoria.cliente?.nombre_empresa || 'N/A' }}</h4>
+                <p>{{ auditoria.objetivo || 'Sin objetivo definido' }}</p>
+              </div>
+              <div class="visit-actions">
+                <app-status-badge [estado]="auditoria.id_estado" tipo="auditoria" />
+                <a [routerLink]="['/auditor/auditorias', auditoria.id_auditoria]" class="btn btn-outline">
+                  Ver detalle
+                </a>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="quick-actions">
+      <a routerLink="/auditor/auditorias" class="action-btn btn btn-grad" style="text-decoration:none;">
+        <app-icon name="document" [size]="20"></app-icon>
+        <span>Ver mis auditorías</span>
+      </a>
+      <a routerLink="/auditor/evidencias" class="action-btn btn btn-grad" style="text-decoration:none;">
+        <app-icon name="paperclip" [size]="20"></app-icon>
+        <span>Subir evidencias</span>
+      </a>
+    </div>
+  }
+</div>
+
+
+
+

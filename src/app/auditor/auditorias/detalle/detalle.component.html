@@ -1,0 +1,65 @@
+<div class="detalle-page">
+  @if (loading()) {
+    <app-loading-spinner />
+  } @else if (!auditoria()) {
+    <app-empty-state mensaje="Auditoría no encontrada" />
+  } @else {
+    <div class="page-header">
+      <div>
+        <button class="btn btn-secondary" (click)="router.navigate(['/auditor/auditorias'])">
+          ← Volver
+        </button>
+        <h2>Auditoría #{{ auditoria()!.id_auditoria }}</h2>
+      </div>
+      <app-status-badge [estado]="auditoria()!.id_estado" tipo="auditoria" />
+    </div>
+
+    <div class="detalle-grid">
+      <div class="info-card">
+        <h3>Información General</h3>
+        <div class="info-item">
+          <label>Cliente:</label>
+          <span>{{ auditoria()!.cliente?.nombre_empresa || auditoria()!.cliente?.nombre || 'N/A' }}</span>
+        </div>
+        <div class="info-item">
+          <label>Objetivo:</label>
+          <span>{{ auditoria()!.objetivo || 'No especificado' }}</span>
+        </div>
+        <div class="info-item">
+          <label>Estado:</label>
+          <span>{{ getEstadoNombre(auditoria()!.id_estado) }}</span>
+        </div>
+        <div class="info-item">
+          <label>Fecha Inicio:</label>
+          <span>{{ auditoria()!.fecha_inicio ? (auditoria()!.fecha_inicio | date:'short') : 'No iniciada' }}</span>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <h3>Módulos Asignados</h3>
+        <div class="modulos-list">
+            @if (auditoria()!.modulos && auditoria()!.modulos!.length > 0) {
+            @for (modulo of auditoria()!.modulos; track modulo) {
+              <span class="modulo-tag">{{ getModuloNombre(modulo) }}</span>
+            }
+          } @else {
+            <p class="text-muted">No hay módulos asignados</p>
+          }
+        </div>
+      </div>
+
+      <div class="info-card">
+        <h3>Acciones Rápidas</h3>
+        <div class="quick-actions">
+          <a [routerLink]="['/auditor/evidencias']" [queryParams]="{auditoria: auditoria()!.id_auditoria}" class="btn btn-primary">
+            Subir Evidencias
+          </a>
+          <a [routerLink]="['/auditor/reportes']" [queryParams]="{auditoria: auditoria()!.id_auditoria}" class="btn btn-secondary">
+            Ver Reportes
+          </a>
+        </div>
+      </div>
+    </div>
+  }
+</div>
+

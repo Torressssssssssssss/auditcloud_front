@@ -1,0 +1,66 @@
+<div class="auditorias-page">
+  <div class="page-header">
+    <h2>Mis Auditorías</h2>
+  </div>
+
+  <div class="filters">
+    <div class="filter-group">
+      <label>Filtrar por estado:</label>
+      <select [value]="filtroEstado() ?? ''" (change)="onEstadoChange($event)">
+        <option value="">Todos</option>
+        <option [value]="1">CREADA</option>
+        <option [value]="2">EN_PROCESO</option>
+        <option [value]="3">FINALIZADA</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Filtrar por módulo:</label>
+      <select [value]="filtroModulo() ?? ''" (change)="onModuloChange($event)">
+        <option value="">Todos</option>
+        <option [value]="1">Agua</option>
+        <option [value]="2">Residuos</option>
+        <option [value]="3">Energía</option>
+      </select>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <app-loading-spinner />
+  } @else if (auditoriasFiltradas.length === 0) {
+    <app-empty-state mensaje="No tienes auditorías" />
+  } @else {
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Empresa Auditora</th>
+            <th>Estado</th>
+            <th>Módulos</th>
+            <th>Fecha Creación</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (auditoria of auditoriasFiltradas; track auditoria.id_auditoria) {
+            <tr>
+              <td>#{{ auditoria.id_auditoria }}</td>
+              <td>{{ auditoria.empresa?.nombre || 'N/A' }}</td>
+              <td>
+                <app-status-badge [estado]="auditoria.id_estado" tipo="auditoria" />
+              </td>
+              <td>{{ getModulosTexto(auditoria.modulos) }}</td>
+              <td>{{ auditoria.fecha_creacion | date:'short' }}</td>
+              <td>
+                <a [routerLink]="['/cliente/auditorias', auditoria.id_auditoria]" class="btn-link">
+                  Ver detalle
+                </a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+

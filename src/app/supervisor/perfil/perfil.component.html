@@ -1,0 +1,80 @@
+<div class="perfil-page">
+  <h2>Mi Perfil</h2>
+
+  <div class="perfil-grid">
+    <div class="info-card">
+      <h3>Información Personal</h3>
+      <div class="info-item">
+        <label>Nombre:</label>
+        <span>{{ usuario?.nombre || 'N/A' }}</span>
+      </div>
+      <div class="info-item">
+        <label>Correo:</label>
+        <span>{{ usuario?.correo || 'N/A' }}</span>
+      </div>
+      <div class="info-item">
+        <label>Rol:</label>
+        <span>Supervisor</span>
+      </div>
+      <div class="info-item">
+        <label>ID Usuario:</label>
+        <span>{{ usuario?.id_usuario || 'N/A' }}</span>
+      </div>
+      <div class="info-item">
+        <label>ID Empresa:</label>
+        <span>{{ usuario?.id_empresa || 'N/A' }}</span>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <h3>Cambiar Contraseña</h3>
+      @if (errorMessage()) {
+        <div class="error-message">{{ errorMessage() }}</div>
+      }
+      @if (successMessage()) {
+        <div class="success-message">{{ successMessage() }}</div>
+      }
+      <form [formGroup]="passwordForm" (ngSubmit)="cambiarPassword()">
+        <div class="form-group">
+          <label>Contraseña Actual</label>
+          <input type="password" formControlName="actual" [class.error]="actual?.invalid && actual?.touched" />
+          @if (actual?.invalid && actual?.touched) {
+            <span class="field-error">La contraseña actual es obligatoria</span>
+          }
+        </div>
+        <div class="form-group">
+          <label>Nueva Contraseña</label>
+          <input type="password" formControlName="nueva" [class.error]="nueva?.invalid && nueva?.touched" />
+          @if (nueva?.invalid && nueva?.touched) {
+            <span class="field-error">
+              @if (nueva?.errors?.['required']) {
+                La nueva contraseña es obligatoria
+              } @else if (nueva?.errors?.['minlength']) {
+                Mínimo 6 caracteres
+              }
+            </span>
+          }
+        </div>
+        <div class="form-group">
+          <label>Confirmar Nueva Contraseña</label>
+          <input type="password" formControlName="confirmar" [class.error]="confirmar?.invalid && confirmar?.touched" />
+          @if (confirmar?.invalid && confirmar?.touched) {
+            <span class="field-error">
+              @if (confirmar?.errors?.['required']) {
+                Confirma la contraseña
+              } @else if (confirmar?.errors?.['passwordMismatch']) {
+                Las contraseñas no coinciden
+              }
+            </span>
+          }
+        </div>
+        <button type="submit" class="btn btn-primary" [disabled]="passwordForm.invalid">
+          Cambiar Contraseña
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+

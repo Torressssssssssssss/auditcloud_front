@@ -1,0 +1,76 @@
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="logo-large">
+        <div class="logo-icon-large">A</div>
+        <h1>AuditCloud</h1>
+      </div>
+      <p class="subtitle">Inicia sesión en tu cuenta</p>
+      <app-theme-toggle></app-theme-toggle>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+        @if (errorMessage()) {
+          <div class="rounded-md bg-red-100 text-red-600 p-3 text-sm text-center">
+          {{ errorMessage() }}
+        </div>
+      }
+
+      <div class="form-group">
+        <label for="correo">Correo electrónico</label>
+        <input
+          type="email"
+          id="correo"
+          formControlName="correo"
+          placeholder="correo@ejemplo.com"
+          [class.error]="correo?.invalid && correo?.touched"
+        />
+          @if (correo?.invalid && correo?.touched) {
+            <span class="text-xs text-red-600">
+            @if (correo?.errors?.['required']) {
+              El correo es obligatorio
+            } @else if (correo?.errors?.['email']) {
+              El correo no es válido
+            }
+          </span>
+        }
+      </div>
+
+      <div class="form-group">
+        <label for="password">Contraseña</label>
+        <input
+          type="password"
+          id="password"
+          formControlName="password"
+          placeholder="••••••••"
+          [class.error]="password?.invalid && password?.touched"
+        />
+          @if (password?.invalid && password?.touched) {
+            <span class="text-xs text-red-600">
+            @if (password?.errors?.['required']) {
+              La contraseña es obligatoria
+            } @else if (password?.errors?.['minlength']) {
+              La contraseña debe tener al menos 6 caracteres
+            }
+          </span>
+        }
+      </div>
+
+        <button type="submit" class="btn-grad"
+          [disabled]="loginForm.invalid || loading()">
+        @if (loading()) {
+          <span>Cargando...</span>
+        } @else {
+          <span>Iniciar sesión</span>
+        }
+      </button>
+        <div class="register-link">
+          <a routerLink="/registro">¿No tienes cuenta? Regístrate</a>
+        </div>
+    </form>
+  </div>
+</div>
+
+
+
+
