@@ -50,41 +50,54 @@ export class ClienteDashboardComponent implements OnInit {
     }
 
     // Cargar auditorías
-    this.apiService.get<Auditoria[]>(`/api/cliente/auditorias/${idCliente}`, { page: 1, limit: 100 })
+    this.apiService.get<any>(`/api/cliente/auditorias/${idCliente}`, { page: 1, limit: 100 })
       .subscribe({
-        next: (auditorias) => {
+        next: (response) => {
+          // Manejar respuesta como array o objeto con data
+          const auditorias = Array.isArray(response) ? response : (response?.data || []);
           const estados: Record<number, number> = {};
-          auditorias.forEach(a => {
-            estados[a.id_estado] = (estados[a.id_estado] || 0) + 1;
-          });
+          if (Array.isArray(auditorias)) {
+            auditorias.forEach((a: Auditoria) => {
+              estados[a.id_estado] = (estados[a.id_estado] || 0) + 1;
+            });
+          }
           this.auditoriasPorEstado.set(estados);
         },
         error: (error) => {
           console.error('Error cargando auditorías:', error);
+          this.auditoriasPorEstado.set({});
         }
       });
 
     // Cargar solicitudes de pago
-    this.apiService.get<SolicitudPago[]>(`/api/cliente/solicitudes-pago/${idCliente}`)
+    this.apiService.get<any>(`/api/cliente/solicitudes-pago/${idCliente}`)
       .subscribe({
-        next: (solicitudes) => {
-          const pendientes = solicitudes.filter(s => s.id_estado === 1).length;
+        next: (response) => {
+          // Manejar respuesta como array o objeto con data
+          const solicitudes = Array.isArray(response) ? response : (response?.data || []);
+          const pendientes = Array.isArray(solicitudes) 
+            ? solicitudes.filter((s: SolicitudPago) => s.id_estado === 1).length 
+            : 0;
           this.solicitudesPendientes.set(pendientes);
         },
         error: (error) => {
           console.error('Error cargando solicitudes:', error);
+          this.solicitudesPendientes.set(0);
         }
       });
 
     // Cargar conversaciones
-    this.apiService.get<Conversacion[]>(`/api/cliente/conversaciones/${idCliente}`)
+    this.apiService.get<any>(`/api/cliente/conversaciones/${idCliente}`)
       .subscribe({
-        next: (conversaciones) => {
-          this.ultimosMensajes.set(conversaciones.slice(0, 5));
+        next: (response) => {
+          // Manejar respuesta como array o objeto con data
+          const conversaciones = Array.isArray(response) ? response : (response?.data || []);
+          this.ultimosMensajes.set(Array.isArray(conversaciones) ? conversaciones.slice(0, 5) : []);
           this.loading.set(false);
         },
         error: (error) => {
           console.error('Error cargando conversaciones:', error);
+          this.ultimosMensajes.set([]);
           this.loading.set(false);
         }
       });

@@ -124,6 +124,26 @@
   text-decoration: underline;
 }
 
+.empresa-info {
+  margin-bottom: var(--spacing-md);
+}
+
+.empresa-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.empresa-actions .btn {
+  flex: 1;
+  min-width: 120px;
+  text-align: center;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .empresas-grid {
