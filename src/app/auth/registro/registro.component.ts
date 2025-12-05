@@ -20,7 +20,7 @@ export class RegistroComponent {
   error = signal<string | null>(null);
 
   form = this.fb.group({
-    nombre: ['', [Validators.required, Validators.minLength(3)]],
+    nombre: ['', [Validators.required]],
     correo: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
     nombre_empresa: ['', [Validators.required, Validators.minLength(2)]],

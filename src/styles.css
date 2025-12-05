@@ -96,6 +96,16 @@ html.dark {
   --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.5);
 }
 
+/* Dashboard más oscuro en modo oscuro */
+html.dark .dashboard {
+  background: var(--bg-primary);
+}
+
+html.dark .stat-card {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
 html.dark body {
   background: var(--bg-primary);
   color: var(--text-primary);
@@ -143,7 +153,8 @@ html.dark h6 {
 .btn-primary:hover:not(:disabled) {
   background: #0051D5;
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 8px 16px rgba(0, 122, 255, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 html.dark .btn-primary {
@@ -166,8 +177,9 @@ html.dark .btn-primary:hover:not(:disabled) {
   background: var(--bg-tertiary);
   border-color: var(--accent-primary);
   color: var(--accent-primary);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-outline {
@@ -181,7 +193,9 @@ html.dark .btn-primary:hover:not(:disabled) {
   background: var(--bg-tertiary);
   border-color: var(--accent-primary);
   color: var(--accent-primary);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-large {
@@ -201,7 +215,9 @@ html.dark .btn-primary:hover:not(:disabled) {
 
 .card:hover {
   box-shadow: var(--shadow-md);
-  border-color: var(--border-color);
+  border-color: var(--accent-primary);
+  transform: translateY(-2px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card-xl {
@@ -218,6 +234,7 @@ html.dark .btn-primary:hover:not(:disabled) {
   flex-direction: column;
   gap: 0.5rem;
   margin-bottom: 1.5rem;
+  position: relative;
 }
 
 .form-group label {
@@ -239,6 +256,24 @@ html.dark .btn-primary:hover:not(:disabled) {
   background: var(--bg-secondary);
   color: var(--text-primary);
   letter-spacing: -0.01em;
+  position: relative;
+  z-index: 1;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
+  transform: scale(1.01);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html.dark .form-group input:focus,
+html.dark .form-group textarea:focus,
+html.dark .form-group select:focus {
+  box-shadow: 0 0 0 4px rgba(10, 132, 255, 0.2);
 }
 
 .form-group select option {
@@ -263,6 +298,8 @@ html.dark .form-group select option {
   outline: none;
   border-color: var(--accent-primary);
   box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1);
+  transform: scale(1.01);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 html.dark .form-group input:focus,
@@ -329,11 +366,13 @@ html.dark table td {
 }
 
 table tbody tr {
-  transition: background 0.15s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 table tbody tr:hover {
   background: var(--bg-tertiary);
+  transform: translateX(4px);
+  box-shadow: -4px 0 0 0 var(--accent-primary);
 }
 
 table tbody tr:last-child td {

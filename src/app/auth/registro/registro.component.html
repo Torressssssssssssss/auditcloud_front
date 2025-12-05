@@ -1,47 +1,47 @@
 <div class="page-grad">
   <div class="card-xl">
     <div class="flex items-center justify-between mb-4">
-      <h1 class="text-2xl font-semibold" style="color: var(--text)">Crear cuenta de cliente</h1>
+      <h1>Crear cuenta de cliente</h1>
       <button type="button" class="btn btn-outline" (click)="goLogin()">Volver a login</button>
     </div>
 
     <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
       <div class="md:col-span-2">
-        <label class="block text-sm mb-1" style="color: var(--text-muted)">Nombre del contacto</label>
+        <label>Nombre del contacto</label>
         <input class="input-xl" type="text" formControlName="nombre" placeholder="Juan Pérez" />
-        <p class="text-red-600 text-sm" *ngIf="form.controls.nombre.touched && form.controls.nombre.invalid">Nombre requerido (mínimo 3)</p>
+        <p class="text-red-600" *ngIf="form.controls.nombre.touched && form.controls.nombre.invalid">Nombre requerido</p>
       </div>
 
       <div>
-        <label class="block text-sm mb-1" style="color: var(--text-muted)">Correo</label>
+        <label>Correo</label>
         <input class="input-xl" type="email" formControlName="correo" placeholder="cliente@empresa.com" />
-        <p class="text-red-600 text-sm" *ngIf="form.controls.correo.touched && form.controls.correo.invalid">Correo inválido</p>
+        <p class="text-red-600" *ngIf="form.controls.correo.touched && form.controls.correo.invalid">Correo inválido</p>
       </div>
 
       <div>
-        <label class="block text-sm mb-1" style="color: var(--text-muted)">Contraseña</label>
+        <label>Contraseña</label>
         <input class="input-xl" type="password" formControlName="password" placeholder="••••••" />
-        <p class="text-red-600 text-sm" *ngIf="form.controls.password.touched && form.controls.password.invalid">Mínimo 6 caracteres</p>
+        <p class="text-red-600" *ngIf="form.controls.password.touched && form.controls.password.invalid">Mínimo 6 caracteres</p>
       </div>
 
       <div class="md:col-span-2">
-        <label class="block text-sm mb-1" style="color: var(--text-muted)">Nombre de empresa</label>
+        <label>Nombre de empresa</label>
         <input class="input-xl" type="text" formControlName="nombre_empresa" placeholder="Mi Empresa S.A." />
-        <p class="text-red-600 text-sm" *ngIf="form.controls.nombre_empresa.touched && form.controls.nombre_empresa.invalid">Nombre de empresa requerido</p>
+        <p class="text-red-600" *ngIf="form.controls.nombre_empresa.touched && form.controls.nombre_empresa.invalid">Nombre de empresa requerido</p>
       </div>
 
       <div>
-        <label class="block text-sm mb-1" style="color: var(--text-muted)">Ciudad</label>
+        <label>Ciudad</label>
         <input class="input-xl" type="text" formControlName="ciudad" />
       </div>
 
       <div>
-        <label class="block text-sm mb-1" style="color: var(--text-muted)">Estado</label>
+        <label>Estado</label>
         <input class="input-xl" type="text" formControlName="estado" />
       </div>
 
       <div class="md:col-span-2">
-        <label class="block text-sm mb-1" style="color: var(--text-muted)">RFC (opcional)</label>
+        <label>RFC (opcional)</label>
         <input class="input-xl" type="text" formControlName="rfc" />
       </div>
 
@@ -51,4 +51,7 @@
       </div>
     </form>
   </div>
+  <footer class="auth-footer">
+    <p>&copy; 2024 AuditCloud. Todos los derechos reservados.</p>
+  </footer>
 </div>

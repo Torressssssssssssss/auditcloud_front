@@ -26,13 +26,12 @@
   top: 0;
   z-index: 100;
   backdrop-filter: blur(20px);
-  background: rgba(255, 255, 255, 0.85);
   box-shadow: var(--shadow-sm);
   transition: all 0.3s ease;
 }
 
 html.dark .header {
-  background: rgba(26, 26, 26, 0.85);
+  background: var(--bg-secondary); /* Gris oscuro (#1a1a1a) */
 }
 
 .header-left {

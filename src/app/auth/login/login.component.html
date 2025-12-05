@@ -6,7 +6,6 @@
         <h1>AuditCloud</h1>
       </div>
       <p class="subtitle">Inicia sesión en tu cuenta</p>
-      <app-theme-toggle></app-theme-toggle>
     </div>
 
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
@@ -56,7 +55,7 @@
         }
       </div>
 
-        <button type="submit" class="btn-grad"
+        <button type="submit" class="btn-login btn-elegant"
           [disabled]="loginForm.invalid || loading()">
         @if (loading()) {
           <span>Cargando...</span>
@@ -69,7 +68,11 @@
         </div>
     </form>
   </div>
+  <footer class="auth-footer">
+    <p>&copy; 2024 AuditCloud. Todos los derechos reservados.</p>
+  </footer>
 </div>
+
 
 
 
