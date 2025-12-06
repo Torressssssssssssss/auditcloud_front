@@ -117,10 +117,7 @@ export const routes: Routes = [
         path: 'perfil',
         loadComponent: () => import('./auditor/perfil/perfil.component').then(m => m.PerfilComponent)
       },
-      {
-        path: 'pagos',
-        loadComponent: () => import('./auditor/pagos/pagos.component').then(m => m.PagosComponent)
-      }
+      
     ]
   },
   {
