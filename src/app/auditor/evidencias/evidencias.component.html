@@ -9,19 +9,24 @@
   @if (showForm()) {
     <div class="form-card">
       <h3>Subir Nueva Evidencia</h3>
+      
       <form [formGroup]="evidenciaForm" (ngSubmit)="onSubmit()">
+        
         <div class="form-group">
           <label>Auditoría</label>
           <select formControlName="id_auditoria" [class.error]="id_auditoria?.invalid && id_auditoria?.touched">
             <option value="">Seleccionar auditoría</option>
             @for (auditoria of auditorias(); track auditoria.id_auditoria) {
-              <option [value]="auditoria.id_auditoria">#{{ auditoria.id_auditoria }} - {{ auditoria.cliente?.nombre_empresa || 'N/A' }}</option>
+              <option [value]="auditoria.id_auditoria">
+                #{{ auditoria.id_auditoria }} - {{ auditoria.cliente?.nombre_empresa || 'N/A' }}
+              </option>
             }
           </select>
           @if (id_auditoria?.invalid && id_auditoria?.touched) {
             <span class="field-error">Selecciona una auditoría</span>
           }
         </div>
+
         <div class="form-group">
           <label>Módulo</label>
           <select formControlName="id_modulo" [class.error]="id_modulo?.invalid && id_modulo?.touched">
@@ -34,33 +39,53 @@
             <span class="field-error">Selecciona un módulo</span>
           }
         </div>
+
         <div class="form-group">
-          <label>Tipo</label>
+          <label>Tipo de Evidencia</label>
           <select formControlName="tipo" [class.error]="tipo?.invalid && tipo?.touched">
-            <option value="FOTO">FOTO</option>
-            <option value="DOC">DOC</option>
-            <option value="VIDEO">VIDEO</option>
+            <option value="FOTO">Fotografía</option>
+            <option value="DOC">Documento PDF</option>
+            <option value="VIDEO">Video</option>
           </select>
         </div>
+
         <div class="form-group">
-          <label>Descripción</label>
-          <textarea formControlName="descripcion" rows="3" [class.error]="descripcion?.invalid && descripcion?.touched"></textarea>
+          <label>Archivo</label>
+          <input 
+            type="file" 
+            #fileInput
+            (change)="onFileSelect($event)" 
+            accept=".jpg,.jpeg,.png,.pdf"
+            class="file-input" 
+          />
+          <p class="text-xs text-gray-500 mt-1">Formatos permitidos: JPG, PNG, PDF (Máx 5MB)</p>
+          
+          @if (!selectedFile && evidenciaForm.touched) {
+             <span class="field-error text-red-500 text-sm">Debes seleccionar un archivo</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label>Descripción / Observaciones</label>
+          <textarea 
+            formControlName="descripcion" 
+            rows="3" 
+            placeholder="Describe qué se observa en la evidencia..."
+            [class.error]="descripcion?.invalid && descripcion?.touched">
+          </textarea>
           @if (descripcion?.invalid && descripcion?.touched) {
-            <span class="field-error">La descripción es obligatoria</span>
+            <span class="field-error">La descripción es obligatoria (min 5 letras)</span>
           }
         </div>
-        <div class="form-group">
-          <label>URL del archivo</label>
-          <input type="url" formControlName="url" placeholder="https://..." [class.error]="url?.invalid && url?.touched" />
-          @if (url?.invalid && url?.touched) {
-            <span class="field-error">La URL es obligatoria</span>
-          }
-        </div>
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary" [disabled]="evidenciaForm.invalid">
-            Subir Evidencia
+
+        <div class="form-actions mt-4 flex justify-end gap-3">
+          <button type="button" class="btn btn-secondary" (click)="resetFormulario()">Cancelar</button>
+          
+          <button type="submit" class="btn btn-primary" [disabled]="evidenciaForm.invalid || !selectedFile || enviando()">
+            {{ enviando() ? 'Subiendo...' : 'Guardar Evidencia' }}
           </button>
         </div>
+
       </form>
     </div>
   }
@@ -89,7 +114,7 @@
   @if (loading()) {
     <app-loading-spinner />
   } @else if (evidenciasFiltradas.length === 0) {
-    <app-empty-state mensaje="No hay evidencias" />
+    <app-empty-state mensaje="No hay evidencias subidas aún" />
   } @else {
     <div class="table-container">
       <table class="data-table">
@@ -100,19 +125,25 @@
             <th>Tipo</th>
             <th>Descripción</th>
             <th>Fecha</th>
-            <th>Acciones</th>
+            <th>Archivo</th>
           </tr>
         </thead>
         <tbody>
           @for (evidencia of evidenciasFiltradas; track evidencia.id_evidencia) {
             <tr>
               <td>#{{ evidencia.id_auditoria }}</td>
-              <td>{{ getModuloNombre(evidencia.id_modulo) }}</td>
-              <td>{{ evidencia.tipo }}</td>
-              <td>{{ evidencia.descripcion }}</td>
-              <td>{{ evidencia.fecha_subida | date:'short' }}</td>
               <td>
-                <a [href]="evidencia.url" target="_blank" class="btn-link">Ver/Descargar</a>
+                <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-1 rounded">
+                  {{ getModuloNombre(evidencia.id_modulo) }}
+                </span>
+              </td>
+              <td>{{ evidencia.tipo }}</td>
+              <td class="max-w-xs truncate">{{ evidencia.descripcion }}</td>
+              <td>{{ evidencia.fecha_subida | date:'shortDate' }}</td>
+              <td>
+                <a [href]="evidencia.url" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium underline">
+                  Ver {{ evidencia.tipo === 'FOTO' ? 'Imagen' : 'Documento' }}
+                </a>
               </td>
             </tr>
           }
@@ -121,5 +152,3 @@
     </div>
   }
 </div>
-
-
