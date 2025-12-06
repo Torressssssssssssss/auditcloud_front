@@ -1,97 +1,74 @@
-import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { ApiService } from '../../services/api.service';
-import { AuthService } from '../../services/auth.service';
-import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
-import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
-import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
-import { SolicitudPago } from '../../models/pago.model';
-import { EstadoPago } from '../../models/usuario.model';
+import { Component, OnInit, signal, inject, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Router } from '@angular/router';
+// Importamos el botón de PayPal que ya tienes
+import { PagoPaypalComponent } from '../../pago-paypal-component/pago-paypal-component'; 
+
+interface SolicitudPago {
+  id_solicitud: number;
+  monto: number;
+  concepto: string;
+  id_estado: number; // 1 = PENDIENTE, 2 = PAGADA
+  creado_en: string;
+  pagada_en?: string;
+  empresa_auditora?: number; // ID de la empresa que cobra
+}
 
 @Component({
   selector: 'app-cliente-pagos',
   standalone: true,
-  imports: [
-    CommonModule,
-    DatePipe,
-    RouterModule,
-    LoadingSpinnerComponent,
-    EmptyStateComponent,
-    StatusBadgeComponent
-  ],
+  imports: [CommonModule, PagoPaypalComponent], // Solo importamos PayPal, NO nueva solicitud
   templateUrl: './pagos.component.html',
-  styleUrl: './pagos.component.css'
+  styleUrls: ['./pagos.component.css']
 })
 export class PagosComponent implements OnInit {
-  loading = signal<boolean>(true);
-  solicitudes = signal<SolicitudPago[]>([]);
-  filtroEstado = signal<number | null>(null);
+  private http = inject(HttpClient);
+  private router = inject(Router);
+  
+  // Lista cruda de todas las solicitudes
+  todasLasSolicitudes = signal<SolicitudPago[]>([]);
+  cargando = signal(true);
 
-  constructor(
-    private apiService: ApiService,
-    private authService: AuthService
-  ) {}
+  // Filtros automáticos (Signals computadas)
+  pendientes = computed(() => this.todasLasSolicitudes().filter(s => s.id_estado === 1));
+  historial = computed(() => this.todasLasSolicitudes().filter(s => s.id_estado === 2));
 
-  ngOnInit(): void {
-    this.loadSolicitudes();
+  ngOnInit() {
+    this.cargarDatos();
   }
 
-  loadSolicitudes(): void {
-    this.loading.set(true);
-    const idCliente = this.authService.getIdUsuario();
+  cargarDatos() {
+    this.cargando.set(true);
     
-    if (!idCliente) {
-      this.loading.set(false);
+    const token = localStorage.getItem('auditcloud_token');
+    const userStr = localStorage.getItem('auditcloud_user');
+
+    if (!token || !userStr) {
+      this.router.navigate(['/login']);
       return;
     }
 
-    this.apiService.get<any>(`/api/cliente/solicitudes-pago/${idCliente}`)
+    const usuario = JSON.parse(userStr);
+    const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
+
+    // Consumimos el endpoint de cliente
+    this.http.get<SolicitudPago[]>(`http://localhost:3000/api/cliente/solicitudes-pago/${usuario.id_usuario}`, { headers })
       .subscribe({
-        next: (response) => {
-          const solicitudes = Array.isArray(response) ? response : (response?.data || []);
-          this.solicitudes.set(solicitudes);
-          this.loading.set(false);
+        next: (data) => {
+          this.todasLasSolicitudes.set(data);
+          this.cargando.set(false);
         },
-        error: (error) => {
-          console.error('Error cargando solicitudes:', error);
-          this.loading.set(false);
+        error: (err) => {
+          console.error('Error', err);
+          this.cargando.set(false);
         }
       });
   }
 
-  get solicitudesFiltradas(): SolicitudPago[] {
-    let result = this.solicitudes();
-    
-    if (this.filtroEstado()) {
-      result = result.filter(s => s.id_estado === this.filtroEstado());
-    }
-    
-    return result;
-  }
-
-  puedePagar(solicitud: SolicitudPago): boolean {
-    if (solicitud.id_estado !== EstadoPago.PENDIENTE) return false;
-    if (!solicitud.fecha_expiracion) return true;
-    return new Date(solicitud.fecha_expiracion) > new Date();
-  }
-
-  pagar(solicitud: SolicitudPago): void {
-    // Redirigir a detalle de pago para procesar
-    window.location.href = `/cliente/pagos/${solicitud.id_solicitud}`;
-  }
-
-  formatearMonto(monto: number): string {
-    return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(monto);
-  }
-
-  estaExpirada(solicitud: SolicitudPago): boolean {
-    if (!solicitud.fecha_expiracion) return false;
-    return new Date(solicitud.fecha_expiracion) <= new Date();
-  }
-
-  onEstadoChange(event: Event): void {
-    const target = event.target as HTMLSelectElement;
-    this.filtroEstado.set(target.value ? +target.value : null);
+  // Se ejecuta cuando el hijo (PayPal) termina el proceso
+  onPagoRealizado(auditoria: any) {
+    alert(`¡Pago exitoso! Se ha generado la auditoría #${auditoria.id_auditoria}`);
+    this.cargarDatos(); // Recargamos para que la solicitud pase de "Pendiente" a "Historial"
   }
 }

@@ -7,8 +7,9 @@ import { LoadingSpinnerComponent } from '../../../shared/components/loading-spin
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
+// 👇 Importamos el componente de PayPal
+import { PagoPaypalComponent } from '../../../pago-paypal-component/pago-paypal-component'; // Ajusta la ruta según donde lo guardaste
 import { SolicitudPago } from '../../../models/pago.model';
-import { EstadoPago } from '../../../models/usuario.model';
 
 @Component({
   selector: 'app-pago-detalle',
@@ -20,7 +21,8 @@ import { EstadoPago } from '../../../models/usuario.model';
     LoadingSpinnerComponent,
     EmptyStateComponent,
     StatusBadgeComponent,
-    IconComponent
+    IconComponent,
+    PagoPaypalComponent // 👈 Lo agregamos a los imports
   ],
   templateUrl: './detalle.component.html',
   styleUrl: './detalle.component.css'
@@ -46,16 +48,15 @@ export class PagoDetalleComponent implements OnInit {
   loadSolicitud(id: number): void {
     this.loading.set(true);
     const idCliente = this.authService.getIdUsuario();
-    if (!idCliente) {
-      this.loading.set(false);
-      return;
-    }
-
-    // Nota: Ajustar endpoint según tu backend
-    this.apiService.get<SolicitudPago>(`/api/cliente/solicitudes-pago/${idCliente}/${id}`)
+    
+    // Endpoint para obtener una solicitud especifica
+    // Asegúrate de que tu backend tenga: router.get('/solicitudes-pago/:idCliente/:idSolicitud'...)
+    // O usa el filtro en el front si tu API solo devuelve la lista completa.
+    this.apiService.get<SolicitudPago[]>(`/api/cliente/solicitudes-pago/${idCliente}`)
       .subscribe({
-        next: (solicitud) => {
-          this.solicitud.set(solicitud);
+        next: (solicitudes) => {
+          const encontrada = solicitudes.find(s => s.id_solicitud === id);
+          this.solicitud.set(encontrada || null);
           this.loading.set(false);
         },
         error: (error) => {
@@ -65,36 +66,13 @@ export class PagoDetalleComponent implements OnInit {
       });
   }
 
-  puedePagar(): boolean {
-    const solicitud = this.solicitud();
-    if (!solicitud || solicitud.id_estado !== EstadoPago.PENDIENTE) return false;
-    if (!solicitud.fecha_expiracion) return true;
-    return new Date(solicitud.fecha_expiracion) > new Date();
-  }
-
-  estaExpirada(): boolean {
-    const solicitud = this.solicitud();
-    if (!solicitud || !solicitud.fecha_expiracion) return false;
-    return new Date(solicitud.fecha_expiracion) <= new Date();
-  }
-
-  pagar(): void {
-    const solicitud = this.solicitud();
-    if (!solicitud || !this.puedePagar()) return;
-
-    // Nota: Implementar flujo de pago real (PayPal, etc.)
-    alert('Funcionalidad de pago pendiente de implementar. En producción, aquí se integraría con PayPal u otro procesador de pagos.');
+  // Se ejecuta cuando PayPal termina el proceso exitosamente
+  onPagoCompletado(auditoriaNueva: any): void {
+    alert(`¡Pago Exitoso! Se ha generado la auditoría #${auditoriaNueva.id_auditoria}`);
     
-    // Simular pago exitoso
-    // this.apiService.post(`/api/cliente/pagos/${solicitud.id_solicitud}/pagar`, {})
-    //   .subscribe({
-    //     next: () => {
-    //       this.loadSolicitud(solicitud.id_solicitud);
-    //     },
-    //     error: (error) => {
-    //       console.error('Error procesando pago:', error);
-    //     }
-    //   });
+    // Recargamos los datos para que el estado cambie a "PAGADA" y aparezca el botón de ver auditoría
+    const id = this.solicitud()?.id_solicitud;
+    if (id) this.loadSolicitud(id);
   }
 
   formatearMonto(monto: number): string {

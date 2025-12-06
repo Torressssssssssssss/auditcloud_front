@@ -72,3 +72,213 @@
     min-width: 100%;
   }
 }
+
+/* Styles specific to the cliente pagos view */
+.cliente-pagos {
+  --card-bg: #ffffff;
+  --muted: #6b7280;
+  --accent: #2563eb;
+}
+
+.cliente-pagos .grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.cliente-pagos .grid > div {
+  background: var(--card-bg);
+}
+
+.cliente-pagos .paypal-section {
+  margin-top: 0.5rem;
+}
+
+.cliente-pagos .pay-text {
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+
+.paypal-wrap {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.paypal-wrap .paypal-component {
+  display: inline-block;
+}
+
+/* Table improvements */
+.cliente-pagos .table-card {
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(32,33,36,0.04);
+}
+
+.cliente-pagos table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+}
+
+.cliente-pagos thead th {
+  background: #f3f4f6;
+  text-align: left;
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e6e6e6;
+}
+
+.cliente-pagos tbody td {
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #f3f4f6;
+  color: #111827;
+}
+
+.cliente-pagos .badge-pend {
+  background: #fff7ed;
+  color: #92400e;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+.cliente-pagos .badge-paid {
+  background: #ecfdf5;
+  color: #065f46;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+/* Empty state */
+.cliente-pagos .empty {
+  text-align: center;
+  padding: 1rem;
+  color: var(--muted);
+}
+
+/* Responsive improvements for small screens */
+@media (max-width: 640px) {
+  .cliente-pagos .grid { grid-template-columns: 1fr; }
+  .cliente-pagos thead { display: none; }
+  .cliente-pagos tbody td { display: block; width: 100%; }
+  .cliente-pagos tbody tr { display: block; margin-bottom: 0.75rem; border-radius: 0.5rem; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+  .cliente-pagos tbody td .label { display: inline-block; font-weight: 700; margin-right: 0.5rem; }
+}
+
+/* Enhanced styles for payment cards */
+.cliente-pagos .payment-card {
+  background: #ffffff;
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 2px solid #fef3c7;
+  overflow: hidden;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cliente-pagos .payment-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+}
+
+.cliente-pagos .card-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0.5rem 1rem;
+  border-bottom-left-radius: 0.75rem;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+}
+
+.cliente-pagos .card-body {
+  padding: 1.5rem;
+}
+
+.cliente-pagos .card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.cliente-pagos .icon-invoice {
+  width: 20px;
+  height: 20px;
+  color: #6b7280;
+}
+
+.cliente-pagos .card-date {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.cliente-pagos .card-concept {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 1rem 0;
+  line-height: 1.4;
+}
+
+.cliente-pagos .card-amount {
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
+  margin-bottom: 1.25rem;
+}
+
+.cliente-pagos .amount-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2563eb;
+}
+
+.cliente-pagos .amount-currency {
+  font-size: 0.875rem;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.cliente-pagos .card-divider {
+  border-top: 1px solid #e5e7eb;
+  margin: 1rem 0;
+}
+
+.cliente-pagos .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  background: #f0fdf4;
+  border: 2px solid #bbf7d0;
+  border-radius: 0.75rem;
+  gap: 0.75rem;
+}
+
+.cliente-pagos .icon-success {
+  width: 48px;
+  height: 48px;
+  color: #16a34a;
+}
+
+.cliente-pagos .empty-state p {
+  font-size: 1rem;
+  color: #166534;
+  font-weight: 600;
+  margin: 0;
+}
+

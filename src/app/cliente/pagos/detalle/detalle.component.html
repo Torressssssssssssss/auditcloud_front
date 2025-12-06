@@ -13,96 +13,46 @@
 
     <div class="detalle-grid">
       <div class="info-card">
-        <h3>Información de la Solicitud</h3>
+        <h3>Información</h3>
         <div class="info-item">
-          <label>Empresa Auditora:</label>
-          <span>{{ solicitud()!.empresa?.nombre || 'N/A' }}</span>
+            <label>Concepto:</label> <span>{{ solicitud()!.concepto }}</span>
         </div>
         <div class="info-item">
-          <label>Concepto:</label>
-          <span>{{ solicitud()!.concepto }}</span>
-        </div>
-        <div class="info-item">
-          <label>Monto:</label>
-          <span class="monto"><strong>{{ formatearMonto(solicitud()!.monto) }}</strong></span>
-        </div>
-        <div class="info-item">
-          <label>Estado:</label>
-          <span>
-            <app-status-badge [estado]="solicitud()!.id_estado" tipo="pago" />
-            @if (estaExpirada() && solicitud()!.id_estado === 1) {
-              <span class="badge-expired">EXPIRADA</span>
-            }
-          </span>
+            <label>Monto:</label> <span class="monto">{{ formatearMonto(solicitud()!.monto) }}</span>
         </div>
       </div>
 
-      <div class="info-card">
-        <h3>Fechas</h3>
-        <div class="info-item">
-          <label>Fecha de Creación:</label>
-          <span>{{ solicitud()!.fecha_creacion | date:'short' }}</span>
-        </div>
-        <div class="info-item">
-          <label>Fecha de Expiración:</label>
-          <span>
-            @if (solicitud()!.fecha_expiracion) {
-              {{ solicitud()!.fecha_expiracion | date:'short' }}
-            } @else {
-              Sin fecha de expiración
-            }
-          </span>
-        </div>
-        <div class="info-item">
-          <label>Fecha de Pago:</label>
-          <span>
-            @if (solicitud()!.fecha_pago) {
-              {{ solicitud()!.fecha_pago | date:'short' }}
-            } @else {
-              Pendiente
-            }
-          </span>
-        </div>
-      </div>
-
-      @if (puedePagar()) {
+      @if (solicitud()!.id_estado === 1) {
         <div class="info-card full-width">
           <h3>Procesar Pago</h3>
-          <p>Monto a pagar: <strong>{{ formatearMonto(solicitud()!.monto) }}</strong></p>
-          <button class="btn btn-primary btn-large" (click)="pagar()">
-            <app-icon name="credit-card" [size]="18"></app-icon>
-            Pagar Ahora
-          </button>
+          <p>Para activar su auditoría, favor de cubrir el monto de: <strong>{{ formatearMonto(solicitud()!.monto) }}</strong></p>
+          
+          <app-pago-paypal 
+            [solicitud]="solicitud()" 
+            (pagoExitoso)="onPagoCompletado($event)">
+          </app-pago-paypal>
         </div>
-      } @else if (estaExpirada()) {
-        <div class="info-card full-width">
-          <div class="alert alert-warning">
-            <strong>
-              <app-icon name="alert-circle" [size]="18" style="display: inline-block; vertical-align: middle; margin-right: 0.5rem;"></app-icon>
-              Solicitud Expirada
-            </strong>
-            <p>Esta solicitud de pago ha expirado. Por favor, contacta a la empresa auditora para generar una nueva solicitud.</p>
-          </div>
-        </div>
-      } @else if (solicitud()!.id_estado === 2) {
+      } 
+      
+      @else if (solicitud()!.id_estado === 2) {
         <div class="info-card full-width">
           <div class="alert alert-success">
             <strong>
-              <app-icon name="check-circle" [size]="18" style="display: inline-block; vertical-align: middle; margin-right: 0.5rem;"></app-icon>
+              <app-icon name="check-circle" [size]="18"></app-icon>
               Pago Completado
             </strong>
-            <p>Esta solicitud de pago ha sido procesada exitosamente el {{ solicitud()!.fecha_pago | date:'short' }}.</p>
-            @if (solicitud()!.id_auditoria) {
-              <a [routerLink]="['/cliente/auditorias', solicitud()!.id_auditoria]" class="btn btn-secondary">
-                Ver Auditoría Creada
+            <p>Pago procesado el {{ solicitud()!.pagada_en | date:'short' }}.</p>
+            
+            <div class="mt-4">
+              <p>Se ha generado una nueva auditoría automáticamente.</p>
+              <a [routerLink]="['/cliente/auditorias']" class="btn btn-primary">
+                 Ver Mis Auditorías
               </a>
-            }
+            </div>
           </div>
         </div>
       }
+
     </div>
   }
 </div>
-
-
-

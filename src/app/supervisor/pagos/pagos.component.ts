@@ -1,100 +1,115 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
-import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
-import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
-import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
-import { SolicitudPago } from '../../models/pago.model';
-import { EstadoPago } from '../../models/usuario.model';
+import { NuevaSolicitudComponent } from './nueva-solicitud.component';
 
-@Component({
-  selector: 'app-pagos',
-  standalone: true,
-  imports: [
-    CommonModule,
-    DatePipe,
-    RouterModule,
-    LoadingSpinnerComponent,
-    EmptyStateComponent,
-    StatusBadgeComponent
-  ],
-  templateUrl: './pagos.component.html',
-  styleUrl: './pagos.component.css'
-})
-export class PagosComponent implements OnInit {
-  loading = signal<boolean>(true);
-  solicitudes = signal<SolicitudPago[]>([]);
-  filtroEstado = signal<number | null>(null);
+// Service local para manejar llamadas relacionadas con pagos (está definido aquí por petición)
+class PaymentService {
+  constructor(private api: ApiService) {}
 
-  constructor(
-    private apiService: ApiService,
-    private authService: AuthService
-  ) {}
-
-  ngOnInit(): void {
-    this.loadSolicitudes();
+  // Obtener listados paginados de solicitudes asociadas a la empresa auditora
+  list(params?: { page?: number; limit?: number }) {
+    const q: any = {};
+    if (params?.page) q.page = params.page;
+    if (params?.limit) q.limit = params.limit;
+    return this.api.get<any>('/api/supervisor/solicitudes-pago', q);
   }
 
-  loadSolicitudes(): void {
-    this.loading.set(true);
-    const idEmpresa = this.authService.getIdEmpresa();
-    
-    if (!idEmpresa) {
-      this.loading.set(false);
+  // Crear solicitud por parte del supervisor
+  create(payload: any) {
+    return this.api.post<any>('/api/supervisor/solicitudes-pago', payload);
+  }
+}
+
+@Component({
+  selector: 'app-supervisor-pagos',
+  standalone: true,
+  imports: [CommonModule, FormsModule, NuevaSolicitudComponent],
+  templateUrl: './pagos.component.html',
+  styleUrls: ['./pagos.component.css']
+})
+export class PagosComponent implements OnInit {
+  pagos: any[] = [];
+  loading = false;
+  page = 1;
+  limit = 20;
+  total = 0;
+  mostrarFormulario = signal(false);
+  private paymentService: PaymentService;
+
+  constructor(private api: ApiService, private auth: AuthService) {
+    this.paymentService = new PaymentService(api);
+  }
+
+  ngOnInit(): void {
+    this.load();
+  }
+
+  load(): void {
+    this.loading = true;
+    this.paymentService.list({ page: this.page, limit: this.limit }).subscribe({
+      next: (res) => {
+        // El backend devuelve { total, page, limit, data }
+        if (res && res.data) {
+          this.pagos = res.data;
+          this.total = res.total || res.data.length;
+        } else if (Array.isArray(res)) {
+          // Fallback si la ruta devuelve un array
+          this.pagos = res;
+          this.total = res.length;
+        } else {
+          this.pagos = [];
+          this.total = 0;
+        }
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error cargando pagos', err);
+        this.loading = false;
+      }
+    });
+  }
+
+  nextPage(): void {
+    if ((this.page * this.limit) < this.total) {
+      this.page++;
+      this.load();
+    }
+  }
+
+  prevPage(): void {
+    if (this.page > 1) {
+      this.page--;
+      this.load();
+    }
+  }
+
+  // Abre el formulario de crear — para simplicidad, vamos a mostrar prompt
+  crearSolicitud(): void {
+    const idEmpresa = prompt('ID de la empresa cliente (id_empresa)');
+    const idCliente = prompt('ID del usuario cliente (opcional, deja vacío para usar usuario principal)');
+    const monto = prompt('Monto');
+    const concepto = prompt('Concepto');
+    if (!monto || !concepto) {
+      alert('monto y concepto son obligatorios');
       return;
     }
 
-    this.apiService.get<any>(`/api/supervisor/solicitudes-pago/${idEmpresa}`, { page: 1, limit: 100 })
-      .subscribe({
-        next: (response) => {
-          const solicitudes = Array.isArray(response) ? response : (response?.data || []);
-          this.solicitudes.set(solicitudes);
-          this.loading.set(false);
-        },
-        error: (error) => {
-          console.error('Error cargando solicitudes:', error);
-          this.loading.set(false);
-        }
-      });
-  }
+    const payload: any = { monto: Number(monto), concepto };
+    if (idEmpresa) payload.id_empresa = Number(idEmpresa);
+    if (idCliente) payload.id_cliente = Number(idCliente);
 
-  get solicitudesFiltradas(): SolicitudPago[] {
-    let result = this.solicitudes();
-    
-    if (this.filtroEstado()) {
-      result = result.filter(s => s.id_estado === this.filtroEstado());
-    }
-    
-    return result;
-  }
-
-  formatearMonto(monto: number): string {
-    return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(monto);
-  }
-
-  pagarSolicitud(solicitud: SolicitudPago): void {
-    if (solicitud.id_estado !== EstadoPago.PENDIENTE) return;
-
-    this.apiService.post<any>(`/api/supervisor/solicitudes-pago/${solicitud.id_solicitud}/pagar`, {})
-      .subscribe({
-        next: () => {
-          this.loadSolicitudes();
-        },
-        error: (error) => {
-          console.error('Error pagando solicitud:', error);
-        }
-      });
-  }
-
-  estaExpirada(solicitud: SolicitudPago): boolean {
-    if (!solicitud.fecha_expiracion) return false;
-    return new Date(solicitud.fecha_expiracion) <= new Date();
-  }
-
-  onEstadoChange(event: Event): void {
-    const target = event.target as HTMLSelectElement;
-    this.filtroEstado.set(target.value ? +target.value : null);
+    this.paymentService.create(payload).subscribe({
+      next: (res) => {
+        alert(res?.message || 'Solicitud creada');
+        this.load();
+      },
+      error: (err) => {
+        console.error('Error creando solicitud', err);
+        alert(err?.error?.message || 'Error creando solicitud');
+      }
+    });
   }
 }

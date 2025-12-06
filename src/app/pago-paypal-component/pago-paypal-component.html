@@ -1,0 +1,20 @@
+<div class="paypal-container">
+  <div *ngIf="cargando()" class="loading-state">
+    <div class="spinner"></div>
+    <p>Cargando opciones de pago...</p>
+  </div>
+
+  <div #paypalRef class="paypal-button-wrapper"></div>
+
+  <div *ngIf="procesando()" class="processing-overlay">
+    <div class="spinner"></div>
+    <p>Procesando pago...</p>
+  </div>
+
+  <div *ngIf="errorMsg()" class="error-message">
+    <svg class="icon-error" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    {{ errorMsg() }}
+  </div>
+</div>

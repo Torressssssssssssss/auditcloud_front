@@ -1,0 +1,48 @@
+<div class="pagos-container">
+  <div class="header">
+    <h2 class="title">Gestión de Cobranza</h2>
+    <button (click)="mostrarFormulario.set(true)" *ngIf="!mostrarFormulario()" class="btn-new">+ Nueva Solicitud de Pago</button>
+  </div>
+
+  <div *ngIf="mostrarFormulario()" class="form-wrap">
+    <app-nueva-solicitud (solicitudCreada)="onSolicitudCreada()" (cerrar)="mostrarFormulario.set(false)"></app-nueva-solicitud>
+  </div>
+
+  <div class="table-card">
+    <div class="table-responsive">
+      <div *ngIf="cargando()" class="p-6 text-center text-gray-600">Cargando solicitudes...</div>
+      <table *ngIf="!cargando()" class="min-w-full">
+      <thead class="bg-gray-100">
+        <tr>
+          <th class="px-4 py-2 text-left">Empresa / Cliente</th>
+          <th class="px-4 py-2 text-left">Concepto</th>
+          <th class="px-4 py-2 text-left">Monto</th>
+          <th class="px-4 py-2 text-left">Estado</th>
+          <th class="px-4 py-2 text-left">Fecha</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let solicitud of solicitudes()">
+          <td class="px-4 py-2 font-medium text-gray-700">
+            {{ solicitud.nombre_empresa_cliente || ('ID: ' + (solicitud.id_empresa || solicitud.id_cliente || solicitud.id_solicitud)) }}
+          </td>
+
+          <td class="px-4 py-2">{{ solicitud.concepto }}</td>
+          <td class="px-4 py-2 font-bold text-gray-800">{{ solicitud.monto | currency:'MXN':'symbol':'1.2-2' }}</td>
+          <td class="px-4 py-2">
+            <span [ngClass]="solicitud.id_estado === 1 ? 'text-yellow-600 bg-yellow-100 px-2 py-1 rounded-full text-xs' : 'text-green-600 bg-green-100 px-2 py-1 rounded-full text-xs'">
+              {{ solicitud.id_estado === 1 ? 'PENDIENTE' : 'PAGADO' }}
+            </span>
+          </td>
+          <td class="px-4 py-2 text-sm text-gray-500">
+            {{ solicitud.creado_en | date:'short' }}
+          </td>
+        </tr>
+        <tr *ngIf="!cargando() && solicitudes().length === 0">
+          <td colspan="5" class="px-4 py-6 text-center text-gray-500">No hay solicitudes registradas.</td>
+        </tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+</div>

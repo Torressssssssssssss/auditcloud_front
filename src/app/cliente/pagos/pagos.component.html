@@ -1,73 +1,93 @@
-<div class="pagos-page">
-  <div class="page-header">
-    <h2>Mis Pagos</h2>
-  </div>
+<div class="container mx-auto p-6 space-y-8 cliente-pagos">
+  <h2 class="text-3xl font-bold text-gray-800 border-b pb-4">Mis Solicitudes de Pago</h2>
 
-  <div class="filters">
-    <div class="filter-group">
-      <label>Filtrar por estado:</label>
-      <select [value]="filtroEstado() ?? ''" (change)="onEstadoChange($event)">
-        <option value="">Todos</option>
-        <option [value]="1">PENDIENTE</option>
-        <option [value]="2">PAGADA</option>
-      </select>
+  <section>
+    <h3 class="text-xl font-semibold text-gray-700 mb-4 flex items-center gap-2">
+      <span class="bg-yellow-100 text-yellow-800 text-sm font-medium px-2.5 py-0.5 rounded">
+        {{ pendientes().length }}
+      </span>
+      Pendientes por Pagar
+    </h3>
+
+    <div *ngIf="pendientes().length === 0" class="empty-state">
+      <svg class="icon-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <p>¡Excelente! No tienes pagos pendientes en este momento.</p>
     </div>
-  </div>
 
-  @if (loading()) {
-    <app-loading-spinner />
-  } @else if (solicitudesFiltradas.length === 0) {
-    <app-empty-state mensaje="No hay solicitudes de pago" />
-  } @else {
-    <div class="table-container">
-      <table class="data-table">
+    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div *ngFor="let solicitud of pendientes()" class="payment-card">
+        <div class="card-badge badge-pend">PENDIENTE</div>
+
+        <div class="card-body">
+          <div class="card-header">
+            <svg class="icon-invoice" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <p class="card-date">{{ solicitud.creado_en | date:'mediumDate' }}</p>
+          </div>
+          
+          <h4 class="card-concept">{{ solicitud.concepto }}</h4>
+          
+          <div class="card-amount">
+            <span class="amount-value">{{ solicitud.monto | currency:'MXN':'symbol':'1.2-2' }}</span>
+            <span class="amount-currency">MXN</span>
+          </div>
+
+          <div class="card-divider"></div>
+          
+          <div class="paypal-section">
+            <p class="pay-text">Pagar con:</p>
+            <div class="paypal-wrap" role="group" aria-label="Opciones de pago">
+              <app-pago-paypal
+                class="paypal-component"
+                [solicitud]="solicitud"
+                (pagoExitoso)="onPagoRealizado($event)"
+                aria-label="Botón PayPal para pagar la solicitud">
+              </app-pago-paypal>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mt-12">
+    <h3 class="text-xl font-semibold text-gray-700 mb-4">Historial de Pagos Realizados</h3>
+
+    <div class="bg-white shadow-md rounded-lg overflow-hidden">
+      <table class="min-w-full leading-normal">
         <thead>
           <tr>
-            <th>Empresa Auditora</th>
-            <th>Concepto</th>
-            <th>Monto</th>
-            <th>Estado</th>
-            <th>Fecha Creación</th>
-            <th>Fecha Expiración</th>
-            <th>Acciones</th>
+            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Concepto</th>
+            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Monto</th>
+            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Fecha Pago</th>
+            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Estado</th>
           </tr>
         </thead>
         <tbody>
-          @for (solicitud of solicitudesFiltradas; track solicitud.id_solicitud) {
-            <tr>
-              <td>{{ solicitud.empresa?.nombre || 'N/A' }}</td>
-              <td>{{ solicitud.concepto }}</td>
-              <td><strong>{{ formatearMonto(solicitud.monto) }}</strong></td>
-              <td>
-                <app-status-badge [estado]="solicitud.id_estado" tipo="pago" />
-              </td>
-              <td>{{ solicitud.fecha_creacion | date:'short' }}</td>
-              <td>
-                @if (solicitud.fecha_expiracion) {
-                  {{ solicitud.fecha_expiracion | date:'short' }}
-                } @else {
-                  -
-                }
-              </td>
-              <td>
-                @if (puedePagar(solicitud)) {
-                  <button class="btn btn-primary" (click)="pagar(solicitud)">
-                    Pagar
-                  </button>
-                } @else if (estaExpirada(solicitud)) {
-                  <span class="text-muted">Expirada</span>
-                } @else {
-                  <a [routerLink]="['/cliente/pagos', solicitud.id_solicitud]" class="btn-link">
-                    Ver detalle
-                  </a>
-                }
-              </td>
-            </tr>
-          }
+          <tr *ngFor="let item of historial()">
+            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+              <p class="text-gray-900 whitespace-no-wrap font-bold">{{ item.concepto }}</p>
+            </td>
+            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+              {{ item.monto | currency:'MXN':'symbol':'1.2-2' }}
+            </td>
+            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+              {{ item.pagada_en | date:'medium' }}
+            </td>
+            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+              <span class="badge-paid">Pagado</span>
+            </td>
+          </tr>
+          <tr *ngIf="historial().length === 0">
+            <td colspan="4" class="px-5 py-5 border-b border-gray-200 bg-white text-sm text-center text-gray-500">
+              No tienes pagos en el historial.
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
-  }
+  </section>
 </div>
-
-
