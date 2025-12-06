@@ -49,7 +49,7 @@
         } @else {
           <div class="messages-list">
             @for (conversacion of ultimosMensajes(); track conversacion.id_conversacion) {
-              <div class="message-item" [routerLink]="['/cliente/mensajes', conversacion.id_conversacion]">
+              <div class="message-item" [routerLink]="['/cliente/mensajes']" [queryParams]="{ conversacion: conversacion.id_conversacion }">
                 <div class="message-info">
                   <h4>{{ conversacion.empresa?.nombre || 'Empresa' }}</h4>
                   <p>{{ conversacion.ultimo_mensaje?.contenido || 'Sin mensajes' }}</p>

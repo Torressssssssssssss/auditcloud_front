@@ -137,7 +137,7 @@ html.dark .conversacion-item.active {
   gap: 0.5rem;
 }
 
-.messages-list {
+#chat-messages.chat-messages {
   flex: 1;
   overflow-y: auto;
   padding: var(--spacing-md);
@@ -146,37 +146,38 @@ html.dark .conversacion-item.active {
   gap: var(--spacing-sm);
 }
 
-.message {
+.mensaje {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
   max-width: 70%;
-  padding: 0.75rem 1rem;
-  border-radius: var(--radius-sm);
+  padding: 0.625rem 0.875rem;
+  border-radius: 18px;
   word-wrap: break-word;
-}
-
-.message.sent {
-  align-self: flex-end;
-  background: var(--accent-primary);
-  color: white;
-}
-
-.message.received {
-  align-self: flex-start;
   background: var(--bg-tertiary);
   color: var(--text-primary);
 }
 
-.message-time {
-  font-size: 0.75rem;
-  color: var(--text-tertiary);
-  opacity: 0.7;
-  transition: color 0.3s ease;
+.mensaje.propio {
+  align-self: flex-end;
+  background: var(--accent-primary);
+  color: #fff;
 }
 
-.message.sent .message-time {
-  color: rgba(255, 255, 255, 0.8);
+.mensaje-content p {
+  margin: 0;
+  line-height: 1.35;
+}
+
+.mensaje-time {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  opacity: 0.8;
+  align-self: flex-end;
+}
+
+.mensaje.propio .mensaje-time {
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .chat-input {
@@ -186,6 +187,8 @@ html.dark .conversacion-item.active {
   display: flex;
   gap: var(--spacing-sm);
   transition: all 0.3s ease;
+  position: sticky;
+  bottom: 0;
 }
 
 .chat-input input {

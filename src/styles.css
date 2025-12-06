@@ -220,12 +220,35 @@ html.dark .btn-primary:hover:not(:disabled) {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+  .btn-grad { 
+    /* Degradado clásico púrpura */
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    box-shadow: 0 6px 12px -4px rgba(102, 126, 234, 0.35);
+  }
+  .btn-grad:hover:not(:disabled) { 
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 14px 24px -6px rgba(102, 126, 234, 0.45);
+  }
+  .btn-grad:active { transform: translateY(0) scale(0.99); }
+  .btn-grad:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(102,126,234,0.25); }
+  @media (prefers-reduced-motion: reduce) {
+    .btn-grad:hover:not(:disabled), .btn-grad:active { transform: none; }
+  }
+
+/* Card grande */
 .card-xl {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: var(--spacing-xl);
   box-shadow: var(--shadow-md);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-xl:hover {
+  box-shadow: var(--shadow-lg);
+  border-color: var(--accent-primary);
+  transform: translateY(-2px);
 }
 
 /* Form Styles */

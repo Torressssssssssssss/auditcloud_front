@@ -64,10 +64,18 @@
 
       <div class="info-card full-width">
         <h3>Acciones</h3>
-        <button class="btn btn-primary" (click)="contactar()">
-          <app-icon name="chat" [size]="18"></app-icon>
-          Contactar Empresa
-        </button>
+        @if (!yaContactada()) {
+          <button class="btn btn-grad" (click)="contactar()">
+            <app-icon name="chat" [size]="18"></app-icon>
+            Contactar Empresa
+          </button>
+        } @else {
+          <div class="contactado-msg">
+            <app-icon name="chat" [size]="18"></app-icon>
+            Ya existe una conversación con esta empresa.
+            <a [routerLink]="['/cliente/mensajes']" class="btn btn-outline" style="margin-left:0.5rem; text-decoration:none;">Ver mensajes</a>
+          </div>
+        }
       </div>
     </div>
   }

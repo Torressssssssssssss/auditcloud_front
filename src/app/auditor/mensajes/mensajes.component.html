@@ -1,0 +1,70 @@
+<div class="mensajes-page">
+  <div class="mensajes-container">
+    <!-- Lista de conversaciones -->
+    <div class="conversaciones-list">
+      <div class="conversaciones-header">
+        <h3>Conversaciones</h3>
+      </div>
+      
+      @if (loading()) {
+        <app-loading-spinner />
+      } @else if (conversaciones().length === 0) {
+        <app-empty-state mensaje="No hay conversaciones" />
+      } @else {
+        <div class="conversaciones-items">
+          @for (conversacion of conversaciones(); track conversacion.id_conversacion) {
+            <div 
+              class="conversacion-item"
+              [class.active]="conversacionSeleccionada()?.id_conversacion === conversacion.id_conversacion"
+              (click)="seleccionarConversacion(conversacion)">
+              <div class="conversacion-info">
+                <h4>{{ conversacion.cliente?.nombre_empresa || conversacion.cliente?.nombre || 'Cliente' }}</h4>
+                <p>{{ conversacion.ultimo_mensaje?.contenido || 'Sin mensajes' }}</p>
+              </div>
+              <span class="conversacion-time">
+                {{ conversacion.ultimo_mensaje?.fecha_envio ? formatearFecha(conversacion.ultimo_mensaje!.fecha_envio) : '' }}
+              </span>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Chat -->
+    <div class="chat-container">
+      @if (!conversacionSeleccionada()) {
+        <div class="chat-empty">
+          <p>Selecciona una conversación para comenzar</p>
+        </div>
+      } @else {
+        <div class="chat-header">
+          <h3>{{ conversacionSeleccionada()?.cliente?.nombre_empresa || conversacionSeleccionada()?.cliente?.nombre || 'Cliente' }}</h3>
+        </div>
+        
+        <div id="chat-messages" class="chat-messages">
+          @for (mensaje of mensajes(); track mensaje.id_mensaje) {
+            <div class="mensaje" [class.propio]="esMensajePropio(mensaje)">
+              <div class="mensaje-content">
+                <p>{{ mensaje.contenido }}</p>
+                <span class="mensaje-time">{{ formatearFecha(mensaje.fecha_envio) }}</span>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="chat-input">
+          <input 
+            type="text" 
+            placeholder="Escribe un mensaje..."
+            [value]="nuevoMensaje()"
+            (input)="nuevoMensaje.set($any($event.target).value)"
+            (keyup.enter)="enviarMensaje()"
+          />
+          <button class="btn btn-primary" (click)="enviarMensaje()" [disabled]="!nuevoMensaje().trim()">
+            Enviar
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+</div>

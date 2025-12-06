@@ -46,6 +46,14 @@ export class MensajesComponent implements OnInit {
         this.idEmpresaSeleccionada.set(+params['empresa']);
         this.crearOAbrirConversacion(+params['empresa']);
       }
+      // Si viene id de conversacion, seleccionarla manteniendo el layout
+      if (params['conversacion']) {
+        const idConv = +params['conversacion'];
+        const conv = this.conversaciones().find(c => c.id_conversacion === idConv);
+        if (conv) {
+          this.seleccionarConversacion(conv);
+        }
+      }
     });
   }
 

@@ -113,7 +113,6 @@
   letter-spacing: -0.02em;
 }
 
-/* Área de mensajes tipo WhatsApp */
 #chat-messages.chat-messages {
   flex: 1;
   overflow-y: auto;
@@ -121,7 +120,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
-  background: var(--bg-secondary);
 }
 
 .mensaje {
@@ -142,10 +140,7 @@
   color: #fff;
 }
 
-.mensaje-content p {
-  margin: 0;
-  line-height: 1.35;
-}
+.mensaje-content p { margin: 0; line-height: 1.35; }
 
 .mensaje-time {
   font-size: 0.75rem;
@@ -156,13 +151,6 @@
 
 .mensaje.propio .mensaje-time {
   color: rgba(255, 255, 255, 0.85);
-}
-
-.mensaje-solicitud-pago .solicitud-card {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  padding: var(--spacing-md);
 }
 
 .chat-input {
@@ -211,7 +199,6 @@
   box-shadow: var(--shadow-sm);
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .conversaciones-list {
     width: 100%;
@@ -220,7 +207,5 @@
     max-height: 300px;
   }
   
-  .mensajes-container {
-    flex-direction: column;
-  }
+  .mensajes-container { flex-direction: column; }
 }

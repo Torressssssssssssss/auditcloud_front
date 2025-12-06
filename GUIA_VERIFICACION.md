@@ -9,10 +9,10 @@ Esta guía te ayudará a verificar que todas las funcionalidades están trabajan
 ## 📋 PREPARACIÓN
 
 ### Antes de empezar:
-- [ ] Backend corriendo en `http://localhost:3000`
-- [ ] Frontend corriendo en `http://localhost:4200`
-- [ ] Base de datos configurada
-- [ ] Consola del navegador abierta (F12) para ver errores
+- [✅] Backend corriendo en `http://localhost:3000`
+- [✅] Frontend corriendo en `http://localhost:4200`
+- [✅] Base de datos configurada
+- [✅] Consola del navegador abierta (F12) para ver errores
 
 ---
 
@@ -44,10 +44,10 @@ Esta guía te ayudará a verificar que todas las funcionalidades están trabajan
 - Verifica que el backend está creando la empresa y asignando el rol CLIENTE
 
 **Checklist:**
-- [ ] El formulario se envía correctamente
-- [ ] No hay errores en consola
-- [ ] Redirige al dashboard del cliente
-- [ ] El usuario queda autenticado
+- [✅] El formulario se envía correctamente
+- [✅] No hay errores en consola
+- [✅] Redirige al dashboard del cliente
+- [✅] El usuario queda autenticado
 
 ---
 
@@ -72,9 +72,9 @@ Esta guía te ayudará a verificar que todas las funcionalidades están trabajan
 - Revisa la consola para ver el error específico
 
 **Checklist:**
-- [ ] El login funciona correctamente
-- [ ] No hay errores en consola
-- [ ] Redirige al dashboard correcto según el rol
+- [✅] El login funciona correctamente
+- [✅] No hay errores en consola
+- [✅] Redirige al dashboard correcto según el rol
 
 ---
 
@@ -97,8 +97,8 @@ Esta guía te ayudará a verificar que todas las funcionalidades están trabajan
 - No hay errores
 
 **Checklist:**
-- [ ] El supervisor puede iniciar sesión
-- [ ] Redirige al dashboard del supervisor
+- [✅] El supervisor puede iniciar sesión
+- [✅] Redirige al dashboard del supervisor
 
 ---
 
@@ -131,12 +131,12 @@ Esta guía te ayudará a verificar que todas las funcionalidades están trabajan
 - Verifica que la empresa se marca como `visible = true` en el backend
 
 **Checklist:**
-- [ ] La configuración se carga correctamente al entrar
-- [ ] Se pueden editar los campos
-- [ ] Se pueden seleccionar/deseleccionar módulos
-- [ ] Al guardar, muestra mensaje de éxito
-- [ ] No hay errores en consola
-- [ ] Los datos se persisten (recargar página y verificar)
+- [✅] La configuración se carga correctamente al entrar
+- [✅] Se pueden editar los campos
+- [✅] Se pueden seleccionar/deseleccionar módulos
+- [✅] Al guardar, muestra mensaje de éxito
+- [✅] No hay errores en consola
+- [✅] Los datos se persisten (recargar página y verificar)
 
 ---
 
@@ -162,12 +162,12 @@ Esta guía te ayudará a verificar que todas las funcionalidades están trabajan
 - Si no aparece ninguna empresa, verifica que la empresa tiene módulos configurados
 
 **Checklist:**
-- [ ] Se muestran las empresas auditoras disponibles
-- [ ] Se muestra la información correcta (nombre, ubicación, módulos)
-- [ ] Los botones están bien posicionados
-- [ ] No hay errores en consola
-- [ ] El filtro por país/estado funciona
-- [ ] El filtro por módulos funciona
+- [✅] Se muestran las empresas auditoras disponibles
+- [✅] Se muestra la información correcta (nombre, ubicación, módulos)
+- [✅] Los botones están bien posicionados
+- [✅] No hay errores en consola
+- [cambiar a que le sea indiferente mayus, minus, tildes, etc, o crear un combobox y cambiar a que solo sea estado] El filtro por país/estado funciona
+- [maso, cambiar la condicion que cuando elija dos sea un and y no un or] El filtro por módulos funciona
 
 ---
 
@@ -193,11 +193,11 @@ Esta guía te ayudará a verificar que todas las funcionalidades están trabajan
 - Verifica que el parámetro `:id` se está pasando correctamente
 
 **Checklist:**
-- [ ] Se carga el perfil correctamente
-- [ ] Se muestra toda la información
-- [ ] No hay errores en consola
-- [ ] El botón "Volver" funciona
-- [ ] El botón "Contactar Empresa" funciona
+- [✅] Se carga el perfil correctamente
+- [✅] Se muestra toda la información
+- [✅] No hay errores en consola
+- [✅] El botón "Volver" funciona
+- [✅] El botón "Contactar Empresa" funciona
 
 ---
 
@@ -224,10 +224,10 @@ Esta guía te ayudará a verificar que todas las funcionalidades están trabajan
 - Revisa la consola para ver el error
 
 **Checklist:**
-- [ ] Se puede enviar un mensaje
-- [ ] Se crea la conversación
-- [ ] El mensaje aparece en la lista
-- [ ] No hay errores en consola
+- [✅] Se puede enviar un mensaje
+- [✅, pero se genera una nueva con la misma empresa, condicion donde si ya existe conversacion con esa empresa no cree otra] Se crea la conversación
+- [✅, si pero no hay un historial de mensajes tipo ig, WA, donde este el hitorial de laconversaion] El mensaje aparece en la lista
+- [✅] No hay errores en consola
 
 ---
 
@@ -252,11 +252,11 @@ Esta guía te ayudará a verificar que todas las funcionalidades están trabajan
 - Revisa la consola
 
 **Checklist:**
-- [ ] El supervisor ve las conversaciones
-- [ ] Puede responder
-- [ ] Los mensajes se envían correctamente
-- [ ] No hay errores en consola
-
+- [✅] El supervisor ve las conversaciones
+- [✅] Puede responder
+- [✅] Los mensajes se envían correctamente
+- [✅] No hay errores en consola
+   Lo mismo Se genera otra conversaion cuando deberia de ser una por clientes e implementar historial de mensajes
 ---
 
 ### Paso 4.3: Cliente Acepta Propuesta
@@ -270,8 +270,8 @@ Esta guía te ayudará a verificar que todas las funcionalidades están trabajan
 - El sistema debería crear automáticamente una solicitud de pago (o el supervisor la crea manualmente)
 
 **Checklist:**
-- [ ] El cliente puede responder
-- [ ] El mensaje se envía
+- [✅] El cliente puede responder
+- [✅] El mensaje se envía
 - [ ] Se crea la solicitud de pago (automática o manual)
 
 ---
