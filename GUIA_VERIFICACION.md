@@ -166,8 +166,8 @@ Esta guía te ayudará a verificar que todas las funcionalidades están trabajan
 - [✅] Se muestra la información correcta (nombre, ubicación, módulos)
 - [✅] Los botones están bien posicionados
 - [✅] No hay errores en consola
-- [cambiar a que le sea indiferente mayus, minus, tildes, etc, o crear un combobox y cambiar a que solo sea estado] El filtro por país/estado funciona
-- [maso, cambiar la condicion que cuando elija dos sea un and y no un or] El filtro por módulos funciona
+- [✅] El filtro por estado funciona
+- [✅] El filtro por módulos funciona
 
 ---
 
