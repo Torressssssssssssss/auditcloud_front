@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
@@ -17,11 +17,13 @@ class PaymentServiceLocal {
   styleUrls: ['./nueva-solicitud.component.css']
 })
 export class NuevaSolicitudComponent {
+  @Output() solicitudCreada = new EventEmitter<void>();
   id_empresa: number | null = null;
   id_cliente: number | null = null;
   monto: number | null = null;
   concepto = '';
   loading = false;
+  errorMsg = '';
 
   private svc: PaymentServiceLocal;
 
@@ -30,8 +32,9 @@ export class NuevaSolicitudComponent {
   }
 
   crear() {
+    this.errorMsg = '';
     if (!this.monto || !this.concepto) {
-      alert('monto y concepto son obligatorios');
+      this.errorMsg = 'El monto y concepto son obligatorios';
       return;
     }
     const payload: any = { monto: this.monto, concepto: this.concepto };
@@ -41,13 +44,13 @@ export class NuevaSolicitudComponent {
     this.loading = true;
     this.svc.create(payload).subscribe({
       next: (res) => {
-        alert(res?.message || 'Solicitud creada');
         this.reset();
+        this.solicitudCreada.emit();
         this.loading = false;
       },
       error: (err) => {
         console.error(err);
-        alert(err?.error?.message || 'Error creando solicitud');
+        this.errorMsg = err?.error?.message || 'Error creando solicitud';
         this.loading = false;
       }
     });

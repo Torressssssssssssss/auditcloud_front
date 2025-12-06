@@ -1,16 +1,71 @@
-<div class="nueva-solicitud">
-  <h3>Nueva solicitud (Supervisor)</h3>
-  <label>ID Empresa (cliente)</label>
-  <input type="number" [(ngModel)]="id_empresa" />
-  <label>ID Cliente (usuario) — opcional</label>
-  <input type="number" [(ngModel)]="id_cliente" />
-  <label>Monto</label>
-  <input type="number" [(ngModel)]="monto" />
-  <label>Concepto</label>
-  <input type="text" [(ngModel)]="concepto" />
-
-  <div class="actions">
-    <button (click)="crear()" [disabled]="loading">Crear</button>
-    <button (click)="reset()" [disabled]="loading">Limpiar</button>
+<div class="nueva-solicitud-wrapper">
+  <div class="form-header">
+    <h3>Nueva Solicitud de Pago</h3>
+    <p class="form-subtitle">Completa el formulario para crear una solicitud</p>
   </div>
+
+  <div *ngIf="errorMsg" class="error-banner">
+    {{ errorMsg }}
+  </div>
+
+  <form (ngSubmit)="crear()" class="solicitud-form">
+    <div class="form-group">
+      <label for="id_empresa">ID Empresa (Cliente) *</label>
+      <input 
+        type="number" 
+        id="id_empresa"
+        [(ngModel)]="id_empresa" 
+        name="id_empresa"
+        placeholder="Ej: 1"
+        class="form-input"
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="id_cliente">ID Cliente (Usuario)</label>
+      <input 
+        type="number" 
+        id="id_cliente"
+        [(ngModel)]="id_cliente" 
+        name="id_cliente"
+        placeholder="Opcional"
+        class="form-input"
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="monto">Monto (MXN) *</label>
+      <input 
+        type="number" 
+        id="monto"
+        [(ngModel)]="monto" 
+        name="monto"
+        placeholder="Ej: 1500.00"
+        step="0.01"
+        class="form-input"
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="concepto">Concepto *</label>
+      <textarea 
+        id="concepto"
+        [(ngModel)]="concepto" 
+        name="concepto"
+        placeholder="Describe el concepto del pago"
+        class="form-input"
+        rows="3"
+      ></textarea>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" [disabled]="loading" class="btn-submit">
+        <span *ngIf="!loading">✓ Crear Solicitud</span>
+        <span *ngIf="loading">Creando...</span>
+      </button>
+      <button type="button" (click)="reset()" [disabled]="loading" class="btn-reset">
+        ↻ Limpiar
+      </button>
+    </div>
+  </form>
 </div>

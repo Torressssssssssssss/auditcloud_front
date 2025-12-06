@@ -32,7 +32,7 @@ class PaymentService {
 })
 export class PagosComponent implements OnInit {
   pagos: any[] = [];
-  loading = false;
+  loading = signal(true);
   page = 1;
   limit = 20;
   total = 0;
@@ -48,7 +48,7 @@ export class PagosComponent implements OnInit {
   }
 
   load(): void {
-    this.loading = true;
+    this.loading.set(true);
     this.paymentService.list({ page: this.page, limit: this.limit }).subscribe({
       next: (res) => {
         // El backend devuelve { total, page, limit, data }
@@ -63,11 +63,13 @@ export class PagosComponent implements OnInit {
           this.pagos = [];
           this.total = 0;
         }
-        this.loading = false;
+        this.loading.set(false);
       },
       error: (err) => {
         console.error('Error cargando pagos', err);
-        this.loading = false;
+        this.pagos = [];
+        this.total = 0;
+        this.loading.set(false);
       }
     });
   }
@@ -86,30 +88,9 @@ export class PagosComponent implements OnInit {
     }
   }
 
-  // Abre el formulario de crear — para simplicidad, vamos a mostrar prompt
-  crearSolicitud(): void {
-    const idEmpresa = prompt('ID de la empresa cliente (id_empresa)');
-    const idCliente = prompt('ID del usuario cliente (opcional, deja vacío para usar usuario principal)');
-    const monto = prompt('Monto');
-    const concepto = prompt('Concepto');
-    if (!monto || !concepto) {
-      alert('monto y concepto son obligatorios');
-      return;
-    }
-
-    const payload: any = { monto: Number(monto), concepto };
-    if (idEmpresa) payload.id_empresa = Number(idEmpresa);
-    if (idCliente) payload.id_cliente = Number(idCliente);
-
-    this.paymentService.create(payload).subscribe({
-      next: (res) => {
-        alert(res?.message || 'Solicitud creada');
-        this.load();
-      },
-      error: (err) => {
-        console.error('Error creando solicitud', err);
-        alert(err?.error?.message || 'Error creando solicitud');
-      }
-    });
+  // Callback cuando solicitud se crea exitosamente
+  onSolicitudCreada(): void {
+    this.mostrarFormulario.set(false);
+    this.load();
   }
 }

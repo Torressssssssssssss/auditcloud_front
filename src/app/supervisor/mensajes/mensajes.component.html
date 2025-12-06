@@ -1,115 +1,89 @@
-<div class="mensajes-page">
-  <div class="mensajes-container">
-    <!-- Lista de conversaciones -->
-    <div class="conversaciones-list">
-      <div class="conversaciones-header">
-        <h3>Conversaciones</h3>
-      </div>
-      
-      @if (loading()) {
-        <app-loading-spinner />
-      } @else if (conversaciones().length === 0) {
-        <app-empty-state mensaje="No hay conversaciones" />
-      } @else {
-        <div class="conversaciones-items">
-          @for (conversacion of conversaciones(); track conversacion.id_conversacion) {
-            <div 
-              class="conversacion-item"
-              [class.active]="conversacionSeleccionada()?.id_conversacion === conversacion.id_conversacion"
-              (click)="seleccionarConversacion(conversacion)">
-              <div class="conversacion-info">
-                <h4>{{ conversacion.cliente?.nombre_empresa || conversacion.cliente?.nombre || 'Cliente' }}</h4>
-                <p>{{ conversacion.ultimo_mensaje?.contenido || 'Sin mensajes' }}</p>
-              </div>
-              <span class="conversacion-time">
-                {{ conversacion.ultimo_mensaje?.fecha_envio ? formatearFecha(conversacion.ultimo_mensaje!.fecha_envio) : '' }}
-              </span>
-            </div>
-          }
-        </div>
-      }
+<div class="mensajes-layout">
+  
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h3>Atención a Clientes</h3>
     </div>
-
-    <!-- Chat -->
-    <div class="chat-container">
-      @if (!conversacionSeleccionada()) {
-        <div class="chat-empty">
-          <p>Selecciona una conversación para comenzar</p>
-        </div>
-      } @else {
-        <div class="chat-header">
-          <div>
-            <h3>{{ conversacionSeleccionada()?.cliente?.nombre_empresa || conversacionSeleccionada()?.cliente?.nombre || 'Cliente' }}</h3>
-          </div>
-          <button class="btn btn-primary" (click)="showSolicitudForm.set(!showSolicitudForm())">
-            <app-icon name="credit-card" [size]="18"></app-icon>
-            Crear Solicitud de Pago
-          </button>
-        </div>
-
-        @if (showSolicitudForm()) {
-          <div class="solicitud-form-card">
-            <h4>Nueva Solicitud de Pago</h4>
-            <form [formGroup]="solicitudForm" (ngSubmit)="crearSolicitudPago()">
-              <div class="form-group">
-                <label>Concepto</label>
-                <input type="text" formControlName="concepto" [class.error]="concepto?.invalid && concepto?.touched" />
-                @if (concepto?.invalid && concepto?.touched) {
-                  <span class="field-error">El concepto es obligatorio</span>
-                }
+    
+    @if (loading()) {
+      <app-loading-spinner />
+    } @else {
+      <div class="lista-conversaciones">
+        @for (conv of conversaciones(); track conv.id_conversacion) {
+          <div class="conv-item" 
+               [class.active]="conversacionSeleccionada()?.id_conversacion === conv.id_conversacion"
+               (click)="seleccionar(conv)">
+            
+            <div class="avatar-circle">
+              {{ conv.cliente?.nombre_empresa?.charAt(0) || 'C' }}
+            </div>
+            
+            <div class="conv-info">
+              <div class="conv-top">
+                <span class="conv-title">{{ conv.cliente?.nombre_empresa }}</span>
+                <span class="conv-date">
+                  {{ (conv.ultimo_mensaje?.creado_en || conv.creado_en) | date:'shortTime' }}
+                </span>
               </div>
-              <div class="form-group">
-                <label>Monto</label>
-                <input type="number" formControlName="monto" [class.error]="monto?.invalid && monto?.touched" />
-                @if (monto?.invalid && monto?.touched) {
-                  <span class="field-error">El monto es obligatorio</span>
-                }
+              <div class="conv-preview">
+                <span class="text-xs text-gray-500 mr-1">
+                  {{ conv.ultimo_mensaje?.emisor_tipo === 'SUPERVISOR' ? 'Tú:' : conv.cliente?.nombre + ':' }}
+                </span>
+                {{ conv.ultimo_mensaje?.contenido || 'Nueva conversación' }}
               </div>
-              <div class="form-group">
-                <label>Fecha de Expiración</label>
-                <input type="date" formControlName="fecha_expiracion" [class.error]="fecha_expiracion?.invalid && fecha_expiracion?.touched" />
-                @if (fecha_expiracion?.invalid && fecha_expiracion?.touched) {
-                  <span class="field-error">La fecha es obligatoria</span>
-                }
-              </div>
-              <div class="form-actions">
-                <button type="button" class="btn btn-secondary" (click)="showSolicitudForm.set(false)">
-                  Cancelar
-                </button>
-                <button type="submit" class="btn btn-primary" [disabled]="solicitudForm.invalid">
-                  Crear y Enviar
-                </button>
-              </div>
-            </form>
+            </div>
           </div>
         }
-        
-        <div id="chat-messages" class="chat-messages">
-          @for (mensaje of mensajes(); track mensaje.id_mensaje) {
-            <div class="mensaje" [class.propio]="esMensajePropio(mensaje)">
-              <div class="mensaje-content">
-                <p>{{ mensaje.contenido }}</p>
-                <span class="mensaje-time">{{ formatearFecha(mensaje.fecha_envio) }}</span>
-              </div>
-            </div>
-          }
-        </div>
+        @if (conversaciones().length === 0) {
+          <app-empty-state mensaje="No hay conversaciones activas." />
+        }
+      </div>
+    }
+  </div>
 
-        <div class="chat-input">
-          <input 
-            type="text" 
-            placeholder="Escribe un mensaje..."
-            [value]="nuevoMensaje()"
-            (input)="nuevoMensaje.set($any($event.target).value)"
-            (keyup.enter)="enviarMensaje()"
-          />
-          <button class="btn btn-primary" (click)="enviarMensaje()" [disabled]="!nuevoMensaje().trim()">
-            Enviar
-          </button>
+  <div class="chat-area">
+    @if (!conversacionSeleccionada()) {
+      <div class="chat-placeholder">
+        <app-icon name="message-square" [size]="48" class="text-gray-300 mb-4"></app-icon>
+        <p>Selecciona un cliente para ver el historial</p>
+      </div>
+    } @else {
+      <div class="chat-header">
+        <div class="header-info">
+          <h3>{{ conversacionSeleccionada()?.cliente?.nombre_empresa }}</h3>
+          <span class="subtitle">Contacto: {{ conversacionSeleccionada()?.cliente?.nombre }}</span>
         </div>
-      }
-    </div>
+        <div class="header-actions">
+        </div>
+      </div>
+
+      <div class="messages-viewport" #chatViewport>
+        @for (msg of mensajes(); track msg.id_mensaje) {
+          <div class="msg-row"
+               [ngClass]="{
+                 'me': esPropio(msg),
+                 'client': esCliente(msg),
+                 'auditor': (!esPropio(msg) && !esCliente(msg))
+               }">
+            <div class="msg-bubble">
+              <p>{{ msg.contenido }}</p>
+              <span class="msg-time">{{ msg.creado_en | date:'shortTime' }}</span>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="chat-input-area">
+        <input 
+          type="text" 
+          [(ngModel)]="textoMensaje" 
+          (keyup.enter)="enviar()"
+          placeholder="Responder al cliente..."
+        />
+        <button class="btn-send" (click)="enviar()" [disabled]="!textoMensaje.trim()">
+          <app-icon name="send"></app-icon>
+        </button>
+      </div>
+    }
   </div>
 </div>
-
-

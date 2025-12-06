@@ -1,193 +1,175 @@
-import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
-import { Router, RouterModule, ActivatedRoute } from '@angular/router';
+import { Component, OnInit, signal, inject, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule, ActivatedRoute } from '@angular/router';
+import { FormsModule } from '@angular/forms'; // Necesario para ngModel
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { IconComponent } from '../../shared/components/icon/icon.component';
-import { Conversacion, Mensaje } from '../../models/mensaje.model';
-import { SolicitudPago } from '../../models/pago.model';
+
+// Interfaces
+interface Mensaje {
+  id_mensaje: number;
+  id_conversacion: number;
+  emisor_tipo: 'CLIENTE' | 'SUPERVISOR' | 'AUDITOR';
+  emisor_id: number;
+  contenido: string;
+  fecha_envio?: string; // Mapeo de creado_en
+  creado_en: string;
+}
+
+interface Conversacion {
+  id_conversacion: number;
+  empresa?: { nombre: string };
+  ultimo_mensaje?: Mensaje;
+  id_empresa_auditora: number;
+  creado_en: string;
+}
 
 @Component({
   selector: 'app-cliente-mensajes',
   standalone: true,
   imports: [
-    CommonModule,
-    RouterModule,
-    LoadingSpinnerComponent,
+    CommonModule, 
+    RouterModule, 
+    FormsModule, 
+    LoadingSpinnerComponent, 
     EmptyStateComponent,
     IconComponent
   ],
   templateUrl: './mensajes.component.html',
-  styleUrl: './mensajes.component.css'
+  styleUrls: ['./mensajes.component.css']
 })
-export class MensajesComponent implements OnInit {
+export class MensajesComponent implements OnInit, AfterViewChecked {
+  private apiService = inject(ApiService);
+  private authService = inject(AuthService);
+  private route = inject(ActivatedRoute);
+
+  // Estados
   loading = signal<boolean>(true);
   conversaciones = signal<Conversacion[]>([]);
   conversacionSeleccionada = signal<Conversacion | null>(null);
   mensajes = signal<Mensaje[]>([]);
-  nuevoMensaje = signal<string>('');
-  idEmpresaSeleccionada = signal<number | null>(null);
+  textoMensaje = '';
+  shouldScrollToBottom = false;
 
-  constructor(
-    private apiService: ApiService,
-    private authService: AuthService,
-    private router: Router,
-    private route: ActivatedRoute
-  ) {}
+  @ViewChild('chatContainer') private chatContainer!: ElementRef;
 
   ngOnInit(): void {
-    this.loadConversaciones();
-    
-    // Verificar si hay parámetro de empresa en la URL
-    this.route.queryParams.subscribe(params => {
-      if (params['empresa']) {
-        this.idEmpresaSeleccionada.set(+params['empresa']);
-        this.crearOAbrirConversacion(+params['empresa']);
-      }
-      // Si viene id de conversacion, seleccionarla manteniendo el layout
-      if (params['conversacion']) {
-        const idConv = +params['conversacion'];
-        const conv = this.conversaciones().find(c => c.id_conversacion === idConv);
-        if (conv) {
-          this.seleccionarConversacion(conv);
-        }
-      }
-    });
+    this.cargarConversaciones();
   }
 
-  loadConversaciones(): void {
-    this.loading.set(true);
-    const idCliente = this.authService.getIdUsuario();
-    
-    if (!idCliente) {
-      this.loading.set(false);
-      return;
+  ngAfterViewChecked() {
+    // Auto-scroll cuando llegan mensajes nuevos
+    if (this.shouldScrollToBottom) {
+      this.scrollToBottom();
+      this.shouldScrollToBottom = false;
     }
+  }
 
-    this.apiService.get<any>(`/api/cliente/conversaciones/${idCliente}`)
+  cargarConversaciones() {
+    const idCliente = this.authService.getIdUsuario();
+    this.apiService.get<Conversacion[]>(`/api/cliente/conversaciones/${idCliente}`)
       .subscribe({
-        next: (response) => {
-          const conversaciones = Array.isArray(response) ? response : (response?.data || []);
-          this.conversaciones.set(conversaciones);
+        next: (data) => {
+          const ordenadas = [...data].sort((a, b) => {
+            const fechaA = new Date(a.ultimo_mensaje?.creado_en || a.creado_en).getTime();
+            const fechaB = new Date(b.ultimo_mensaje?.creado_en || b.creado_en).getTime();
+            return fechaB - fechaA;
+          });
+          this.conversaciones.set(ordenadas);
           this.loading.set(false);
           
-          // Si hay conversación seleccionada, cargar sus mensajes
-          if (this.conversacionSeleccionada()) {
-            this.cargarMensajes(this.conversacionSeleccionada()!.id_conversacion);
+          // Verificar parámetros URL para abrir chat específico
+          const params = this.route.snapshot.queryParams;
+          if (params['empresa'] && !this.conversacionSeleccionada()) {
+             this.buscarOCrearChat(+params['empresa']);
           }
         },
-        error: (error) => {
-          console.error('Error cargando conversaciones:', error);
+        error: (err) => {
+          console.error(err);
           this.loading.set(false);
         }
       });
   }
 
-  seleccionarConversacion(conversacion: Conversacion): void {
-    this.conversacionSeleccionada.set(conversacion);
-    this.cargarMensajes(conversacion.id_conversacion);
+  seleccionarConversacion(conv: Conversacion) {
+    this.conversacionSeleccionada.set(conv);
+    this.shouldScrollToBottom = true;
+    this.cargarMensajes(conv.id_conversacion);
   }
 
-  cargarMensajes(idConversacion: number): void {
-    // Nota: Ajustar endpoint según tu backend
-    this.apiService.get<any>(`/api/cliente/mensajes/${idConversacion}`)
+  cargarMensajes(idConversacion: number) {
+    this.apiService.get<Mensaje[]>(`/api/cliente/mensajes/${idConversacion}`)
       .subscribe({
-        next: (response) => {
-          const mensajes = Array.isArray(response) ? response : (response?.data || []);
-          this.mensajes.set(mensajes);
-          setTimeout(() => this.scrollToBottom(), 100);
-        },
-        error: (error) => {
-          console.error('Error cargando mensajes:', error);
+        next: (msgs) => {
+          const ordenados = [...msgs].sort((a, b) => new Date(a.creado_en).getTime() - new Date(b.creado_en).getTime());
+          this.mensajes.set(ordenados);
+          this.shouldScrollToBottom = true;
+          setTimeout(() => this.scrollToBottom(), 0);
         }
       });
   }
 
-  enviarMensaje(): void {
-    const contenido = this.nuevoMensaje().trim();
-    if (!contenido || !this.conversacionSeleccionada()) return;
+  enviarMensaje() {
+    if (!this.textoMensaje.trim() || !this.conversacionSeleccionada()) return;
 
-    const idCliente = this.authService.getIdUsuario();
-    if (!idCliente) return;
-
-    const mensaje = {
+    const payload = {
       id_conversacion: this.conversacionSeleccionada()!.id_conversacion,
-      id_usuario: idCliente,
-      contenido: contenido,
-      tipo: 'TEXTO'
+      contenido: this.textoMensaje
     };
 
-    // Nota: Ajustar endpoint según tu backend
-    this.apiService.post<Mensaje>('/api/cliente/mensajes', mensaje)
+    this.apiService.post<Mensaje>('/api/cliente/mensajes', payload)
       .subscribe({
-        next: () => {
-          this.nuevoMensaje.set('');
-          this.cargarMensajes(this.conversacionSeleccionada()!.id_conversacion);
-          this.loadConversaciones(); // Actualizar lista
+        next: (nuevoMsg) => {
+          this.mensajes.update(msgs => [...msgs, nuevoMsg]);
+          this.textoMensaje = '';
+          this.shouldScrollToBottom = true;
+
+          // 2. Actualizar lista de la izquierda (Mover conversación al inicio)
+          this.cargarConversaciones(); 
         },
-        error: (error) => {
-          console.error('Error enviando mensaje:', error);
-        }
+        error: (err) => console.error('Error envío', err)
       });
   }
 
-  crearOAbrirConversacion(idEmpresa: number): void {
-    const idCliente = this.authService.getIdUsuario();
-    if (!idCliente) return;
-
-    // Buscar si ya existe conversación con esta empresa
+  buscarOCrearChat(idEmpresa: number) {
+    // Buscar en locales
     const existente = this.conversaciones().find(c => c.id_empresa_auditora === idEmpresa);
-    
     if (existente) {
       this.seleccionarConversacion(existente);
     } else {
       // Crear nueva conversación
-      const nuevaConversacion = {
-        id_cliente: idCliente,
+      const idCliente = this.authService.getIdUsuario();
+      const payload = {
         id_empresa_auditora: idEmpresa,
-        asunto: 'Consulta',
-        primer_mensaje: 'Hola, me gustaría obtener más información.'
-      };
-
-      this.apiService.post<Conversacion>('/api/cliente/conversaciones', nuevaConversacion)
-        .subscribe({
-          next: (conversacion) => {
-            this.loadConversaciones();
-            this.seleccionarConversacion(conversacion);
-          },
-          error: (error) => {
-            console.error('Error creando conversación:', error);
-          }
-        });
+        id_cliente: idCliente
+      };  
     }
   }
 
   scrollToBottom(): void {
-    const chatContainer = document.getElementById('chat-messages');
-    if (chatContainer) {
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
+    try {
+      this.chatContainer.nativeElement.scrollTop = this.chatContainer.nativeElement.scrollHeight;
+    } catch(err) { }
   }
 
-  formatearFecha(fecha: string): string {
-    const date = new Date(fecha);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const minutos = Math.floor(diff / 60000);
-    
-    if (minutos < 1) return 'Ahora';
-    if (minutos < 60) return `Hace ${minutos} min`;
-    if (minutos < 1440) return `Hace ${Math.floor(minutos / 60)} horas`;
-    return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+  esPropio(msg: Mensaje): boolean {
+    return msg.emisor_tipo === 'CLIENTE';
   }
 
-  esMensajePropio(mensaje: Mensaje): boolean {
-    return mensaje.id_usuario === this.authService.getIdUsuario();
+  esSupervisor(msg: Mensaje): boolean {
+    return msg.emisor_tipo === 'SUPERVISOR';
   }
 
-  esSolicitudPago(mensaje: Mensaje): boolean {
-    return mensaje.tipo === 'SOLICITUD_PAGO';
+  esAuditor(msg: Mensaje): boolean {
+    return msg.emisor_tipo === 'AUDITOR';
+  }
+
+  esSolicitudPago(msg: Mensaje): boolean {
+    // Detectar si el mensaje es una notificación automática de pago
+    // (Puedes ajustar esta lógica según cómo guardes las notificaciones en el backend)
+    return msg.contenido.includes('Solicitud de Pago'); 
   }
 }

@@ -1,89 +1,94 @@
-<div class="mensajes-page">
-  <div class="mensajes-container">
-    <!-- Lista de conversaciones -->
-    <div class="conversaciones-list">
-      <div class="conversaciones-header">
-        <h3>Conversaciones</h3>
-      </div>
-      
-      @if (loading()) {
-        <app-loading-spinner />
-      } @else if (conversaciones().length === 0) {
-        <app-empty-state mensaje="No hay conversaciones" />
-      } @else {
-        <div class="conversaciones-items">
-          @for (conversacion of conversaciones(); track conversacion.id_conversacion) {
-            <div 
-              class="conversacion-item"
-              [class.active]="conversacionSeleccionada()?.id_conversacion === conversacion.id_conversacion"
-              (click)="seleccionarConversacion(conversacion)">
-              <div class="conversacion-info">
-                <h4>{{ conversacion.empresa?.nombre || 'Empresa' }}</h4>
-                <p>{{ conversacion.ultimo_mensaje?.contenido || 'Sin mensajes' }}</p>
+<div class="mensajes-layout">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h3>Mensajes</h3>
+    </div>
+
+    @if (loading()) {
+      <app-loading-spinner />
+    } @else {
+      <div class="conversaciones-list" #chatNav>
+        @for (conv of conversaciones(); track conv.id_conversacion) {
+          <div class="conv-item"
+               [class.active]="conversacionSeleccionada()?.id_conversacion === conv.id_conversacion"
+               (click)="seleccionarConversacion(conv)">
+
+            <div class="conv-avatar">
+              {{ conv.empresa?.nombre?.charAt(0) || 'E' }}
+            </div>
+
+            <div class="conv-info">
+              <div class="conv-top">
+                <span class="conv-name">{{ conv.empresa?.nombre }}</span>
+                <span class="conv-date">
+                  {{ (conv.ultimo_mensaje?.creado_en || conv.creado_en) | date:'shortTime' }}
+                </span>
               </div>
-              <span class="conversacion-time">
-                {{ conversacion.ultimo_mensaje?.fecha_envio ? formatearFecha(conversacion.ultimo_mensaje!.fecha_envio) : '' }}
-              </span>
+              <div class="conv-preview">
+                <span class="conv-from" *ngIf="conv.ultimo_mensaje">{{ conv.ultimo_mensaje?.emisor_tipo === 'CLIENTE' ? 'Tú:' : conv.ultimo_mensaje?.emisor_tipo + ':' }}</span>
+                {{ conv.ultimo_mensaje?.contenido || 'Iniciar conversación' }}
+              </div>
+            </div>
+          </div>
+        }
+        @if (conversaciones().length === 0) {
+          <app-empty-state mensaje="No hay conversaciones iniciadas." />
+        }
+      </div>
+    }
+  </div>
+
+  <div class="chat-area">
+    @if (!conversacionSeleccionada()) {
+      <div class="chat-placeholder">
+        <app-icon name="message-square" [size]="48" class="text-gray-300 mb-4"></app-icon>
+        <p>Selecciona un chat para comenzar</p>
+      </div>
+    } @else {
+      <div class="chat-header">
+        <div class="header-info">
+          <h3>{{ conversacionSeleccionada()?.empresa?.nombre }}</h3>
+          <span class="subtitle">Empresa auditada</span>
+        </div>
+      </div>
+
+      <div class="messages-viewport" #chatContainer>
+        @for (msg of mensajes(); track msg.id_mensaje) {
+          @if (esSolicitudPago(msg)) {
+            <div class="msg-system">
+              <div class="system-card">
+                <app-icon name="credit-card"></app-icon>
+                <span>{{ msg.contenido }}</span>
+                <a [routerLink]="['/cliente/pagos']" class="btn-link">Ir a pagos</a>
+              </div>
+            </div>
+          } @else {
+            <div class="msg-row"
+                 [ngClass]="{
+                   'me': esPropio(msg),
+                   'supervisor': esSupervisor(msg),
+                   'auditor': esAuditor(msg)
+                 }">
+              <div class="msg-bubble">
+                <p>{{ msg.contenido }}</p>
+                <span class="msg-time">{{ msg.creado_en | date:'shortTime' }}</span>
+              </div>
             </div>
           }
-        </div>
-      }
-    </div>
+        }
+      </div>
 
-    <!-- Chat -->
-    <div class="chat-container">
-      @if (!conversacionSeleccionada()) {
-        <div class="chat-empty">
-          <p>Selecciona una conversación para comenzar</p>
-        </div>
-      } @else {
-        <div class="chat-header">
-          <h3>{{ conversacionSeleccionada()?.empresa?.nombre || 'Empresa' }}</h3>
-        </div>
-        
-        <div id="chat-messages" class="chat-messages">
-          @for (mensaje of mensajes(); track mensaje.id_mensaje) {
-            @if (esSolicitudPago(mensaje)) {
-              <div class="mensaje-solicitud-pago">
-                <div class="solicitud-card">
-                  <h4>
-                    <app-icon name="credit-card" [size]="18" style="display: inline-block; vertical-align: middle; margin-right: 0.5rem;"></app-icon>
-                    Solicitud de Pago
-                  </h4>
-                  <p>{{ mensaje.contenido }}</p>
-                  <div class="solicitud-actions">
-                    <a [routerLink]="['/cliente/pagos']" class="btn btn-primary">
-                      Ver y Pagar
-                    </a>
-                  </div>
-                </div>
-              </div>
-            } @else {
-              <div class="mensaje" [class.propio]="esMensajePropio(mensaje)">
-                <div class="mensaje-content">
-                  <p>{{ mensaje.contenido }}</p>
-                  <span class="mensaje-time">{{ formatearFecha(mensaje.fecha_envio) }}</span>
-                </div>
-              </div>
-            }
-          }
-        </div>
-
-        <div class="chat-input">
-          <input 
-            type="text" 
-            placeholder="Escribe un mensaje..."
-            [value]="nuevoMensaje()"
-            (input)="nuevoMensaje.set($any($event.target).value)"
-            (keyup.enter)="enviarMensaje()"
-          />
-          <button class="btn btn-primary" (click)="enviarMensaje()" [disabled]="!nuevoMensaje().trim()">
-            Enviar
-          </button>
-        </div>
-      }
-    </div>
+      <div class="chat-input-area">
+        <input
+          type="text"
+          [(ngModel)]="textoMensaje"
+          (keyup.enter)="enviarMensaje()"
+          placeholder="Escribe un mensaje..."
+        />
+        <button class="btn-send" (click)="enviarMensaje()" [disabled]="!textoMensaje.trim()">
+          <app-icon name="send"></app-icon>
+        </button>
+      </div>
+    }
   </div>
 </div>
-
-

@@ -7,6 +7,7 @@ export type IconName =
   | 'document' 
   | 'credit-card' 
   | 'chat' 
+  | 'message-square'
   | 'paperclip' 
   | 'file-text' 
   | 'users' 
@@ -37,7 +38,8 @@ export type IconName =
   | 'alert-circle'
   | 'info'
   | 'sun'
-  | 'moon';
+  | 'moon'
+  | 'send';
 
 @Component({
   selector: 'app-icon',
@@ -67,6 +69,9 @@ export type IconName =
         }
         @case ('chat') {
           <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+        }
+        @case ('message-square') {
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
         }
         @case ('paperclip') {
           <path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/>
@@ -117,6 +122,9 @@ export type IconName =
           <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
         }
         @case ('arrow-right') {
+          <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+        }
+        @case ('send') {
           <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
         }
         @case ('arrow-left') {

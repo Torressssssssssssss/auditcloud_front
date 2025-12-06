@@ -2,47 +2,51 @@
   <div class="header">
     <h2 class="title">Gestión de Cobranza</h2>
     <div class="header-actions">
-      <button (click)="mostrarFormulario.set(true)" *ngIf="!mostrarFormulario()" class="btn-new">+ Nueva Solicitud de Pago</button>
-      <button (click)="load()" class="btn-muted">Refrescar</button>
+      <button (click)="mostrarFormulario.set(!mostrarFormulario())" class="btn-new">
+        <span *ngIf="!mostrarFormulario()">+ Nueva Solicitud de Pago</span>
+        <span *ngIf="mostrarFormulario()">✕ Cerrar Formulario</span>
+      </button>
+      <button (click)="load()" class="btn-refresh">↻ Refrescar</button>
     </div>
   </div>
 
   <div *ngIf="mostrarFormulario()" class="form-wrap">
-    <app-supervisor-nueva-solicitud></app-supervisor-nueva-solicitud>
+    <app-supervisor-nueva-solicitud (solicitudCreada)="onSolicitudCreada()"></app-supervisor-nueva-solicitud>
   </div>
 
-  <div class="table-card">
-    <div class="table-responsive">
-      <div *ngIf="loading" class="p-6 text-center text-gray-600">Cargando solicitudes...</div>
-      <table *ngIf="!loading" class="min-w-full pagos-table">
-        <thead class="bg-gray-100">
-          <tr>
-            <th class="px-4 py-2 text-left">ID</th>
-            <th class="px-4 py-2 text-left">Empresa / Cliente</th>
-            <th class="px-4 py-2 text-left">Concepto</th>
-            <th class="px-4 py-2 text-left">Monto</th>
-            <th class="px-4 py-2 text-left">Estado</th>
-            <th class="px-4 py-2 text-left">Fecha</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let p of pagos">
-            <td class="px-4 py-2">{{ p.id_solicitud }}</td>
-            <td class="px-4 py-2">{{ p.nombre_empresa_cliente || ('ID: ' + (p.id_empresa || p.id_empresa_cliente || p.id_cliente)) }}</td>
-            <td class="px-4 py-2">{{ p.concepto }}</td>
-            <td class="px-4 py-2 font-bold">{{ p.monto | currency:'MXN':'symbol':'1.2-2' }}</td>
-            <td class="px-4 py-2">
-              <span [ngClass]="p.id_estado === 1 ? 'text-yellow-600 bg-yellow-100 px-2 py-1 rounded-full text-xs' : 'text-green-600 bg-green-100 px-2 py-1 rounded-full text-xs'">
-                {{ p.id_estado === 1 ? 'PENDIENTE' : 'PAGADA' }}
-              </span>
-            </td>
-            <td class="px-4 py-2 text-sm text-gray-500">{{ p.creado_en | date:'short' }}</td>
-          </tr>
-          <tr *ngIf="!loading && pagos.length === 0">
-            <td colspan="6" class="px-4 py-6 text-center text-gray-500">No hay solicitudes registradas.</td>
-          </tr>
-        </tbody>
-      </table>
+  <div class="table-section">
+    <h3 class="section-title">Pagos Realizados</h3>
+    <div class="table-card">
+      <div *ngIf="loading()" class="loading-container">Cargando solicitudes...</div>
+      <div *ngIf="!loading() && pagos.length === 0" class="empty-container">No hay solicitudes registradas.</div>
+      <div *ngIf="!loading() && pagos.length > 0" class="table-responsive">
+        <table class="pagos-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Empresa / Cliente</th>
+              <th>Concepto</th>
+              <th>Monto</th>
+              <th>Estado</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of pagos" [ngClass]="{'row-pending': p.id_estado === 1, 'row-paid': p.id_estado !== 1}">
+              <td class="cell-id">{{ p.id_solicitud }}</td>
+              <td>{{ p.nombre_empresa_cliente || ('ID: ' + (p.id_empresa || p.id_empresa_cliente || p.id_cliente)) }}</td>
+              <td>{{ p.concepto }}</td>
+              <td class="cell-amount">{{ p.monto | currency:'MXN':'symbol':'1.2-2' }}</td>
+              <td class="cell-status">
+                <span [ngClass]="p.id_estado === 1 ? 'badge-pending' : 'badge-paid'">
+                  {{ p.id_estado === 1 ? 'PENDIENTE' : 'PAGADA' }}
+                </span>
+              </td>
+              <td class="cell-date">{{ p.creado_en | date:'short' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
