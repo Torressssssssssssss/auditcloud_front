@@ -28,7 +28,8 @@ interface EmpresaAuditora {
 export class EmpresasComponent implements OnInit {
   loading = signal<boolean>(true);
   empresas = signal<EmpresaAuditora[]>([]);
-  filtroPais = signal<string>('');
+  // Filtro de estado mediante combo (drop-down)
+  filtroEstado = signal<string>('');
   modulosSeleccionados = signal<number[]>([]);
 
   constructor(private apiService: ApiService) {}
@@ -65,22 +66,31 @@ export class EmpresasComponent implements OnInit {
 
   get empresasFiltradas(): EmpresaAuditora[] {
     let result = this.empresas();
-    
-    if (this.filtroPais()) {
-      const search = this.filtroPais().toLowerCase();
-      result = result.filter(e => 
-        e.pais?.toLowerCase().includes(search) ||
-        e.estado?.toLowerCase().includes(search)
-      );
+    // Filtro exacto por estado si fue seleccionado
+    if (this.filtroEstado()) {
+      const sel = this.filtroEstado().toLowerCase();
+      result = result.filter(e => (e.estado || '').toLowerCase() === sel);
     }
     
     if (this.modulosSeleccionados().length > 0) {
-      result = result.filter(e => 
-        e.modulos?.some(m => this.modulosSeleccionados().includes(m))
-      );
+      const seleccionados = this.modulosSeleccionados();
+      // AND: la empresa debe tener TODOS los módulos seleccionados
+      result = result.filter(e => {
+        const mods = e.modulos ?? [];
+        return seleccionados.every(m => mods.includes(m));
+      });
     }
     
     return result;
+  }
+
+  // Lista de estados disponibles en los datos (únicos y ordenados)
+  get estadosDisponibles(): string[] {
+    const set = new Set<string>();
+    for (const e of this.empresas()) {
+      if (e.estado && e.estado.trim()) set.add(e.estado.trim());
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
   }
 
   getModulosTexto(modulos: number[] | undefined): string {

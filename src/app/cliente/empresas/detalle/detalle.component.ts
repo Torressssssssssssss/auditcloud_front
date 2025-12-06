@@ -35,6 +35,7 @@ interface EmpresaAuditora {
 export class EmpresaDetalleComponent implements OnInit {
   loading = signal<boolean>(true);
   empresa = signal<EmpresaAuditora | null>(null);
+  yaContactada = signal<boolean>(false);
 
   constructor(
     private route: ActivatedRoute,
@@ -57,6 +58,7 @@ export class EmpresaDetalleComponent implements OnInit {
       .subscribe({
         next: (empresa) => {
           this.empresa.set(empresa);
+          this.verificarConversacionExistente(empresa.id_empresa);
           this.loading.set(false);
         },
         error: (error) => {
@@ -64,6 +66,18 @@ export class EmpresaDetalleComponent implements OnInit {
           this.loading.set(false);
         }
       });
+  }
+
+  private verificarConversacionExistente(idEmpresa: number): void {
+    const idCliente = this.authService.getIdUsuario();
+    if (!idCliente) { this.yaContactada.set(false); return; }
+    this.apiService.get<any>(`/api/cliente/conversaciones/${idCliente}`).subscribe({
+      next: (resp) => {
+        const convs = Array.isArray(resp) ? resp : (resp?.data || []);
+        this.yaContactada.set(convs.some((c: any) => c.id_empresa_auditora === idEmpresa));
+      },
+      error: () => this.yaContactada.set(false)
+    });
   }
 
   getModulosTexto(modulos: number[] | undefined): string {

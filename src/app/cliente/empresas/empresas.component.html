@@ -5,8 +5,13 @@
 
   <div class="filters">
     <div class="filter-group">
-      <label>Filtrar por país/estado:</label>
-      <input type="text" placeholder="Buscar..." [value]="filtroPais()" (input)="filtroPais.set($any($event.target).value)" />
+      <label>Estado</label>
+      <select [value]="filtroEstado()" (change)="filtroEstado.set($any($event.target).value)">
+        <option value="">Todos</option>
+        @for (estado of estadosDisponibles; track estado) {
+          <option [value]="estado">{{ estado }}</option>
+        }
+      </select>
     </div>
     <div class="filter-group">
       <label>Módulos:</label>
@@ -32,10 +37,10 @@
             <p><strong>Módulos:</strong> {{ getModulosTexto(empresa.modulos) }}</p>
           </div>
           <div class="empresa-actions">
-            <a [routerLink]="['/cliente/empresas', empresa.id_empresa]" class="btn btn-secondary">
+            <a [routerLink]="['/cliente/empresas', empresa.id_empresa]" class="btn btn-outline" style="text-decoration:none;">
               Ver perfil
             </a>
-            <button class="btn btn-primary" (click)="contactar(empresa.id_empresa)">
+            <button class="btn btn-grad" (click)="contactar(empresa.id_empresa)">
               Contactar
             </button>
           </div>
