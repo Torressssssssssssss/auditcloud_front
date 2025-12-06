@@ -43,10 +43,7 @@ export const routes: Routes = [
         path: 'auditorias/:id',
         loadComponent: () => import('./supervisor/auditorias/detalle/detalle.component').then(m => m.AuditoriaDetalleComponent)
       },
-      {
-        path: 'pagos',
-        loadComponent: () => import('./supervisor/pagos/pagos.component').then(m => m.PagosComponent)
-      },
+
       {
         path: 'mensajes',
         loadComponent: () => import('./supervisor/mensajes/mensajes.component').then(m => m.MensajesComponent)
@@ -110,6 +107,10 @@ export const routes: Routes = [
       {
         path: 'perfil',
         loadComponent: () => import('./auditor/perfil/perfil.component').then(m => m.PerfilComponent)
+      },
+      {
+        path: 'pagos',
+        loadComponent: () => import('./auditor/pagos/pagos.component').then(m => m.PagosComponent)
       }
     ]
   },

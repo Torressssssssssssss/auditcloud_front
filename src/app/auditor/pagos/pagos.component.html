@@ -1,0 +1,44 @@
+<div class="pagos-container">
+  <div class="header">
+    <h2 class="title">Gestión de Cobranza</h2>
+    <button (click)="mostrarFormulario.set(true)" *ngIf="!mostrarFormulario()" class="btn-new">+ Nueva Solicitud de Pago</button>
+  </div>
+
+  <div *ngIf="mostrarFormulario()" class="form-wrap">
+    <app-nueva-solicitud (solicitudCreada)="onSolicitudCreada()" (cerrar)="mostrarFormulario.set(false)"></app-nueva-solicitud>
+  </div>
+
+  <div class="table-card">
+    <div class="table-responsive">
+      <table class="pagos-table">
+        <thead>
+          <tr>
+            <th>Concepto</th>
+            <th>Cliente (ID)</th>
+            <th class="col-right">Monto</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let solicitud of solicitudes()">
+            <td class="concept">
+              <div class="concept-title">{{ solicitud.concepto }}</div>
+              <div class="concept-sub">{{ solicitud.creado_en | date:'short' }}</div>
+            </td>
+            <td>{{ solicitud.id_cliente }}</td>
+            <td class="col-right">{{ solicitud.monto | currency:'MXN':'symbol':'1.2-2' }}</td>
+            <td>
+              <span class="badge" [ngClass]="solicitud.id_estado === 1 ? 'badge-pending' : 'badge-paid'">
+                {{ solicitud.id_estado === 1 ? 'PENDIENTE' : 'PAGADA' }}
+              </span>
+            </td>
+          </tr>
+
+          <tr *ngIf="solicitudes().length === 0">
+            <td colspan="4" class="empty">No hay solicitudes registradas.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
