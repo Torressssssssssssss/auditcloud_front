@@ -1,0 +1,48 @@
+<div class="pagos-container">
+  <div class="header">
+    <h2 class="title">Gestión de Cobranza</h2>
+    <div class="header-actions">
+      <button (click)="mostrarFormulario.set(true)" *ngIf="!mostrarFormulario()" class="btn-new">+ Nueva Solicitud de Pago</button>
+      <button (click)="load()" class="btn-muted">Refrescar</button>
+    </div>
+  </div>
+
+  <div *ngIf="mostrarFormulario()" class="form-wrap">
+    <app-supervisor-nueva-solicitud></app-supervisor-nueva-solicitud>
+  </div>
+
+  <div class="table-card">
+    <div class="table-responsive">
+      <div *ngIf="loading" class="p-6 text-center text-gray-600">Cargando solicitudes...</div>
+      <table *ngIf="!loading" class="min-w-full pagos-table">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="px-4 py-2 text-left">ID</th>
+            <th class="px-4 py-2 text-left">Empresa / Cliente</th>
+            <th class="px-4 py-2 text-left">Concepto</th>
+            <th class="px-4 py-2 text-left">Monto</th>
+            <th class="px-4 py-2 text-left">Estado</th>
+            <th class="px-4 py-2 text-left">Fecha</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of pagos">
+            <td class="px-4 py-2">{{ p.id_solicitud }}</td>
+            <td class="px-4 py-2">{{ p.nombre_empresa_cliente || ('ID: ' + (p.id_empresa || p.id_empresa_cliente || p.id_cliente)) }}</td>
+            <td class="px-4 py-2">{{ p.concepto }}</td>
+            <td class="px-4 py-2 font-bold">{{ p.monto | currency:'MXN':'symbol':'1.2-2' }}</td>
+            <td class="px-4 py-2">
+              <span [ngClass]="p.id_estado === 1 ? 'text-yellow-600 bg-yellow-100 px-2 py-1 rounded-full text-xs' : 'text-green-600 bg-green-100 px-2 py-1 rounded-full text-xs'">
+                {{ p.id_estado === 1 ? 'PENDIENTE' : 'PAGADA' }}
+              </span>
+            </td>
+            <td class="px-4 py-2 text-sm text-gray-500">{{ p.creado_en | date:'short' }}</td>
+          </tr>
+          <tr *ngIf="!loading && pagos.length === 0">
+            <td colspan="6" class="px-4 py-6 text-center text-gray-500">No hay solicitudes registradas.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

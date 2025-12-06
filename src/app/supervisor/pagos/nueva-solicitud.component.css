@@ -1,0 +1,4 @@
+.nueva-solicitud { padding: 0.5rem; }
+.nueva-solicitud label { display: block; margin-top: 0.5rem; }
+.nueva-solicitud input { width: 100%; padding: 0.4rem; }
+.actions { margin-top: 0.5rem; }

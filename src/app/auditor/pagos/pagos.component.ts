@@ -2,20 +2,11 @@ import { PagoPaypalComponent } from '../../pago-paypal-component/pago-paypal-com
 import { Router } from '@angular/router';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
-// 👇 1. IMPORTAR EL COMPONENTE HIJO
+import { HttpClient, HttpHeaders } from '@angular/common/http'; 
 import { NuevaSolicitudComponent } from './nueva-solicitud.component';
-
+import { SolicitudPago } from '../../models/pago.model';
 // 👇 2. ACTUALIZAR LA INTERFAZ (Para que no marque error con id_cliente)
-interface SolicitudPago {
-  id_solicitud: number;
-  monto: number;
-  concepto: string;
-  id_estado: number;
-  creado_en: string;
-  id_cliente?: number;      // Agregado
-  id_empresa?: number;      // Agregado
-}
+
 
 @Component({
   selector: 'app-auditor-pagos',
@@ -25,6 +16,8 @@ interface SolicitudPago {
   templateUrl: './pagos.component.html',
   styleUrls: ['./pagos.component.css']
 })
+
+
 export class PagosComponent implements OnInit {
   private http = inject(HttpClient);
   
@@ -41,8 +34,32 @@ export class PagosComponent implements OnInit {
   }
 
   cargarSolicitudes() {
-    // Lógica para cargar solicitudes (opcional si el auditor necesita ver historial)
-    console.log('Cargando solicitudes...');
+    this.cargando.set(true);
+
+    const token = localStorage.getItem('auditcloud_token');
+    
+    if (!token) {
+      console.error('No hay token de sesión');
+      this.cargando.set(false);
+      return;
+    }
+
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+
+    // Llamamos al nuevo endpoint GET que creamos en auditor.routes.js
+    this.http.get<any[]>('http://localhost:3000/api/auditor/solicitudes-pago', { headers })
+      .subscribe({
+        next: (data) => {
+          this.solicitudes.set(data);
+          this.cargando.set(false);
+        },
+        error: (err) => {
+          console.error('Error cargando historial de cobros:', err);
+          this.cargando.set(false);
+        }
+      });
   }
 
   // 👇 5. DEFINIR LA FUNCIÓN DEL EVENTO (Soluciona TS2339)

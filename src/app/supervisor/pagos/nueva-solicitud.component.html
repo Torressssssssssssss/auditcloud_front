@@ -1,0 +1,16 @@
+<div class="nueva-solicitud">
+  <h3>Nueva solicitud (Supervisor)</h3>
+  <label>ID Empresa (cliente)</label>
+  <input type="number" [(ngModel)]="id_empresa" />
+  <label>ID Cliente (usuario) — opcional</label>
+  <input type="number" [(ngModel)]="id_cliente" />
+  <label>Monto</label>
+  <input type="number" [(ngModel)]="monto" />
+  <label>Concepto</label>
+  <input type="text" [(ngModel)]="concepto" />
+
+  <div class="actions">
+    <button (click)="crear()" [disabled]="loading">Crear</button>
+    <button (click)="reset()" [disabled]="loading">Limpiar</button>
+  </div>
+</div>

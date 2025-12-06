@@ -68,6 +68,15 @@ export const routes: Routes = [
         path: 'perfil',
         loadComponent: () => import('./supervisor/perfil/perfil.component').then(m => m.PerfilComponent)
       }
+      ,
+      {
+        path: 'pagos',
+        loadComponent: () => import('./supervisor/pagos/pagos.component').then(m => m.PagosComponent)
+      },
+      {
+        path: 'pagos/nueva',
+        loadComponent: () => import('./supervisor/pagos/nueva-solicitud.component').then(m => m.NuevaSolicitudComponent)
+      }
     ]
   },
   {
