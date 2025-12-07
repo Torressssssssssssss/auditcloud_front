@@ -40,12 +40,18 @@ export type IconName =
   | 'sun'
   | 'moon'
   | 'send'
+<<<<<<< HEAD
   | 'timeline'
   | 'folder'
   | 'chevron-up'
   | 'chevron-down'
   | 'camera'
   | 'activity';
+=======
+  | 'file'
+  | 'refresh'
+  | 'document-check';
+>>>>>>> e55e253f5c469094ba55e8bac3378d6e5650907f
 
 @Component({
   selector: 'app-icon',
@@ -131,7 +137,7 @@ export type IconName =
           <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
         }
         @case ('send') {
-          <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
         }
         @case ('arrow-left') {
           <path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/>
@@ -193,6 +199,15 @@ export type IconName =
         }
         @case ('moon') {
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        }
+        @case ('file') {
+          <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+        }
+        @case ('refresh') {
+          <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+        }
+        @case ('document-check') {
+          <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm-1.41 10.42l-3.17 3.17-1.42-1.42-1.41 1.41 2.83 2.83 4.58-4.59-1.41-1.41zM13 8V3.5L18.5 9H13z"/>
         }
       }
     </svg>

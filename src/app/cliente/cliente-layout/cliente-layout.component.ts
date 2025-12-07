@@ -26,6 +26,7 @@ export class ClienteLayoutComponent {
     { ruta: '/cliente/pagos', icono: 'credit-card', etiqueta: 'Pagos' },
     { ruta: '/cliente/auditorias', icono: 'document', etiqueta: 'Mis Auditorías' },
     { ruta: '/cliente/timeline', icono: 'timeline', etiqueta: 'Timeline' },
+    { ruta: '/cliente/reportes', icono: 'file-text', etiqueta: 'Reportes' },
     { ruta: '/cliente/perfil', icono: 'user', etiqueta: 'Perfil' }
   ];
       // Removed static nav item that uses route parameter ':id'

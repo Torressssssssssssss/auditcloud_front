@@ -44,7 +44,57 @@ Authorization: Bearer <token>
 
 ---
 
-### 2. POST `/api/cliente/registro`
+### 2. POST `/api/auth/google`
+**Descripción:** Iniciar sesión con Google OAuth usando Google Identity Services (GSI)
+
+**Body:**
+```json
+{
+  "idToken": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjEyMzQ1Njc4OTA...",
+  "rol": 3  // Opcional: 1=SUPERVISOR, 2=AUDITOR, 3=CLIENTE (default: 3)
+}
+```
+
+**Respuesta (200):**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "usuario": {
+    "id_usuario": 1,
+    "id_rol": 3,
+    "id_empresa": 5,
+    "nombre": "Juan Pérez",
+    "correo": "juan@gmail.com"
+  }
+}
+```
+
+**Notas:**
+- El frontend usa Google Identity Services (GSI) para obtener el `idToken`
+- El backend debe verificar el `idToken` con Google
+- Si el usuario no existe en la base de datos, debe registrarse automáticamente como CLIENTE (id_rol = 3)
+- Si el usuario ya existe, debe iniciar sesión normalmente
+- El backend debe generar un JWT token y devolverlo en la respuesta
+- El campo `rol` en el body es opcional y solo se usa si se quiere especificar un rol diferente al default (CLIENTE)
+
+**Flujo:**
+1. Usuario hace clic en "Iniciar sesión con Google" en el frontend
+2. Google Identity Services muestra el diálogo de autenticación
+3. Usuario se autentica en Google
+4. Google devuelve el `idToken` al frontend
+5. Frontend envía el `idToken` al backend con `POST /api/auth/google`
+6. Backend verifica el `idToken` con Google
+7. Backend busca o crea el usuario en la base de datos
+8. Backend genera un JWT token y devuelve el token y datos del usuario
+
+**Errores:**
+- `400`: `idToken` inválido o faltante
+- `401`: Token de Google inválido o expirado
+- `500`: Error en el proceso de autenticación
+
+---
+
+### 3. POST `/api/cliente/registro`
 **Descripción:** Registrar nuevo cliente (empresa cliente)
 
 **Body:**
@@ -175,6 +225,44 @@ Authorization: Bearer <token>
     }
   }
 ]
+```
+
+---
+
+### 5.1. POST `/api/cliente/conversaciones`
+**Descripción:** Crear una nueva conversación entre cliente y empresa auditora
+
+**Body:**
+```json
+{
+  "id_cliente": 5,
+  "id_empresa_auditora": 2,
+  "asunto": "Consulta sobre auditoría de agua",
+  "primer_mensaje": "Hola, me gustaría obtener más información..."
+}
+```
+
+**Respuesta (201):**
+```json
+{
+  "message": "Conversación creada",
+  "conversacion": {
+    "id_conversacion": 1,
+    "id_cliente": 5,
+    "id_empresa_auditora": 2,
+    "asunto": "Consulta sobre auditoría de agua",
+    "creado_en": "2024-01-15T10:00:00Z",
+    "activo": true
+  },
+  "primer_mensaje": {
+    "id_mensaje": 1,
+    "id_conversacion": 1,
+    "emisor_tipo": "CLIENTE",
+    "emisor_id": 5,
+    "contenido": "Hola, me gustaría obtener más información...",
+    "creado_en": "2024-01-15T10:00:00Z"
+  }
+}
 ```
 
 ---
@@ -391,7 +479,7 @@ Authorization: Bearer <token>
 
 ## 📋 CLIENTE - Auditorías
 
-### 13. GET `/api/cliente/auditorias/:idAuditoria`
+### 13. GET `/api/cliente/auditorias/:idAuditoria/detalle`
 **Descripción:** Obtener detalle de una auditoría específica
 
 **Parámetros:**
@@ -638,7 +726,7 @@ Authorization: Bearer <token>
 
 ---
 
-### 21. POST `/api/supervisor/auditorias/:idAuditoria/asignar-auditor`
+### 21. POST `/api/supervisor/auditorias/:idAuditoria/asignar`
 **Descripción:** Asignar auditor a una auditoría
 
 **Parámetros:**
@@ -660,6 +748,26 @@ Authorization: Bearer <token>
   "modulos": [1],
   "mensaje": "Auditor asignado correctamente"
 }
+```
+
+---
+
+### 21.1. GET `/api/supervisor/auditorias/:idAuditoria/participantes`
+**Descripción:** Lista los auditores asignados a una auditoría específica
+
+**Parámetros:**
+- `idAuditoria` (path): ID de la auditoría
+
+**Respuesta (200):**
+```json
+[
+  {
+    "id_usuario": 8,
+    "nombre": "María García",
+    "correo": "maria@auditora.com",
+    "asignado_en": "2024-01-15T10:00:00Z"
+  }
+]
 ```
 
 ---
@@ -689,11 +797,12 @@ Authorization: Bearer <token>
 
 ## 💬 SUPERVISOR - Mensajes
 
-### 23. GET `/api/supervisor/conversaciones/:idEmpresa`
-**Descripción:** Obtener conversaciones de la empresa auditora
+### 23. GET `/api/supervisor/conversaciones`
+**Descripción:** Obtener conversaciones de la empresa auditora del supervisor
 
-**Parámetros:**
-- `idEmpresa` (path): ID de la empresa auditora
+**Notas:**
+- **NO requiere parámetro `:idEmpresa` en la URL**
+- Usa `req.user.id_empresa` del token JWT para obtener la empresa del supervisor
 
 **Respuesta (200):**
 ```json
@@ -827,24 +936,66 @@ Authorization: Bearer <token>
 
 ---
 
-### 28. POST `/api/supervisor/reportes/generar`
-**Descripción:** Generar reporte PDF de una auditoría
+### 28. POST `/api/supervisor/reportes`
+**Descripción:** Subir un reporte PDF para una auditoría
 
-**Body:**
+**Body (multipart/form-data):**
+```
+id_auditoria: 1
+nombre: "Reporte Final - Auditoría de Agua"
+tipo: "Reporte Final" (opcional)
+archivo: <file PDF>
+```
+
+**Respuesta (201):**
 ```json
 {
-  "id_auditoria": 1
+  "message": "Reporte subido correctamente",
+  "reporte": {
+    "id_reporte": 5,
+    "id_auditoria": 1,
+    "nombre": "Reporte Final - Auditoría de Agua",
+    "tipo": "Reporte Final",
+    "url": "/uploads/reportes/reporte_1.pdf",
+    "fecha_elaboracion": "2024-01-20T10:00:00Z",
+    "fecha_subida": "2024-01-20T10:00:00Z"
+  }
 }
 ```
+
+**Notas:**
+- Crea automáticamente una notificación tipo `reporte_subido` para el cliente
+- Solo acepta archivos PDF
+- Límite de 10MB
+- Valida que la auditoría pertenezca a la empresa del supervisor
+
+---
+
+### 28.1. GET `/api/supervisor/clientes-con-auditorias`
+**Descripción:** Obtener todas las empresas clientes que tienen o han tenido auditorías con la empresa auditora del supervisor
+
+**Notas:**
+- Usa `req.user.id_empresa` del token JWT
 
 **Respuesta (200):**
 ```json
-{
-  "id_reporte": 5,
-  "url_pdf": "/uploads/reportes/reporte_1.pdf",
-  "mensaje": "Reporte generado correctamente"
-}
+[
+  {
+    "id_empresa": 15,
+    "nombre": "Mi Empresa S.A.",
+    "ciudad": "Aguascalientes",
+    "pais": "México",
+    "contacto": "Juan Pérez",
+    "total_auditorias": 3,
+    "activo": true
+  }
+]
 ```
+
+**Notas:**
+- Retorna empresas únicas (sin duplicados)
+- Incluye métricas como total de auditorías
+- Útil para dashboards y listados de clientes
 
 ---
 
@@ -872,7 +1023,7 @@ Authorization: Bearer <token>
 
 ## 📋 AUDITOR - Auditorías
 
-### 30. GET `/api/auditor/auditorias/:idAuditor`
+### 30. GET `/api/auditor/auditorias-asignadas/:idAuditor`
 **Descripción:** Obtener auditorías asignadas a un auditor
 
 **Parámetros:**
@@ -955,6 +1106,112 @@ descripcion: "Punto de muestreo en río"
 
 ---
 
+## 💬 AUDITOR - Mensajes
+
+### 33. GET `/api/auditor/conversaciones`
+**Descripción:** El auditor ve las conversaciones de SU empresa con los clientes
+
+**Notas:**
+- Usa `req.user.id_empresa` del token JWT
+
+**Respuesta (200):**
+```json
+[
+  {
+    "id_conversacion": 1,
+    "id_cliente": 5,
+    "id_empresa_auditora": 2,
+    "asunto": "Consulta sobre auditoría",
+    "creado_en": "2024-01-15T10:00:00Z",
+    "activo": true,
+    "cliente": {
+      "id_usuario": 5,
+      "nombre": "Juan Pérez",
+      "nombre_empresa": "Mi Empresa S.A."
+    },
+    "ultimo_mensaje": {
+      "id_mensaje": 10,
+      "id_conversacion": 1,
+      "emisor_tipo": "CLIENTE",
+      "emisor_id": 5,
+      "contenido": "Hola, queremos auditoría...",
+      "creado_en": "2024-01-15T10:30:00Z"
+    }
+  }
+]
+```
+
+**Notas:**
+- Ordenado por fecha del último mensaje (más reciente primero)
+- Incluye información del cliente y su empresa
+
+---
+
+### 34. GET `/api/auditor/mensajes/:idConversacion`
+**Descripción:** Obtener mensajes de una conversación específica (para auditores)
+
+**Parámetros:**
+- `idConversacion` (path): ID de la conversación
+
+**Respuesta (200):**
+```json
+[
+  {
+    "id_mensaje": 1,
+    "id_conversacion": 1,
+    "emisor_tipo": "CLIENTE",
+    "emisor_id": 5,
+    "contenido": "Hola, queremos auditoría...",
+    "creado_en": "2024-01-15T10:00:00Z"
+  },
+  {
+    "id_mensaje": 2,
+    "id_conversacion": 1,
+    "emisor_tipo": "AUDITOR",
+    "emisor_id": 3,
+    "contenido": "Perfecto, te propongo...",
+    "creado_en": "2024-01-15T11:00:00Z"
+  }
+]
+```
+
+**Notas:**
+- Valida que la conversación pertenezca a la empresa del auditor
+- Ordenado cronológicamente (antiguo → nuevo)
+
+---
+
+### 35. POST `/api/auditor/mensajes`
+**Descripción:** Enviar mensaje desde el auditor
+
+**Body:**
+```json
+{
+  "id_conversacion": 1,
+  "contenido": "Buenas tardes, podemos ayudarle con..."
+}
+```
+
+**Respuesta (201):**
+```json
+{
+  "id_mensaje": 11,
+  "id_conversacion": 1,
+  "emisor_tipo": "AUDITOR",
+  "emisor_id": 3,
+  "contenido": "Buenas tardes, podemos ayudarle con...",
+  "creado_en": "2024-01-15T11:00:00Z"
+}
+```
+
+**Notas:**
+- Crea automáticamente una notificación tipo `mensaje_nuevo` para el cliente
+- Actualiza el timestamp `ultimo_mensaje_fecha` de la conversación
+- Valida que la conversación pertenezca a la empresa del auditor
+- **Incluir `id_conversacion` o `id_empresa_auditora` en la notificación para redirección**
+
+---
+
 ## 📝 NOTAS IMPORTANTES
 
 ### Estados de Auditoría
@@ -1003,9 +1260,13 @@ Cuando el webhook de pago confirma el pago exitoso:
 - [ ] PUT `/api/supervisor/empresa/:id`
 - [ ] GET `/api/cliente/auditorias/:idCliente`
 - [ ] GET `/api/cliente/conversaciones/:idCliente`
+- [ ] POST `/api/cliente/conversaciones`
 - [ ] POST `/api/cliente/mensajes`
-- [ ] GET `/api/supervisor/conversaciones/:idEmpresa`
+- [ ] GET `/api/supervisor/conversaciones`
 - [ ] POST `/api/supervisor/mensajes`
+- [ ] GET `/api/auditor/conversaciones`
+- [ ] GET `/api/auditor/mensajes/:idConversacion`
+- [ ] POST `/api/auditor/mensajes`
 
 ### Prioridad Media (Flujo de Pago)
 - [ ] POST `/api/supervisor/solicitudes-pago`
@@ -1014,7 +1275,196 @@ Cuando el webhook de pago confirma el pago exitoso:
 - [ ] POST `/api/cliente/pagos/webhook` (crear auditoría automáticamente)
 
 ### Prioridad Baja (Funcionalidades Avanzadas)
-- [ ] Resto de endpoints de auditorías
+- [ ] GET `/api/cliente/auditorias/:idAuditoria/detalle`
+- [ ] GET `/api/supervisor/auditorias/:idAuditoria/detalle`
+- [ ] GET `/api/supervisor/auditorias/:idAuditoria/participantes`
+- [ ] POST `/api/supervisor/auditorias/:idAuditoria/asignar`
+- [ ] GET `/api/supervisor/clientes-con-auditorias`
+- [ ] GET `/api/auditor/auditorias-asignadas/:idAuditor`
 - [ ] Endpoints de reportes
 - [ ] Endpoints de evidencias y hallazgos
+- [ ] Endpoints de notificaciones
+
+---
+
+## 🔔 CLIENTE - Notificaciones
+
+### 29. GET `/api/cliente/notificaciones/:idCliente`
+**Descripción:** Obtener todas las notificaciones de un cliente
+
+**Parámetros:**
+- `idCliente` (path): ID del usuario cliente
+
+**Respuesta (200):**
+```json
+[
+  {
+    "id_notificacion": 1,
+    "id_cliente": 5,
+    "id_auditoria": 10,
+    "tipo": "evidencia_subida",
+    "titulo": "Nueva evidencia subida",
+    "mensaje": "El auditor ha subido una nueva evidencia para la auditoría #10",
+    "fecha": "2024-01-20T10:30:00Z",
+    "leida": false,
+    "auditoria": {
+      "id_auditoria": 10,
+      "empresa": {
+        "nombre": "Auditora Demo S.A. de C.V."
+      }
+    }
+  },
+  {
+    "id_notificacion": 2,
+    "id_cliente": 5,
+    "id_auditoria": 10,
+    "tipo": "estado_cambiado",
+    "titulo": "Estado de auditoría actualizado",
+    "mensaje": "La auditoría #10 ha cambiado de estado a EN_CAMPO",
+    "fecha": "2024-01-20T09:15:00Z",
+    "leida": false
+  },
+  {
+    "id_notificacion": 3,
+    "id_cliente": 5,
+    "id_auditoria": 10,
+    "tipo": "reporte_subido",
+    "titulo": "Nuevo reporte disponible",
+    "mensaje": "Se ha subido un nuevo reporte para la auditoría #10",
+    "fecha": "2024-01-20T14:00:00Z",
+    "leida": true
+  }
+]
+```
+
+**Tipos de notificación:**
+- `evidencia_subida`: Cuando un auditor sube una evidencia
+- `estado_cambiado`: Cuando el supervisor cambia el estado de la auditoría
+- `reporte_subido`: Cuando se sube un nuevo reporte
+- `mensaje_nuevo`: Cuando hay un nuevo mensaje en una conversación
+
+**Notas:**
+- Las notificaciones deben crearse automáticamente cuando ocurren estas acciones
+- Ordenar por fecha descendente (más recientes primero)
+- El campo `leida` indica si el cliente ha visto la notificación
+
+---
+
+### 30. PUT `/api/cliente/notificaciones/:idNotificacion/leer`
+**Descripción:** Marcar una notificación como leída
+
+**Parámetros:**
+- `idNotificacion` (path): ID de la notificación
+
+**Body:**
+```json
+{}
+```
+
+**Respuesta (200):**
+```json
+{
+  "id_notificacion": 1,
+  "leida": true,
+  "mensaje": "Notificación marcada como leída"
+}
+```
+
+---
+
+### 31. PUT `/api/cliente/notificaciones/:idCliente/leer-todas`
+**Descripción:** Marcar todas las notificaciones de un cliente como leídas
+
+**Parámetros:**
+- `idCliente` (path): ID del usuario cliente
+
+**Body:**
+```json
+{}
+```
+
+**Respuesta (200):**
+```json
+{
+  "actualizadas": 5,
+  "mensaje": "Todas las notificaciones han sido marcadas como leídas"
+}
+```
+
+**Notas:**
+- El backend debe crear notificaciones automáticamente cuando:
+  - Un auditor sube una evidencia → crear notificación tipo `evidencia_subida`
+  - Un supervisor cambia el estado de una auditoría → crear notificación tipo `estado_cambiado`
+  - Se sube un reporte → crear notificación tipo `reporte_subido`
+  - Se envía un mensaje nuevo → crear notificación tipo `mensaje_nuevo`
+
+---
+
+## 📊 CLIENTE - Reportes
+
+### 32. GET `/api/cliente/reportes/:idCliente`
+**Descripción:** Obtener todos los reportes disponibles para un cliente
+
+**Parámetros:**
+- `idCliente` (path): ID del usuario cliente
+
+**Respuesta (200):**
+```json
+[
+  {
+    "id_reporte": 1,
+    "id_auditoria": 10,
+    "nombre": "Reporte Final - Auditoría de Agua",
+    "tipo": "Reporte Final",
+    "fecha_elaboracion": "2024-01-20T10:00:00Z",
+    "fecha_subida": "2024-01-20T10:00:00Z",
+    "url": "/uploads/reportes/reporte_1.pdf",
+    "auditoria": {
+      "id_auditoria": 10,
+      "empresa": {
+        "id_empresa": 2,
+        "nombre": "Auditora Demo S.A. de C.V."
+      }
+    }
+  },
+  {
+    "id_reporte": 2,
+    "id_auditoria": 10,
+    "nombre": "Reporte Parcial - Avance de Trabajo",
+    "tipo": "Reporte Parcial",
+    "fecha_elaboracion": "2024-01-15T14:30:00Z",
+    "fecha_subida": "2024-01-15T14:30:00Z",
+    "url": "/uploads/reportes/reporte_2.pdf",
+    "auditoria": {
+      "id_auditoria": 10,
+      "empresa": {
+        "id_empresa": 2,
+        "nombre": "Auditora Demo S.A. de C.V."
+      }
+    }
+  }
+]
+```
+
+**Notas:**
+- Solo devolver reportes de auditorías que pertenecen al cliente
+- Incluir información de la auditoría y empresa auditora
+- Ordenar por fecha de elaboración descendente (más recientes primero)
+- El campo `url` debe ser la ruta relativa o absoluta al archivo PDF
+
+---
+
+### 33. GET `/api/cliente/auditorias/:idAuditoria/reporte`
+**Descripción:** Descargar el reporte PDF de una auditoría (ya documentado en endpoint 14, pero se usa también desde reportes)
+
+**Parámetros:**
+- `idAuditoria` (path): ID de la auditoría
+
+**Respuesta (200):**
+- Content-Type: `application/pdf`
+- Archivo PDF del reporte
+
+**Notas:**
+- Este endpoint ya está documentado en la sección de auditorías (endpoint 14)
+- Se puede usar tanto desde el detalle de auditoría como desde la lista de reportes
 
