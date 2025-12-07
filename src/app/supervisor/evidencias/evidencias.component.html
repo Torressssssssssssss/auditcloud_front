@@ -1,0 +1,163 @@
+<div class="evidencias-page">
+  
+  <div class="panel-card mb-8">
+    <div class="panel-header">
+      <h2>Auditorías Activas e Históricas</h2>
+      <p class="subtitle">Selecciona una auditoría para ver sus documentos y fotos.</p>
+    </div>
+
+    @if (loadingAuditorias()) {
+      <app-loading-spinner />
+    } @else {
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Cliente / ID</th>
+              <th>Solicitud Pago</th>
+              <th>Estado</th>
+              <th>Fecha Creación</th>
+              <th>Última Act.</th>
+              <th>Acción</th>
+            </tr>
+            <tr class="filter-row">
+              <td>
+                <input type="text" placeholder="Filtrar ID" 
+                       [ngModel]="filtrosAudit().id" (ngModelChange)="updateFiltroAudit('id', $event)">
+              </td>
+              <td>
+                <input type="text" placeholder="Buscar Cliente..." 
+                       [ngModel]="filtrosAudit().cliente" (ngModelChange)="updateFiltroAudit('cliente', $event)">
+              </td>
+              <td></td>
+              <td>
+                <select [ngModel]="filtrosAudit().estado" (ngModelChange)="updateFiltroAudit('estado', $event)">
+                  <option value="">Todos</option>
+                  <option value="1">Creada</option>
+                  <option value="2">En Proceso</option>
+                  <option value="3">Finalizada</option>
+                </select>
+              </td>
+              <td colspan="3"></td>
+            </tr>
+          </thead>
+          <tbody>
+            @for (audit of auditoriasFiltradas(); track audit.id_auditoria) {
+              <tr [class.selected]="auditoriaSeleccionada()?.id_auditoria === audit.id_auditoria">
+                <td class="font-bold">#{{ audit.id_auditoria }}</td>
+                <td>
+                  <div class="flex flex-col">
+                    <span class="font-medium">{{ audit.cliente?.nombre_empresa || 'Empresa ID ' + audit.id_cliente }}</span>
+                    <span class="text-xs text-gray-500">ID Cliente: {{ audit.id_cliente }}</span>
+                  </div>
+                </td>
+                <td>Ref: #{{ audit.id_solicitud_pago }}</td>
+                <td><app-status-badge [estado]="audit.id_estado" tipo="auditoria" /></td>
+                <td>{{ audit.fecha_creacion | date:'shortDate' }}</td>
+                <td>{{ audit.estado_actualizado_en ? (audit.estado_actualizado_en | date:'shortDate') : '-' }}</td>
+                <td>
+                  <button class="btn btn-sm btn-outline-primary" (click)="seleccionarAuditoria(audit)">
+                    <app-icon name="eye" [size]="16" class="mr-1"></app-icon>
+                    Ver Evidencias
+                  </button>
+                </td>
+              </tr>
+            }
+            @if (auditoriasFiltradas().length === 0) {
+              <tr><td colspan="7" class="text-center py-4">No se encontraron auditorías con esos filtros.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+  @if (auditoriaSeleccionada(); as audit) {
+    <div id="seccion-evidencias" class="panel-card slide-in-up">
+      <div class="panel-header flex justify-between items-center">
+        <div>
+          <h2>Evidencias de la Auditoría #{{ audit.id_auditoria }}</h2>
+          <p class="subtitle">Documentación cargada por el equipo auditor.</p>
+        </div>
+        <button class="btn btn-sm btn-secondary" (click)="limpiarSeleccion()">Cerrar Vista</button>
+      </div>
+
+      @if (loadingEvidencias()) {
+        <app-loading-spinner />
+      } @else if (listaEvidencias().length === 0) {
+        <app-empty-state mensaje="Esta auditoría aún no tiene evidencias cargadas." />
+      } @else {
+        <div class="table-responsive">
+          <table class="data-table evidencias-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Módulo</th>
+                <th>Auditor</th>
+                <th>Tipo</th>
+                <th>Descripción</th>
+                <th>Archivo</th>
+                <th>Fecha Subida</th>
+              </tr>
+              <tr class="filter-row">
+                <td></td>
+                <td>
+                  <select [ngModel]="filtrosEvidencia().modulo" (ngModelChange)="updateFiltroEvidencia('modulo', $event)">
+                    <option value="">Todos</option>
+                    <option value="1">Agua</option>
+                    <option value="2">Residuos</option>
+                    <option value="3">Energía</option>
+                  </select>
+                </td>
+                <td>
+                  <input type="text" placeholder="Filtrar ID..." class="w-20"
+                         [ngModel]="filtrosEvidencia().auditor" (ngModelChange)="updateFiltroEvidencia('auditor', $event)">
+                </td>
+                <td>
+                  <select [ngModel]="filtrosEvidencia().tipo" (ngModelChange)="updateFiltroEvidencia('tipo', $event)">
+                    <option value="">Todos</option>
+                    <option value="FOTO">Foto</option>
+                    <option value="DOC">Documento</option>
+                    <option value="VIDEO">Video</option>
+                  </select>
+                </td>
+                <td colspan="3"></td>
+              </tr>
+            </thead>
+            <tbody>
+              @for (evidencia of evidenciasFiltradas(); track evidencia.id_evidencia) {
+                <tr>
+                  <td>{{ evidencia.id_evidencia }}</td>
+                  <td>
+                    <span class="tag-modulo">{{ evidencia.nombre_modulo || 'Módulo ' + evidencia.id_modulo }}</span>
+                  </td>
+                  <td>
+                    <div class="flex flex-col">
+                      <span class="text-sm font-medium">{{ evidencia.nombre_auditor }}</span>
+                      <span class="text-xs text-gray-500">ID: {{ evidencia.id_auditor }}</span>
+                    </div>
+                  </td>
+                  <td><span class="badge-tipo">{{ evidencia.tipo }}</span></td>
+                  <td class="max-w-xs truncate" title="{{ evidencia.descripcion }}">
+                    {{ evidencia.descripcion }}
+                  </td>
+                  <td>
+                    <a [href]="evidencia.url" target="_blank" class="link-archivo">
+                      <app-icon name="download" [size]="16"></app-icon>
+                      {{ evidencia.nombre_archivo || 'Ver Archivo' }}
+                    </a>
+                  </td>
+                  <td>{{ evidencia.creado_en | date:'short' }}</td>
+                </tr>
+              }
+              @if (evidenciasFiltradas().length === 0) {
+                <tr><td colspan="7" class="text-center py-4">No hay evidencias con estos filtros.</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+</div>
