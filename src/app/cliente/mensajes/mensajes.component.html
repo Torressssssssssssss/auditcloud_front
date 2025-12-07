@@ -25,7 +25,7 @@
                 </span>
               </div>
               <div class="conv-preview">
-                <span class="conv-from" *ngIf="conv.ultimo_mensaje">{{ conv.ultimo_mensaje?.emisor_tipo === 'CLIENTE' ? 'Tú:' : conv.ultimo_mensaje?.emisor_tipo + ':' }}</span>
+                <span class="conv-from" *ngIf="conv.ultimo_mensaje">{{ conv.ultimo_mensaje.emisor_tipo === 'CLIENTE' ? 'Tú:' : conv.ultimo_mensaje.emisor_tipo + ':' }}</span>
                 {{ conv.ultimo_mensaje?.contenido || 'Iniciar conversación' }}
               </div>
             </div>

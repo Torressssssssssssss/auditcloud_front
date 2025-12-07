@@ -1,0 +1,78 @@
+<div class="reportes-page">
+  <div class="page-header">
+    <h2>Mis Reportes</h2>
+    <p class="page-subtitle">Visualiza y descarga todos tus reportes de auditoría</p>
+  </div>
+
+  <div class="filters">
+    <div class="filter-group">
+      <label>Filtrar por auditoría:</label>
+      <select [value]="filtroAuditoria() ?? ''" (change)="onAuditoriaChange($event)">
+        <option value="">Todas las auditorías</option>
+        @for (auditoria of auditorias(); track auditoria.id_auditoria) {
+          <option [value]="auditoria.id_auditoria">
+            #{{ auditoria.id_auditoria }} - {{ auditoria.empresa?.nombre || 'N/A' }}
+          </option>
+        }
+      </select>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <app-loading-spinner />
+  } @else if (reportesFiltrados.length === 0) {
+    <app-empty-state mensaje="No hay reportes disponibles" />
+  } @else {
+    <div class="reportes-grid">
+      @for (reporte of reportesFiltrados; track reporte.id_reporte) {
+        <div class="reporte-card">
+          <div class="card-header">
+            <div class="card-icon" [style.background]="getCardGradient(reporte)">
+              <app-icon [name]="getIconoTipo(getTipoReporte(reporte.nombre))" [size]="32"></app-icon>
+            </div>
+            <div class="card-badge">
+              <span>{{ getTipoReporte(reporte.nombre) }}</span>
+            </div>
+          </div>
+          
+          <div class="card-content">
+            <h3 class="card-title">{{ reporte.nombre }}</h3>
+            <div class="card-info">
+              <div class="info-item">
+                <app-icon name="calendar" [size]="16"></app-icon>
+                <span>{{ reporte.fecha_elaboracion | date:'medium' }}</span>
+              </div>
+              @if (reporte.auditoria) {
+                <div class="info-item">
+                  <app-icon name="building" [size]="16"></app-icon>
+                  <span>{{ reporte.auditoria.empresa?.nombre || 'N/A' }}</span>
+                </div>
+              }
+              <div class="info-item">
+                <app-icon name="document" [size]="16"></app-icon>
+                <span>Auditoría #{{ reporte.id_auditoria }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <a 
+              [routerLink]="['/cliente/auditorias', reporte.id_auditoria]" 
+              class="btn btn-outline">
+              <app-icon name="eye" [size]="16"></app-icon>
+              Ver Auditoría
+            </a>
+            <button 
+              class="btn btn-primary" 
+              (click)="descargarReporte(reporte)"
+              [disabled]="!reporte.url">
+              <app-icon name="download" [size]="16"></app-icon>
+              Descargar
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+

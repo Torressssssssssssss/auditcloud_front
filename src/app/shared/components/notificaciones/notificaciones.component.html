@@ -1,0 +1,63 @@
+<div class="notificaciones-container">
+  <button 
+    class="notificaciones-btn" 
+    (click)="toggleDropdown()"
+    [class.has-notifications]="noLeidas() > 0">
+    <app-icon name="bell" [size]="20"></app-icon>
+    @if (noLeidas() > 0) {
+      <span class="badge-notificacion">{{ noLeidas() > 99 ? '99+' : noLeidas() }}</span>
+    }
+  </button>
+
+  @if (mostrarDropdown()) {
+    <div class="notificaciones-dropdown">
+      <div class="dropdown-header">
+        <h3>Notificaciones</h3>
+        @if (noLeidas() > 0) {
+          <button class="btn-link" (click)="marcarTodasComoLeidas()">
+            Marcar todas como leídas
+          </button>
+        }
+      </div>
+
+      <div class="notificaciones-list">
+        @if (notificaciones().length === 0) {
+          <div class="empty-notifications">
+            <app-icon name="bell" [size]="32" style="opacity: 0.3;"></app-icon>
+            <p>No hay notificaciones</p>
+          </div>
+        } @else {
+          @for (notif of notificaciones(); track notif.id_notificacion) {
+            <div 
+              class="notificacion-item" 
+              [class.no-leida]="!notif.leida"
+              (click)="navegarANotificacion(notif)">
+              <div class="notificacion-icon" [style.color]="getColorTipo(notif.tipo)">
+                <app-icon [name]="getIconoTipo(notif.tipo)" [size]="18"></app-icon>
+              </div>
+              <div class="notificacion-content">
+                <div class="notificacion-header">
+                  <h4>{{ notif.titulo }}</h4>
+                  @if (!notif.leida) {
+                    <span class="dot-unread"></span>
+                  }
+                </div>
+                <p class="notificacion-mensaje">{{ notif.mensaje }}</p>
+                <span class="notificacion-fecha">{{ notif.fecha | date:'short' }}</span>
+              </div>
+              @if (!notif.leida) {
+                <button 
+                  class="btn-mark-read" 
+                  (click)="marcarComoLeida(notif, $event)"
+                  title="Marcar como leída">
+                  <app-icon name="check" [size]="14"></app-icon>
+                </button>
+              }
+            </div>
+          }
+        }
+      </div>
+    </div>
+  }
+</div>
+
