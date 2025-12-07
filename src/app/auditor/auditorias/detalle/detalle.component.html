@@ -30,8 +30,8 @@
           <span>{{ getEstadoNombre(auditoria()!.id_estado) }}</span>
         </div>
         <div class="info-item">
-          <label>Fecha Inicio:</label>
-          <span>{{ auditoria()!.fecha_inicio ? (auditoria()!.fecha_inicio | date:'short') : 'No iniciada' }}</span>
+          <label>Fecha Creación:</label>
+          <span>{{ auditoria()!.fecha_creacion ? (auditoria()!.fecha_creacion | date:'short') : 'No iniciada' }}</span>
         </div>
       </div>
 
@@ -46,6 +46,47 @@
             <p class="text-muted">No hay módulos asignados</p>
           }
         </div>
+      </div>
+
+      <div class="info-card">
+        <h3>Objetivo</h3>
+        @if (!isEditingObjetivo()) {
+          <p class="objetivo-text">
+            {{ auditoria()?.objetivo || 'No especificado' }}
+          </p>
+
+          <div class="quick-actions">
+            <button class="btn btn-primary" (click)="startEditObjetivo()">
+              {{ auditoria()?.objetivo ? 'Editar objetivo' : 'Definir objetivo' }}
+            </button>
+          </div>
+        } 
+    
+        @else {
+          <div class="edit-box">
+            <textarea 
+              [(ngModel)]="tempObjetivo" 
+              rows="4" 
+              class="form-control"
+              placeholder="Escribe el objetivo principal de esta auditoría..."></textarea>
+            
+            <div class="edit-actions">
+              <button 
+                class="btn btn-secondary" 
+                (click)="cancelEditObjetivo()" 
+                [disabled]="saving()">
+                Cancelar
+              </button>
+              
+              <button 
+                class="btn btn-primary" 
+                (click)="saveObjetivo()" 
+                [disabled]="saving()">
+                @if (saving()) { Guardando... } @else { Guardar }
+              </button>
+            </div>
+          </div>
+        }
       </div>
 
       <div class="info-card">
