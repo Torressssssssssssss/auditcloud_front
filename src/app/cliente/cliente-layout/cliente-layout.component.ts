@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { BaseLayoutComponent } from '../../shared/layouts/base-layout/base-layout.component';
 import { NavItem } from '../../shared/components/navbar/navbar.component';
+import { IconName } from '../../shared/components/icon/icon.component';
 
 @Component({
   selector: 'app-cliente-layout',
@@ -24,7 +25,9 @@ export class ClienteLayoutComponent {
     { ruta: '/cliente/mensajes', icono: 'chat', etiqueta: 'Mensajes' },
     { ruta: '/cliente/pagos', icono: 'credit-card', etiqueta: 'Pagos' },
     { ruta: '/cliente/auditorias', icono: 'document', etiqueta: 'Mis Auditorías' },
+    { ruta: '/cliente/timeline', icono: 'timeline', etiqueta: 'Timeline' },
     { ruta: '/cliente/perfil', icono: 'user', etiqueta: 'Perfil' }
   ];
+      // Removed static nav item that uses route parameter ':id'
 }
 

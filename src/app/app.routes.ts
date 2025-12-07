@@ -163,13 +163,21 @@ export const routes: Routes = [
         loadComponent: () => import('./cliente/auditorias/auditorias.component').then(m => m.AuditoriasComponent)
       },
       {
+        path: 'timeline',
+        loadComponent: () => import('./cliente/timeline-component/timeline-component').then(m => m.TimelineComponent)
+      },
+      {
         path: 'auditorias/:id',
         loadComponent: () => import('./cliente/auditorias/detalle/detalle.component').then(m => m.AuditoriaDetalleComponent)
       },
       {
+        path: 'auditorias/:id/timeline',
+        loadComponent: () => import('./cliente/timeline-component/timeline-component').then(m => m.TimelineComponent)
+      },
+      {
         path: 'perfil',
         loadComponent: () => import('./cliente/perfil/perfil.component').then(m => m.PerfilComponent)
-      }
+      },
     ]
   },
   {

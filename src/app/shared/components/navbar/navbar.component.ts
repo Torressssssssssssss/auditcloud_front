@@ -7,6 +7,7 @@ export interface NavItem {
   ruta: string;
   icono: IconName;
   etiqueta: string;
+  exact?: boolean; 
   rolesPermitidos?: number[];
   badge?: number;
 }

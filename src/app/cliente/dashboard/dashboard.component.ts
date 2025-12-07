@@ -111,6 +111,11 @@ export class ClienteDashboardComponent implements OnInit {
     this.router.navigate([route]);
   }
 
+  // trackBy para la lista de conversaciones
+  trackByConversacion(index: number, item: any) {
+    return item.id_conversacion;
+  }
+
   formatDate(dateString: string): string {
     if (!dateString) return '';
     const date = new Date(dateString);

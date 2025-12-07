@@ -1,0 +1,82 @@
+<div class="timeline-wrapper">
+  
+  @if (loading()) {
+    <div class="loading-state">Cargando historial de la empresa...</div>
+  } @else if (grupos().length === 0) {
+    <div class="empty-state">
+      <app-icon name="folder" [size]="40"></app-icon>
+      <p>No hay historiales de auditoría para esta empresa.</p>
+    </div>
+  } @else {
+    
+    @for (grupo of grupos(); track grupo.id_auditoria) {
+      
+      <div class="audit-card" [class.expanded]="grupo.expanded">
+        
+        <div class="card-header" (click)="toggleGrupo(grupo.id_auditoria)">
+          <div class="header-info">
+            <span class="audit-id">Auditoría #{{ grupo.id_auditoria }}</span>
+            <span class="audit-date">{{ grupo.fecha_creacion | date:'mediumDate' }}</span>
+          </div>
+          
+          <div class="header-status">
+            <span class="status-badge status-{{grupo.estado}}">
+              {{ getEstadoNombre(grupo.estado) }}
+            </span>
+            <app-icon [name]="grupo.expanded ? 'chevron-up' : 'chevron-down'" [size]="20"></app-icon>
+          </div>
+        </div>
+
+        @if (grupo.expanded) {
+          <div class="card-body">
+            
+            @if (!readOnly) {
+              <div class="input-area">
+                <input 
+                  type="text" 
+                  [(ngModel)]="nuevoComentario" 
+                  placeholder="Agregar actualización rápida a esta auditoría..."
+                  (keyup.enter)="publicarComentario(grupo.id_auditoria)"
+                />
+                <button class="btn-icon" (click)="publicarComentario(grupo.id_auditoria)" [disabled]="enviando()">
+                  <app-icon name="send" [size]="16"></app-icon>
+                </button>
+              </div>
+            }
+
+            <div class="timeline-scroll-area">
+              @if (grupo.items.length === 0) {
+                <p class="no-items">Sin actividad registrada.</p>
+              } @else {
+                <div class="feed-line"></div> @for (item of grupo.items; track item.id) {
+                  <div class="feed-item">
+                    <div class="feed-dot" [class.is-evidence]="item.tipo === 'EVIDENCIA'">
+                      <app-icon [name]="getIcono(item.tipo, item.subtipo)" [size]="14"></app-icon>
+                    </div>
+
+                    <div class="feed-content">
+                      <div class="item-meta">
+                        <span class="item-author">{{ item.autor }}</span>
+                        <span class="item-date">{{ item.fecha | date:'short' }}</span>
+                      </div>
+                      
+                      <p class="item-desc">{{ item.descripcion }}</p>
+
+                      @if (item.url) {
+                        <a [href]="item.url" target="_blank" class="file-link">
+                          <app-icon name="paperclip" [size]="12"></app-icon>
+                          {{ item.nombre_archivo || 'Ver Adjunto' }}
+                        </a>
+                      }
+                    </div>
+                  </div>
+                }
+              }
+            </div>
+
+          </div>
+        }
+      </div>
+    }
+  }
+</div>
