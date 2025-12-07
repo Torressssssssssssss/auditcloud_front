@@ -33,6 +33,25 @@ export class AuthService {
       );
   }
 
+  loginWithGoogle(idToken: string, rol?: number): Observable<LoginResponse> {
+    // Enviar el idToken de Google al backend con POST
+    // El backend verifica el token, crea/actualiza el usuario y devuelve el JWT
+    const body: any = { idToken };
+    if (rol !== undefined) {
+      body.rol = rol;
+    }
+    
+    return this.apiService.post<LoginResponse>('/api/auth/google', body)
+      .pipe(
+        tap(response => {
+          this.setSession(response);
+        }),
+        catchError(error => {
+          throw error;
+        })
+      );
+  }
+
   logout(): void {
     localStorage.removeItem(this.STORAGE_KEY);
     localStorage.removeItem(this.TOKEN_KEY);

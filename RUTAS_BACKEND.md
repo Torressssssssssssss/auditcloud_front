@@ -44,7 +44,57 @@ Authorization: Bearer <token>
 
 ---
 
-### 2. POST `/api/cliente/registro`
+### 2. POST `/api/auth/google`
+**Descripción:** Iniciar sesión con Google OAuth usando Google Identity Services (GSI)
+
+**Body:**
+```json
+{
+  "idToken": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjEyMzQ1Njc4OTA...",
+  "rol": 3  // Opcional: 1=SUPERVISOR, 2=AUDITOR, 3=CLIENTE (default: 3)
+}
+```
+
+**Respuesta (200):**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "usuario": {
+    "id_usuario": 1,
+    "id_rol": 3,
+    "id_empresa": 5,
+    "nombre": "Juan Pérez",
+    "correo": "juan@gmail.com"
+  }
+}
+```
+
+**Notas:**
+- El frontend usa Google Identity Services (GSI) para obtener el `idToken`
+- El backend debe verificar el `idToken` con Google
+- Si el usuario no existe en la base de datos, debe registrarse automáticamente como CLIENTE (id_rol = 3)
+- Si el usuario ya existe, debe iniciar sesión normalmente
+- El backend debe generar un JWT token y devolverlo en la respuesta
+- El campo `rol` en el body es opcional y solo se usa si se quiere especificar un rol diferente al default (CLIENTE)
+
+**Flujo:**
+1. Usuario hace clic en "Iniciar sesión con Google" en el frontend
+2. Google Identity Services muestra el diálogo de autenticación
+3. Usuario se autentica en Google
+4. Google devuelve el `idToken` al frontend
+5. Frontend envía el `idToken` al backend con `POST /api/auth/google`
+6. Backend verifica el `idToken` con Google
+7. Backend busca o crea el usuario en la base de datos
+8. Backend genera un JWT token y devuelve el token y datos del usuario
+
+**Errores:**
+- `400`: `idToken` inválido o faltante
+- `401`: Token de Google inválido o expirado
+- `500`: Error en el proceso de autenticación
+
+---
+
+### 3. POST `/api/cliente/registro`
 **Descripción:** Registrar nuevo cliente (empresa cliente)
 
 **Body:**
