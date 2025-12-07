@@ -5,7 +5,6 @@ import { ApiService } from '../../../services/api.service';
 import { AuthService } from '../../../services/auth.service';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
-import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { IconComponent } from '../../../shared/components/icon/icon.component';
 // 👇 Importamos el componente de PayPal
 import { PagoPaypalComponent } from '../../../pago-paypal-component/pago-paypal-component'; // Ajusta la ruta según donde lo guardaste
@@ -20,7 +19,6 @@ import { SolicitudPago } from '../../../models/pago.model';
     RouterModule,
     LoadingSpinnerComponent,
     EmptyStateComponent,
-    StatusBadgeComponent,
     IconComponent,
     PagoPaypalComponent // 👈 Lo agregamos a los imports
   ],

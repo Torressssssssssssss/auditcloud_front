@@ -1018,3 +1018,186 @@ Cuando el webhook de pago confirma el pago exitoso:
 - [ ] Endpoints de reportes
 - [ ] Endpoints de evidencias y hallazgos
 
+---
+
+## 🔔 CLIENTE - Notificaciones
+
+### 29. GET `/api/cliente/notificaciones/:idCliente`
+**Descripción:** Obtener todas las notificaciones de un cliente
+
+**Parámetros:**
+- `idCliente` (path): ID del usuario cliente
+
+**Respuesta (200):**
+```json
+[
+  {
+    "id_notificacion": 1,
+    "id_cliente": 5,
+    "id_auditoria": 10,
+    "tipo": "evidencia_subida",
+    "titulo": "Nueva evidencia subida",
+    "mensaje": "El auditor ha subido una nueva evidencia para la auditoría #10",
+    "fecha": "2024-01-20T10:30:00Z",
+    "leida": false,
+    "auditoria": {
+      "id_auditoria": 10,
+      "empresa": {
+        "nombre": "Auditora Demo S.A. de C.V."
+      }
+    }
+  },
+  {
+    "id_notificacion": 2,
+    "id_cliente": 5,
+    "id_auditoria": 10,
+    "tipo": "estado_cambiado",
+    "titulo": "Estado de auditoría actualizado",
+    "mensaje": "La auditoría #10 ha cambiado de estado a EN_CAMPO",
+    "fecha": "2024-01-20T09:15:00Z",
+    "leida": false
+  },
+  {
+    "id_notificacion": 3,
+    "id_cliente": 5,
+    "id_auditoria": 10,
+    "tipo": "reporte_subido",
+    "titulo": "Nuevo reporte disponible",
+    "mensaje": "Se ha subido un nuevo reporte para la auditoría #10",
+    "fecha": "2024-01-20T14:00:00Z",
+    "leida": true
+  }
+]
+```
+
+**Tipos de notificación:**
+- `evidencia_subida`: Cuando un auditor sube una evidencia
+- `estado_cambiado`: Cuando el supervisor cambia el estado de la auditoría
+- `reporte_subido`: Cuando se sube un nuevo reporte
+- `mensaje_nuevo`: Cuando hay un nuevo mensaje en una conversación
+
+**Notas:**
+- Las notificaciones deben crearse automáticamente cuando ocurren estas acciones
+- Ordenar por fecha descendente (más recientes primero)
+- El campo `leida` indica si el cliente ha visto la notificación
+
+---
+
+### 30. PUT `/api/cliente/notificaciones/:idNotificacion/leer`
+**Descripción:** Marcar una notificación como leída
+
+**Parámetros:**
+- `idNotificacion` (path): ID de la notificación
+
+**Body:**
+```json
+{}
+```
+
+**Respuesta (200):**
+```json
+{
+  "id_notificacion": 1,
+  "leida": true,
+  "mensaje": "Notificación marcada como leída"
+}
+```
+
+---
+
+### 31. PUT `/api/cliente/notificaciones/:idCliente/leer-todas`
+**Descripción:** Marcar todas las notificaciones de un cliente como leídas
+
+**Parámetros:**
+- `idCliente` (path): ID del usuario cliente
+
+**Body:**
+```json
+{}
+```
+
+**Respuesta (200):**
+```json
+{
+  "actualizadas": 5,
+  "mensaje": "Todas las notificaciones han sido marcadas como leídas"
+}
+```
+
+**Notas:**
+- El backend debe crear notificaciones automáticamente cuando:
+  - Un auditor sube una evidencia → crear notificación tipo `evidencia_subida`
+  - Un supervisor cambia el estado de una auditoría → crear notificación tipo `estado_cambiado`
+  - Se sube un reporte → crear notificación tipo `reporte_subido`
+  - Se envía un mensaje nuevo → crear notificación tipo `mensaje_nuevo`
+
+---
+
+## 📊 CLIENTE - Reportes
+
+### 32. GET `/api/cliente/reportes/:idCliente`
+**Descripción:** Obtener todos los reportes disponibles para un cliente
+
+**Parámetros:**
+- `idCliente` (path): ID del usuario cliente
+
+**Respuesta (200):**
+```json
+[
+  {
+    "id_reporte": 1,
+    "id_auditoria": 10,
+    "nombre": "Reporte Final - Auditoría de Agua",
+    "tipo": "Reporte Final",
+    "fecha_elaboracion": "2024-01-20T10:00:00Z",
+    "fecha_subida": "2024-01-20T10:00:00Z",
+    "url": "/uploads/reportes/reporte_1.pdf",
+    "auditoria": {
+      "id_auditoria": 10,
+      "empresa": {
+        "id_empresa": 2,
+        "nombre": "Auditora Demo S.A. de C.V."
+      }
+    }
+  },
+  {
+    "id_reporte": 2,
+    "id_auditoria": 10,
+    "nombre": "Reporte Parcial - Avance de Trabajo",
+    "tipo": "Reporte Parcial",
+    "fecha_elaboracion": "2024-01-15T14:30:00Z",
+    "fecha_subida": "2024-01-15T14:30:00Z",
+    "url": "/uploads/reportes/reporte_2.pdf",
+    "auditoria": {
+      "id_auditoria": 10,
+      "empresa": {
+        "id_empresa": 2,
+        "nombre": "Auditora Demo S.A. de C.V."
+      }
+    }
+  }
+]
+```
+
+**Notas:**
+- Solo devolver reportes de auditorías que pertenecen al cliente
+- Incluir información de la auditoría y empresa auditora
+- Ordenar por fecha de elaboración descendente (más recientes primero)
+- El campo `url` debe ser la ruta relativa o absoluta al archivo PDF
+
+---
+
+### 33. GET `/api/cliente/auditorias/:idAuditoria/reporte`
+**Descripción:** Descargar el reporte PDF de una auditoría (ya documentado en endpoint 14, pero se usa también desde reportes)
+
+**Parámetros:**
+- `idAuditoria` (path): ID de la auditoría
+
+**Respuesta (200):**
+- Content-Type: `application/pdf`
+- Archivo PDF del reporte
+
+**Notas:**
+- Este endpoint ya está documentado en la sección de auditorías (endpoint 14)
+- Se puede usar tanto desde el detalle de auditoría como desde la lista de reportes
+

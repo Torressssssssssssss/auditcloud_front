@@ -24,6 +24,7 @@ export class ClienteLayoutComponent {
     { ruta: '/cliente/mensajes', icono: 'chat', etiqueta: 'Mensajes' },
     { ruta: '/cliente/pagos', icono: 'credit-card', etiqueta: 'Pagos' },
     { ruta: '/cliente/auditorias', icono: 'document', etiqueta: 'Mis Auditorías' },
+    { ruta: '/cliente/reportes', icono: 'file-text', etiqueta: 'Reportes' },
     { ruta: '/cliente/perfil', icono: 'user', etiqueta: 'Perfil' }
   ];
 }

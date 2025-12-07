@@ -3,12 +3,13 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, RouterOutlet, ActivatedRoute } from '@angular/router';
 import { NavbarComponent, NavItem } from '../../components/navbar/navbar.component';
 import { ThemeToggleComponent } from '../../components/theme-toggle/theme-toggle.component';
+import { NotificacionesComponent } from '../../components/notificaciones/notificaciones.component';
 import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-base-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule, NavbarComponent, ThemeToggleComponent],
+  imports: [CommonModule, RouterModule, NavbarComponent, ThemeToggleComponent, NotificacionesComponent],
   templateUrl: './base-layout.component.html',
   styleUrl: './base-layout.component.css'
 })
