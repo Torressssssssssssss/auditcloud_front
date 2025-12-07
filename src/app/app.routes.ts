@@ -167,10 +167,6 @@ export const routes: Routes = [
         loadComponent: () => import('./cliente/timeline-component/timeline-component').then(m => m.TimelineComponent)
       },
       {
-        path: 'auditorias/:id',
-        loadComponent: () => import('./cliente/auditorias/detalle/detalle.component').then(m => m.AuditoriaDetalleComponent)
-      },
-      {
         path: 'auditorias/:id/timeline',
         loadComponent: () => import('./cliente/timeline-component/timeline-component').then(m => m.TimelineComponent)
       },

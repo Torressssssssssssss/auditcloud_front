@@ -25,7 +25,6 @@ export class SupervisorLayoutComponent {
     { ruta: '/supervisor/pagos', icono: 'credit-card', etiqueta: 'Solicitudes de Pago' },
     { ruta: '/supervisor/mensajes', icono: 'chat', etiqueta: 'Mensajes' },
     { ruta: '/supervisor/evidencias', icono: 'paperclip', etiqueta: 'Evidencias' },
-    { ruta: '/supervisor/reportes', icono: 'file-text', etiqueta: 'Reportes' },
     { ruta: '/supervisor/usuarios', icono: 'users', etiqueta: 'Usuarios Internos' },
     { ruta: '/supervisor/configuracion', icono: 'settings', etiqueta: 'Configuración' },
     { ruta: '/supervisor/perfil', icono: 'user', etiqueta: 'Perfil' }

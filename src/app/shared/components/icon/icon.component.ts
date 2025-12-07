@@ -40,18 +40,17 @@ export type IconName =
   | 'sun'
   | 'moon'
   | 'send'
-<<<<<<< HEAD
+  | 'file'
+  | 'refresh'
+  | 'document-check'
   | 'timeline'
   | 'folder'
   | 'chevron-up'
   | 'chevron-down'
   | 'camera'
-  | 'activity';
-=======
-  | 'file'
-  | 'refresh'
-  | 'document-check';
->>>>>>> e55e253f5c469094ba55e8bac3378d6e5650907f
+  | 'activity'
+  | 'chevron-right'
+  | 'alert-triangle';
 
 @Component({
   selector: 'app-icon',
@@ -208,6 +207,9 @@ export type IconName =
         }
         @case ('document-check') {
           <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm-1.41 10.42l-3.17 3.17-1.42-1.42-1.41 1.41 2.83 2.83 4.58-4.59-1.41-1.41zM13 8V3.5L18.5 9H13z"/>
+        }
+        @case ('alert-triangle') {
+          <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
         }
       }
     </svg>

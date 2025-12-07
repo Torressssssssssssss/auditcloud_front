@@ -6,101 +6,143 @@
   } @else {
     <div class="page-header">
       <div>
-        <button class="btn btn-secondary" (click)="router.navigate(['/auditor/auditorias'])">
-          ← Volver
-        </button>
+        <button class="btn-back" (click)="router.navigate(['/auditor/auditorias'])">← Volver</button>
         <h2>Auditoría #{{ auditoria()!.id_auditoria }}</h2>
       </div>
-      <app-status-badge [estado]="auditoria()!.id_estado" tipo="auditoria" />
+      <div class="header-actions">
+        <button class="btn btn-primary" (click)="abrirModalComentario()">
+          <app-icon name="message-square" [size]="18" class="mr-2"></app-icon>
+          Agregar Actualización
+        </button>
+      </div>
     </div>
 
     <div class="detalle-grid">
       <div class="info-card">
         <h3>Información General</h3>
-        <div class="info-item">
-          <label>Cliente:</label>
-          <span>{{ auditoria()!.cliente?.nombre_empresa || auditoria()!.cliente?.nombre || 'N/A' }}</span>
-        </div>
-        <div class="info-item">
-          <label>Objetivo:</label>
-          <span>{{ auditoria()!.objetivo || 'No especificado' }}</span>
-        </div>
-        <div class="info-item">
-          <label>Estado:</label>
-          <span>{{ getEstadoNombre(auditoria()!.id_estado) }}</span>
-        </div>
-        <div class="info-item">
-          <label>Fecha Creación:</label>
-          <span>{{ auditoria()!.fecha_creacion ? (auditoria()!.fecha_creacion | date:'short') : 'No iniciada' }}</span>
-        </div>
-      </div>
-
-      <div class="info-card">
-        <h3>Módulos Asignados</h3>
-        <div class="modulos-list">
-            @if (auditoria()!.modulos && auditoria()!.modulos!.length > 0) {
-            @for (modulo of auditoria()!.modulos; track modulo) {
-              <span class="modulo-tag">{{ getModuloNombre(modulo) }}</span>
-            }
-          } @else {
-            <p class="text-muted">No hay módulos asignados</p>
-          }
-        </div>
+        <div class="info-item"><label>Cliente:</label> <span>{{ auditoria()!.cliente?.nombre_empresa }}</span></div>
+        <div class="info-item"><label>Estado:</label> <app-status-badge [estado]="auditoria()!.id_estado" tipo="auditoria" /></div>
+        <div class="info-item"><label>Fecha:</label> <span>{{ auditoria()!.fecha_creacion | date:'shortDate' }}</span></div>
       </div>
 
       <div class="info-card">
         <h3>Objetivo</h3>
         @if (!isEditingObjetivo()) {
-          <p class="objetivo-text">
-            {{ auditoria()?.objetivo || 'No especificado' }}
-          </p>
-
-          <div class="quick-actions">
-            <button class="btn btn-primary" (click)="startEditObjetivo()">
-              {{ auditoria()?.objetivo ? 'Editar objetivo' : 'Definir objetivo' }}
-            </button>
-          </div>
-        } 
-    
-        @else {
-          <div class="edit-box">
-            <textarea 
-              [(ngModel)]="tempObjetivo" 
-              rows="4" 
-              class="form-control"
-              placeholder="Escribe el objetivo principal de esta auditoría..."></textarea>
-            
-            <div class="edit-actions">
-              <button 
-                class="btn btn-secondary" 
-                (click)="cancelEditObjetivo()" 
-                [disabled]="saving()">
-                Cancelar
-              </button>
-              
-              <button 
-                class="btn btn-primary" 
-                (click)="saveObjetivo()" 
-                [disabled]="saving()">
-                @if (saving()) { Guardando... } @else { Guardar }
-              </button>
-            </div>
+          <p class="objetivo-text">{{ auditoria()?.objetivo || 'Sin objetivo' }}</p>
+          <button class="btn-link" (click)="startEditObjetivo()">Editar</button>
+        } @else {
+          <textarea [(ngModel)]="tempObjetivo" class="form-control" rows="3"></textarea>
+          <div class="flex gap-2 mt-2">
+            <button class="btn btn-sm btn-primary" (click)="saveObjetivo()">Guardar</button>
+            <button class="btn btn-sm btn-secondary" (click)="cancelEditObjetivo()">Cancelar</button>
           </div>
         }
       </div>
+    </div>
 
-      <div class="info-card">
-        <h3>Acciones Rápidas</h3>
-        <div class="quick-actions">
-          <a [routerLink]="['/auditor/evidencias']" [queryParams]="{auditoria: auditoria()!.id_auditoria}" class="btn btn-primary">
-            Subir Evidencias
-          </a>
-          <a [routerLink]="['/auditor/reportes']" [queryParams]="{auditoria: auditoria()!.id_auditoria}" class="btn btn-secondary">
-            Ver Reportes
-          </a>
-        </div>
+    <div class="bitacora-section mt-8">
+      <div class="section-header">
+        <h3>Bitácora de Evidencias y Comentarios</h3>
       </div>
+
+      @if (loadingBitacora()) {
+        <app-loading-spinner />
+      } @else if (bitacora().length === 0) {
+        <app-empty-state mensaje="No hay actividad registrada aún." />
+      } @else {
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Autor</th>
+                <th>Tipo</th>
+                <th>Resumen</th>
+                <th class="text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of bitacora(); track item.id_item) {
+                <tr>
+                  <td>
+                    <div class="flex flex-col">
+                      <span class="font-medium">{{ item.fecha | date:'dd/MM/yyyy' }}</span>
+                      <span class="text-xs text-gray-500">{{ item.fecha | date:'shortTime' }}</span>
+                    </div>
+                  </td>
+                  <td>{{ item.autor }}</td>
+                  <td>
+                    <span [class]="'badge-type ' + item.tipo.toLowerCase()">
+                      {{ item.tipo === 'EVIDENCIA' ? 'ARCHIVO' : 'COMENTARIO' }}
+                    </span>
+                  </td>
+                  <td class="truncate-cell">{{ item.contenido }}</td>
+                  <td class="text-right">
+                    <button class="btn-icon" (click)="verDetalleItem(item)" title="Ver Detalle Completo">
+                      <app-icon name="eye" [size]="18"></app-icon>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
     </div>
   }
 </div>
 
+@if (showModalComentario()) {
+  <div class="modal-overlay">
+    <div class="modal-content">
+      <h3>Nueva Actualización</h3>
+      <p class="text-sm text-gray-500 mb-4">Escribe un comentario sobre el avance o estado de la auditoría.</p>
+      
+      <textarea [(ngModel)]="nuevoComentario" rows="4" class="form-control" placeholder="Escribe aquí..."></textarea>
+      
+      <div class="modal-actions">
+        <button class="btn btn-secondary" (click)="showModalComentario.set(false)">Cancelar</button>
+        <button class="btn btn-primary" (click)="guardarComentario()" [disabled]="saving() || !nuevoComentario.trim()">
+          {{ saving() ? 'Guardando...' : 'Publicar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showModalDetalle() && itemSeleccionado()) {
+  <div class="modal-overlay" (click)="showModalDetalle.set(false)">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      
+      <div class="modal-header">
+        <span [class]="'badge-type ' + itemSeleccionado()!.tipo.toLowerCase()">
+          {{ itemSeleccionado()!.tipo }}
+        </span>
+        <span class="text-sm text-gray-500">{{ itemSeleccionado()!.fecha | date:'medium' }}</span>
+      </div>
+
+      <h3 class="mt-2 mb-4">Detalle de Actividad</h3>
+
+      <div class="detail-body">
+        <p class="detail-author"><strong>Por:</strong> {{ itemSeleccionado()!.autor }}</p>
+        
+        <div class="detail-box">
+          {{ itemSeleccionado()!.contenido }}
+        </div>
+
+        @if (itemSeleccionado()!.tipo === 'EVIDENCIA' && itemSeleccionado()!.url) {
+          <div class="attachment-area">
+            <app-icon name="paperclip" [size]="16"></app-icon>
+            <a [href]="itemSeleccionado()!.url" target="_blank">
+              {{ itemSeleccionado()!.nombre_archivo || 'Ver Archivo Adjunto' }}
+            </a>
+          </div>
+        }
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-primary w-full" (click)="showModalDetalle.set(false)">Cerrar</button>
+      </div>
+    </div>
+  </div>
+}

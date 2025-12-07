@@ -30,20 +30,6 @@
         @if (grupo.expanded) {
           <div class="card-body">
             
-            @if (!readOnly) {
-              <div class="input-area">
-                <input 
-                  type="text" 
-                  [(ngModel)]="nuevoComentario" 
-                  placeholder="Agregar actualización rápida a esta auditoría..."
-                  (keyup.enter)="publicarComentario(grupo.id_auditoria)"
-                />
-                <button class="btn-icon" (click)="publicarComentario(grupo.id_auditoria)" [disabled]="enviando()">
-                  <app-icon name="send" [size]="16"></app-icon>
-                </button>
-              </div>
-            }
-
             <div class="timeline-scroll-area">
               @if (grupo.items.length === 0) {
                 <p class="no-items">Sin actividad registrada.</p>

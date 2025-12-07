@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { IconComponent, IconName } from '../../shared/components/icon/icon.component';
-
+import { ActivatedRoute } from '@angular/router';
 // Interfaz del ítem individual (Evidencia o Comentario)
 interface TimelineItem {
   id: string;
@@ -39,6 +39,7 @@ export class TimelineComponent implements OnInit, OnChanges {
 
   private api = inject(ApiService);
   private auth = inject(AuthService);
+  private route = inject(ActivatedRoute); 
 
   // Lista de Auditorías (cada una con sus items dentro)
   grupos = signal<AuditoriaGroup[]>([]);
@@ -64,6 +65,14 @@ export class TimelineComponent implements OnInit, OnChanges {
         this.cargarHistorialCompleto();
       }
     }
+    this.route.queryParams.subscribe(params => {
+      const idAuditParaAbrir = +params['auditoria'];
+      if (idAuditParaAbrir) {
+        // Esperamos a que carguen los grupos y luego expandimos el correcto
+        // (Podrías necesitar un effect() o hacerlo dentro del subscribe de cargarHistorial)
+        setTimeout(() => this.toggleGrupo(idAuditParaAbrir), 500); 
+      }
+    });
   }
 
   cargarHistorialCompleto() {
