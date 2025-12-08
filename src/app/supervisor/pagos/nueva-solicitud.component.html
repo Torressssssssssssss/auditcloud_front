@@ -1,7 +1,7 @@
 <div class="nueva-solicitud-wrapper">
   <div class="form-header">
     <h3>Nueva Solicitud de Pago</h3>
-    <p class="form-subtitle">Completa el formulario para crear una solicitud</p>
+    <p class="form-subtitle">Selecciona la empresa y el monto a cobrar</p>
   </div>
 
   <div *ngIf="errorMsg" class="error-banner">
@@ -9,28 +9,40 @@
   </div>
 
   <form (ngSubmit)="crear()" class="solicitud-form">
+    
     <div class="form-group">
-      <label for="id_empresa">ID Empresa (Cliente) *</label>
-      <input 
-        type="number" 
+      <label for="id_empresa">Empresa (Cliente) *</label>
+      <select 
         id="id_empresa"
         [(ngModel)]="id_empresa" 
+        (change)="onEmpresaChange()"
         name="id_empresa"
-        placeholder="Ej: 1"
-        class="form-input"
-      />
+        class="form-input select-arrow"
+        [disabled]="loadingData">
+        
+        <option [ngValue]="null" disabled selected>-- Selecciona una empresa --</option>
+        <option *ngFor="let emp of listaEmpresas" [value]="emp.id_empresa">
+          {{ emp.nombre }}
+        </option>
+      </select>
     </div>
 
     <div class="form-group">
-      <label for="id_cliente">ID Cliente (Usuario)</label>
-      <input 
-        type="number" 
+      <label for="id_cliente">Usuario Destino (Opcional)</label>
+      <select 
         id="id_cliente"
         [(ngModel)]="id_cliente" 
         name="id_cliente"
-        placeholder="Opcional"
-        class="form-input"
-      />
+        class="form-input select-arrow"
+        [disabled]="!id_empresa || listaUsuarios.length === 0">
+        
+        <option [ngValue]="null" selected>
+          {{ listaUsuarios.length === 0 ? '-- Selecciona empresa primero --' : '-- Enviar al administrador principal --' }}
+        </option>
+        <option *ngFor="let user of listaUsuarios" [value]="user.id_usuario">
+          {{ user.nombre }} ({{ user.correo }})
+        </option>
+      </select>
     </div>
 
     <div class="form-group">
@@ -59,9 +71,9 @@
     </div>
 
     <div class="form-actions">
-      <button type="submit" [disabled]="loading" class="btn-submit">
-        <span *ngIf="!loading">✓ Crear Solicitud</span>
-        <span *ngIf="loading">Creando...</span>
+      <button type="submit" [disabled]="loading || !id_empresa" class="btn-submit">
+        <span *ngIf="!loading">✓ Crear y Notificar</span>
+        <span *ngIf="loading">Procesando...</span>
       </button>
       <button type="button" (click)="reset()" [disabled]="loading" class="btn-reset">
         ↻ Limpiar
