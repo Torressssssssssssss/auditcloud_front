@@ -92,7 +92,51 @@
   </footer>
 </div>
 
+@if (showCompanyModal()) {
+  <div class="modal-overlay">
+    <div class="modal-content slide-up">
+      <div class="modal-header">
+        <h2>¡Bienvenido!</h2>
+        <p>Para continuar, necesitamos registrar los datos de tu empresa.</p>
+      </div>
 
+      <form [formGroup]="companyForm" (ngSubmit)="submitCompanyDetails()" class="company-form">
+        
+        <div class="form-group">
+          <label>Nombre de la Empresa</label>
+          <input type="text" formControlName="nombre_empresa" placeholder="Ej. Auditores S.A." 
+                 [class.error]="companyForm.get('nombre_empresa')?.invalid && companyForm.get('nombre_empresa')?.touched">
+          @if (companyForm.get('nombre_empresa')?.invalid && companyForm.get('nombre_empresa')?.touched) {
+            <span class="field-error">Campo requerido</span>
+          }
+        </div>
+
+        <div class="row-group">
+          <div class="form-group">
+            <label>Ciudad</label>
+            <input type="text" formControlName="ciudad" 
+                   [class.error]="companyForm.get('ciudad')?.invalid && companyForm.get('ciudad')?.touched">
+          </div>
+          <div class="form-group">
+            <label>Estado</label>
+            <input type="text" formControlName="estado" 
+                   [class.error]="companyForm.get('estado')?.invalid && companyForm.get('estado')?.touched">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>RFC (Opcional)</label>
+          <input type="text" formControlName="rfc" placeholder="AAA010101XXX">
+        </div>
+
+        <button type="submit" class="btn-login btn-elegant mt-4" [disabled]="completingProfile()">
+          {{ completingProfile() ? 'Guardando...' : 'Finalizar Registro' }}
+        </button>
+
+      </form>
+    </div>
+  </div>
+}
 
 
 

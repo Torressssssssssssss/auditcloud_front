@@ -4,6 +4,7 @@ import { Observable, of } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { Usuario, LoginResponse, Rol } from '../models/usuario.model';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -33,23 +34,17 @@ export class AuthService {
       );
   }
 
-  loginWithGoogle(idToken: string, rol?: number): Observable<LoginResponse> {
-    // Enviar el idToken de Google al backend con POST
-    // El backend verifica el token, crea/actualiza el usuario y devuelve el JWT
-    const body: any = { idToken };
-    if (rol !== undefined) {
-      body.rol = rol;
-    }
-    
-    return this.apiService.post<LoginResponse>('/api/auth/google', body)
-      .pipe(
-        tap(response => {
-          this.setSession(response);
-        }),
-        catchError(error => {
-          throw error;
-        })
-      );
+  loginWithGoogle(idToken: string, rol: number): Observable<LoginResponse> {
+    return this.apiService.post<LoginResponse>('/api/auth/google', { 
+      token: idToken
+    }).pipe(
+      tap(response => {
+        this.setSession(response);
+      }),
+      catchError(error => {
+        throw error;
+      })
+    );
   }
 
   logout(): void {

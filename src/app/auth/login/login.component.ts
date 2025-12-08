@@ -1,9 +1,10 @@
-import { Component, signal, OnInit, AfterViewInit } from '@angular/core';
+import { Component, signal, OnInit, AfterViewInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { Rol } from '../../models/usuario.model';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 declare global {
   interface Window {
@@ -19,11 +20,16 @@ declare global {
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
+
 export class LoginComponent implements OnInit, AfterViewInit {
   loginForm: FormGroup;
   errorMessage = signal<string>('');
   loading = signal<boolean>(false);
   googleClientId = '417831327586-01dvdhj92iao6kgcfpkp20dkiseiv4bq.apps.googleusercontent.com'; // Reemplaza con tu Client ID
+  showCompanyModal = signal<boolean>(false);
+  companyForm: FormGroup;
+  completingProfile = signal<boolean>(false);
+  private http = inject(HttpClient); // Inyectamos HTTP Client directo o úsalo vía ApiService
 
   constructor(
     private fb: FormBuilder,
@@ -34,6 +40,14 @@ export class LoginComponent implements OnInit, AfterViewInit {
     this.loginForm = this.fb.group({
       correo: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
+    });
+
+    // Inicializar formulario del modal
+    this.companyForm = this.fb.group({
+      nombre_empresa: ['', [Validators.required, Validators.minLength(2)]],
+      ciudad: ['', Validators.required],
+      estado: ['', Validators.required],
+      rfc: [''] // Opcional
     });
   }
 
@@ -122,36 +136,92 @@ export class LoginComponent implements OnInit, AfterViewInit {
     }
   }
 
-  private handleGoogleCredentialResponse(response: any): void {
-    if (!response.credential) {
-      this.errorMessage.set('Error al obtener credenciales de Google');
-      this.loading.set(false);
+  submitCompanyDetails() {
+    if (this.companyForm.invalid) {
+      this.companyForm.markAllAsTouched();
       return;
     }
+
+    this.completingProfile.set(true);
+    const formValues = this.companyForm.value;
+
+    // 👇 1. RECUPERAR EL TOKEN
+    const token = localStorage.getItem('auditcloud_token');
+    
+    if (!token) {
+      this.errorMessage.set('Error de sesión. Por favor inicia sesión nuevamente.');
+      this.completingProfile.set(false);
+      return;
+    }
+
+    // 👇 2. CREAR HEADERS CON AUTORIZACIÓN
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+
+    // 👇 3. ENVIAR CON HEADERS
+    this.http.post('http://localhost:3000/api/auth/complete-profile', formValues, { headers })
+      .subscribe({
+        next: (resp: any) => {
+          this.completingProfile.set(false);
+          this.showCompanyModal.set(false);
+          
+          // Actualizar el usuario en localStorage con el nuevo id_empresa si el backend lo devuelve
+          const userStr = localStorage.getItem('auditcloud_user');
+          if (userStr && resp.id_empresa) {
+            const user = JSON.parse(userStr);
+            user.id_empresa = resp.id_empresa;
+            localStorage.setItem('auditcloud_user', JSON.stringify(user));
+          }
+
+          this.router.navigate(['/cliente/dashboard']);
+        },
+        error: (err) => {
+          console.error(err);
+          // Si el error sigue siendo 401, es que el token expiró o es inválido
+          if (err.status === 401) {
+             this.errorMessage.set('Sesión expirada. Intenta ingresar nuevamente.');
+          } else {
+             this.errorMessage.set('Error al guardar datos de la empresa.');
+          }
+          this.completingProfile.set(false);
+        }
+      });
+  }
+
+  private handleGoogleCredentialResponse(response: any): void {
+    if (!response.credential) return;
 
     this.loading.set(true);
     this.errorMessage.set('');
 
-    const idToken = response.credential;
-
-    // Enviar el idToken al backend con POST
-    this.authService.loginWithGoogle(idToken, Rol.CLIENTE).subscribe({
-      next: () => {
-        const rol = this.authService.getRol();
-        if (rol === Rol.SUPERVISOR) {
-          this.router.navigate(['/supervisor/dashboard']);
-        } else if (rol === Rol.AUDITOR) {
-          this.router.navigate(['/auditor/dashboard']);
-        } else if (rol === Rol.CLIENTE) {
-          this.router.navigate(['/cliente/dashboard']);
-        } else {
-          this.router.navigate(['/login']);
+    this.authService.loginWithGoogle(response.credential, Rol.CLIENTE).subscribe({
+      next: (resp: any) => {
+        // 👇 1. GUARDAR EL TOKEN INMEDIATAMENTE
+        // Es vital guardar esto para que las siguientes peticiones (como complete-profile) funcionen
+        localStorage.setItem('auditcloud_token', resp.token);
+        
+        // También guardamos datos del usuario si es necesario
+        if (resp.usuario) {
+          localStorage.setItem('auditcloud_user', JSON.stringify(resp.usuario));
         }
-        this.loading.set(false);
+
+        // 2. VERIFICAR SI REQUIERE COMPLETAR PERFIL
+        if (resp.require_company_info) {
+          this.loading.set(false);
+          this.showCompanyModal.set(true); 
+        } else {
+          const rol = this.authService.getRol();
+          if (rol) {
+            this.redirectByRole(rol);
+          } else {
+            this.router.navigate(['/login']);
+          }
+        }
       },
       error: (error) => {
-        console.error('Error en login con Google:', error);
-        this.errorMessage.set('Error al iniciar sesión con Google. Por favor, intenta de nuevo.');
+        console.error('Error Google:', error);
+        this.errorMessage.set('Error al iniciar sesión con Google.');
         this.loading.set(false);
       }
     });
