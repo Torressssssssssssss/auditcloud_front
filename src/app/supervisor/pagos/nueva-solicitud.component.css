@@ -1,28 +1,29 @@
 .nueva-solicitud-wrapper {
-  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+  background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
   border-radius: 12px;
   padding: 32px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e5e7eb;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-color);
 }
 
 .form-header {
   margin-bottom: 28px;
-  border-bottom: 2px solid #f3f4f6;
+  border-bottom: 2px solid var(--border-color);
   padding-bottom: 16px;
+  background: transparent;
 }
 
 .form-header h3 {
   margin: 0 0 8px 0;
   font-size: 22px;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--text-primary);
 }
 
 .form-subtitle {
   margin: 0;
   font-size: 14px;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .error-banner {
@@ -51,31 +52,31 @@
 .form-group label {
   font-size: 14px;
   font-weight: 600;
-  color: #374151;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .form-input {
   padding: 12px 14px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   font-size: 14px;
-  color: #1f2937;
-  background-color: #ffffff;
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
   transition: all 0.2s ease;
   font-family: inherit;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: var(--accent-primary);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  background-color: #f9fafb;
+  background-color: var(--bg-tertiary);
 }
 
 .form-input::placeholder {
-  color: #9ca3af;
+  color: var(--text-tertiary);
 }
 
 textarea.form-input {
@@ -115,20 +116,20 @@ textarea.form-input {
 }
 
 .btn-submit:disabled {
-  background-color: #d1d5db;
-  color: #6b7280;
+  background-color: var(--border-color);
+  color: var(--text-tertiary);
   cursor: not-allowed;
 }
 
 .btn-reset {
-  background-color: #e5e7eb;
-  color: #374151;
-  border: 1px solid #d1d5db;
+  background-color: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
 }
 
 .btn-reset:hover:not(:disabled) {
-  background-color: #d1d5db;
-  border-color: #9ca3af;
+  background-color: var(--bg-secondary);
+  border-color: var(--text-tertiary);
 }
 
 .btn-reset:disabled {
@@ -168,7 +169,30 @@ select.form-input {
 }
 
 select.form-input:disabled {
-  background-color: #f3f4f6;
-  color: #9ca3af;
+  background-color: var(--bg-tertiary);
+  color: var(--text-tertiary);
   cursor: not-allowed;
+}
+
+html.dark .form-input,
+html.dark select.form-input,
+html.dark textarea.form-input {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+html.dark .form-input:focus,
+html.dark select.form-input:focus,
+html.dark textarea.form-input:focus {
+  background-color: var(--bg-primary);
+}
+
+html.dark .error-banner {
+  background-color: rgba(255, 69, 58, 0.16);
+  border-color: rgba(255, 69, 58, 0.35);
+  color: #ffd4cf;
+}
+
+html.dark .nueva-solicitud-wrapper .form-header {
+  background: transparent;
 }

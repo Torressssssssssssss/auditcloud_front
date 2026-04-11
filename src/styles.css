@@ -111,6 +111,159 @@ html.dark body {
   color: var(--text-primary);
 }
 
+/* Theme compatibility for the different menu layouts and sections */
+html.dark .layout-container,
+html.dark .main-content,
+html.dark .content-area,
+html.dark .dashboard,
+html.dark .dashboard-section,
+html.dark .stat-card,
+html.dark .visit-card,
+html.dark .message-item,
+html.dark .card,
+html.dark .card-xl,
+html.dark .form-card,
+html.dark .panel-card,
+html.dark .info-card,
+html.dark .table-container,
+html.dark .table-card,
+html.dark .card-table,
+html.dark .payment-card,
+html.dark .reporte-card,
+html.dark .audit-card,
+html.dark .solicitud-form,
+html.dark .mensajes-layout,
+html.dark .chat-area,
+html.dark .chat-header,
+html.dark .chat-input-area,
+html.dark .sidebar,
+html.dark .sidebar-header {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+html.dark .page-header,
+html.dark .header,
+html.dark .section-header,
+html.dark .form-header,
+html.dark .panel-header,
+html.dark .card-header,
+html.dark .card-footer,
+html.dark .nav-footer {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+html.dark .subtitle,
+html.dark .page-subtitle,
+html.dark .text-muted,
+html.dark .file-hint,
+html.dark .empty,
+html.dark .empty-container,
+html.dark .loading-container,
+html.dark .conv-preview,
+html.dark .conv-date,
+html.dark .conv-from,
+html.dark .item-date,
+html.dark .stat-label,
+html.dark .user-greeting,
+html.dark .user-role {
+  color: var(--text-secondary);
+}
+
+html.dark .page-title,
+html.dark .title,
+html.dark .form-header h3,
+html.dark .section-title,
+html.dark .header-info h3,
+html.dark .conv-title,
+html.dark .conv-name,
+html.dark .item-author,
+html.dark .stat-value,
+html.dark .card-title,
+html.dark .card-concept,
+html.dark .empresa-name,
+html.dark .audit-id,
+html.dark .logo-text {
+  color: var(--text-primary);
+}
+
+html.dark input,
+html.dark select,
+html.dark textarea {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: var(--text-tertiary);
+}
+
+html.dark .data-table,
+html.dark .data-table th,
+html.dark .data-table td,
+html.dark .pagos-table,
+html.dark .pagos-table th,
+html.dark .pagos-table td {
+  border-color: var(--border-color);
+}
+
+html.dark .data-table thead th,
+html.dark .pagos-table thead th,
+html.dark .data-table tbody tr,
+html.dark .pagos-table tbody tr {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+html.dark .data-table tbody tr:hover,
+html.dark .pagos-table tbody tr:hover,
+html.dark .conv-item:hover,
+html.dark .message-item:hover {
+  background: var(--bg-tertiary);
+}
+
+html.dark .sidebar-header,
+html.dark .chat-header,
+html.dark .chat-input-area,
+html.dark .messages-viewport {
+  border-color: var(--border-color);
+}
+
+html.dark .messages-viewport {
+  background: var(--bg-primary);
+}
+
+html.dark .conv-item.active,
+html.dark .nav-item.active {
+  background: rgba(10, 132, 255, 0.15);
+}
+
+html.dark .msg-row.client .msg-bubble,
+html.dark .msg-row.supervisor .msg-bubble,
+html.dark .msg-row.auditor .msg-bubble,
+html.dark .system-card {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+html.dark .msg-row.me .msg-bubble,
+html.dark .btn-send,
+html.dark .btn-primary,
+html.dark .action-btn,
+html.dark .btn-new {
+  color: #fff;
+}
+
+html.dark .btn-link {
+  color: var(--accent-primary);
+}
+
 html.dark h1, 
 html.dark h2, 
 html.dark h3, 

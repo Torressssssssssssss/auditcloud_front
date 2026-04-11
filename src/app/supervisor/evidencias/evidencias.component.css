@@ -6,8 +6,8 @@
 }
 
 .panel-card {
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
@@ -16,18 +16,18 @@
 .panel-header {
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .panel-header h2 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--text-primary);
   margin: 0;
 }
 
 .subtitle {
-  color: #6b7280;
+  color: var(--text-secondary);
   font-size: 0.9rem;
   margin-top: 0.25rem;
 }
@@ -45,40 +45,42 @@
 }
 
 .data-table th {
-  background: #f9fafb;
-  color: #374151;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
   font-weight: 600;
   text-align: left;
   padding: 0.75rem 1rem;
-  border-bottom: 2px solid #e5e7eb;
+  border-bottom: 2px solid var(--border-color);
   white-space: nowrap;
 }
 
 .data-table td {
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid #f3f4f6;
-  color: #4b5563;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-secondary);
   vertical-align: middle;
 }
 
 /* Filas seleccionadas */
 tr.selected td {
-  background-color: #eff6ff; /* Azul muy claro */
-  border-bottom-color: #bfdbfe;
+  background-color: rgba(10, 132, 255, 0.12);
+  border-bottom-color: rgba(10, 132, 255, 0.4);
 }
 
 /* INPUTS DE FILTRO EN CABECERA */
 .filter-row td {
   padding: 0.5rem;
-  background: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .filter-row input,
 .filter-row select {
   width: 100%;
   padding: 0.4rem;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   border-radius: 6px;
   font-size: 0.8rem;
 }
@@ -86,19 +88,19 @@ tr.selected td {
 .filter-row input:focus,
 .filter-row select:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px rgba(10, 132, 255, 0.15);
 }
 
 /* Estilos Específicos Evidencias */
 .evidencias-table th {
-  background: #f0fdf4; /* Verde muy claro para diferenciar */
-  color: #166534;
+  background: rgba(48, 209, 88, 0.12);
+  color: var(--text-primary);
 }
 
 .tag-modulo {
-  background: #e0e7ff;
-  color: #3730a3;
+  background: rgba(94, 92, 230, 0.15);
+  color: var(--accent-secondary);
   padding: 2px 8px;
   border-radius: 12px;
   font-size: 0.75rem;
@@ -106,10 +108,10 @@ tr.selected td {
 }
 
 .badge-tipo {
-  background: #f3f4f6;
-  color: #1f2937;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
   padding: 2px 6px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   font-size: 0.75rem;
   font-family: monospace;
@@ -119,14 +121,14 @@ tr.selected td {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  color: #2563eb;
+  color: var(--accent-primary);
   font-weight: 500;
   text-decoration: none;
   transition: color 0.2s;
 }
 
 .link-archivo:hover {
-  color: #1d4ed8;
+  color: var(--accent-primary);
   text-decoration: underline;
 }
 
