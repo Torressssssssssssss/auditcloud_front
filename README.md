@@ -45,6 +45,5 @@ ESTRUCTURA BASE
 
 NOTAS IMPORTANTES
 -----------------
-- Este repositorio es solo frontend.
 - Backend esperado en: http://localhost:3000
 - Si cambia la URL del backend, actualizar la configuracion en servicios del frontend.
