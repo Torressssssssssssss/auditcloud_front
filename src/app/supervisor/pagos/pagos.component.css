@@ -1,34 +1,267 @@
 .pagos-container {
-	max-width: 980px;
-	margin: 0 auto;
-	padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem;
 }
+
 .header {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	margin-bottom: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  gap: 1rem;
 }
+
 .title {
-	font-size: 1.5rem;
-	font-weight: 700;
-	color: #111827;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
 }
-.header-actions { display:flex; gap:0.5rem; align-items:center; }
+
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 .btn-new {
-	background: #16a34a;
-	color: white;
-	padding: 0.5rem 0.75rem;
-	border-radius: 0.375rem;
-	font-weight: 700;
-	border: none;
-	cursor: pointer;
+  background: #059669;
+  color: white;
+  padding: 0.625rem 1.25rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-.btn-muted { background:#e5e7eb; padding:0.4rem 0.6rem; border-radius:0.375rem; border:none; cursor:pointer; }
-.form-wrap { margin-bottom: 1rem; }
-.table-card { background: white; border-radius: 0.5rem; box-shadow: 0 6px 18px rgba(32,33,36,0.06); border: 1px solid #e5e7eb; overflow: hidden; }
-.table-responsive { overflow-x: auto; }
-.pagos-table { width: 100%; border-collapse: collapse; }
-.pagos-table thead th { text-align: left; font-size: 0.75rem; color: #6b7280; text-transform: uppercase; padding: 0.75rem 1rem; border-bottom: 1px solid #e6e6e6; }
-.pagos-table tbody td { padding: 0.75rem 1rem; border-bottom: 1px solid #f3f4f6; color: #111827; }
-.empty { text-align: center; padding: 1rem; color: #6b7280; }
+
+.btn-new:hover {
+  background: #047857;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+}
+
+.btn-refresh {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  padding: 0.625rem 1.25rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-refresh:hover {
+  background: var(--bg-secondary);
+  border-color: var(--text-tertiary);
+}
+
+.form-wrap {
+  margin-bottom: 2rem;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.table-section {
+  margin-top: 2rem;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.table-card {
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.loading-container {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.empty-container {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.pagos-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.pagos-table thead {
+  background: var(--bg-tertiary);
+  border-bottom: 2px solid var(--border-color);
+}
+
+.pagos-table th {
+  text-align: left;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 1rem;
+}
+
+.pagos-table tbody tr {
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.15s ease;
+}
+
+.pagos-table tbody tr:hover {
+  background-color: var(--bg-tertiary);
+}
+
+.pagos-table tbody tr.row-pending {
+  background-color: #fffbeb;
+}
+
+.pagos-table tbody tr.row-pending:hover {
+  background-color: #fef3c7;
+}
+
+.pagos-table tbody tr.row-paid {
+  background-color: #f0fdf4;
+}
+
+.pagos-table tbody tr.row-paid:hover {
+  background-color: #dcfce7;
+}
+
+.pagos-table td {
+  padding: 1rem;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.cell-id {
+  font-weight: 700;
+  color: #4f46e5;
+}
+
+.cell-amount {
+  font-weight: 700;
+  color: #059669;
+}
+
+.cell-date {
+  color: var(--text-tertiary);
+  font-size: 0.9rem;
+}
+
+.cell-status {
+  text-align: center;
+}
+
+.badge-pending {
+  display: inline-block;
+  background: #fbbf24;
+  color: #92400e;
+  padding: 0.375rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.badge-paid {
+  display: inline-block;
+  background: #86efac;
+  color: #166534;
+  padding: 0.375rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+html.dark .pagos-table tbody tr.row-pending {
+  background-color: rgba(255, 159, 10, 0.1);
+}
+
+html.dark .pagos-table tbody tr.row-pending:hover {
+  background-color: rgba(255, 159, 10, 0.18);
+}
+
+html.dark .pagos-table tbody tr.row-paid {
+  background-color: rgba(48, 209, 88, 0.1);
+}
+
+html.dark .pagos-table tbody tr.row-paid:hover {
+  background-color: rgba(48, 209, 88, 0.18);
+}
+
+html.dark .cell-id {
+  color: #8ab4ff;
+}
+
+html.dark .cell-amount {
+  color: var(--success);
+}
+
+html.dark .badge-pending {
+  background: rgba(255, 159, 10, 0.2);
+  color: #ffd9a0;
+}
+
+html.dark .badge-paid {
+  background: rgba(48, 209, 88, 0.2);
+  color: #c1f6d5;
+}
+
+@media (max-width: 768px) {
+  .pagos-container {
+    padding: 1rem;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .btn-new,
+  .btn-refresh {
+    flex: 1;
+  }
+
+  .pagos-table th,
+  .pagos-table td {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.85rem;
+  }
+}

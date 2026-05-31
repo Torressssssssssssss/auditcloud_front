@@ -8,9 +8,9 @@
     @for (item of items; track item.ruta) {
       <li>
         <a 
-          [routerLink]="item.ruta" 
+          [routerLink]="item.ruta"
           routerLinkActive="active"
-          [class.active]="isActive(item.ruta)"
+          [routerLinkActiveOptions]="{ exact: item.exact || false }" 
           class="nav-item">
           <app-icon [name]="item.icono" [size]="20" class="nav-icon"></app-icon>
           <span class="nav-label">{{ item.etiqueta }}</span>

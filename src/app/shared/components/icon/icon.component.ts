@@ -7,6 +7,7 @@ export type IconName =
   | 'document' 
   | 'credit-card' 
   | 'chat' 
+  | 'message-square'
   | 'paperclip' 
   | 'file-text' 
   | 'users' 
@@ -37,7 +38,19 @@ export type IconName =
   | 'alert-circle'
   | 'info'
   | 'sun'
-  | 'moon';
+  | 'moon'
+  | 'send'
+  | 'file'
+  | 'refresh'
+  | 'document-check'
+  | 'timeline'
+  | 'folder'
+  | 'chevron-up'
+  | 'chevron-down'
+  | 'camera'
+  | 'activity'
+  | 'chevron-right'
+  | 'alert-triangle';
 
 @Component({
   selector: 'app-icon',
@@ -67,6 +80,9 @@ export type IconName =
         }
         @case ('chat') {
           <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+        }
+        @case ('message-square') {
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
         }
         @case ('paperclip') {
           <path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/>
@@ -119,11 +135,33 @@ export type IconName =
         @case ('arrow-right') {
           <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
         }
+        @case ('send') {
+          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+        }
         @case ('arrow-left') {
           <path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z"/>
         }
         @case ('calendar') {
           <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/>
+        }
+        @case ('timeline') {
+          <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/>
+        }
+        @case ('folder') {
+          <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.89 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
+        }
+        @case ('chevron-up') {
+          <path d="M7 14l5-5 5 5z"/>
+        }
+        @case ('chevron-down') {
+          <path d="M7 10l5 5 5-5z"/>
+        }
+        @case ('camera') {
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+          <circle cx="12" cy="13" r="4"/>
+        }
+        @case ('activity') {
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
         }
         @case ('clock') {
           <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
@@ -160,6 +198,18 @@ export type IconName =
         }
         @case ('moon') {
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        }
+        @case ('file') {
+          <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+        }
+        @case ('refresh') {
+          <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+        }
+        @case ('document-check') {
+          <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm-1.41 10.42l-3.17 3.17-1.42-1.42-1.41 1.41 2.83 2.83 4.58-4.59-1.41-1.41zM13 8V3.5L18.5 9H13z"/>
+        }
+        @case ('alert-triangle') {
+          <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
         }
       }
     </svg>

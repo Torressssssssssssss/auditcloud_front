@@ -1,59 +1,58 @@
 <div class="empresas-page">
   <div class="page-header">
-    <h2>Empresas Auditoras</h2>
-  </div>
-
-  <div class="filters">
-    <div class="filter-group">
-      <label>Estado</label>
-      <select [value]="filtroEstado()" (change)="filtroEstado.set($any($event.target).value)">
-        <option value="">Todos</option>
-        @for (estado of estadosDisponibles; track estado) {
-          <option [value]="estado">{{ estado }}</option>
-        }
-      </select>
-    </div>
-    <div class="filter-group">
-      <label>Módulos:</label>
-      <div class="checkbox-group">
-        <label><input type="checkbox" [checked]="modulosSeleccionados().includes(1)" (change)="toggleModulo(1)" /> Agua</label>
-        <label><input type="checkbox" [checked]="modulosSeleccionados().includes(2)" (change)="toggleModulo(2)" /> Residuos</label>
-        <label><input type="checkbox" [checked]="modulosSeleccionados().includes(3)" (change)="toggleModulo(3)" /> Energía</label>
-      </div>
+    <div class="header-content">
+      <h2>Empresas Auditoras</h2>
+      <p class="subtitle">Encuentra especialistas certificados para tu auditoría</p>
     </div>
   </div>
 
   @if (loading()) {
     <app-loading-spinner />
-  } @else if (empresasFiltradas.length === 0) {
-    <app-empty-state mensaje="No hay empresas auditoras disponibles" />
+  } @else if (empresas().length === 0) {
+    <app-empty-state 
+      mensaje="No hay empresas auditoras disponibles en este momento." 
+      icono="building">
+    </app-empty-state>
   } @else {
-    <div class="empresas-grid">
-      @for (empresa of empresasFiltradas; track empresa.id_empresa) {
-        <div class="empresa-card">
-          <h3>{{ empresa.nombre }}</h3>
-          <div class="empresa-info">
-            <p><strong>Ubicación:</strong> {{ empresa.pais || 'N/A' }}{{ empresa.estado ? ', ' + empresa.estado : '' }}</p>
-            <p><strong>Módulos:</strong> {{ getModulosTexto(empresa.modulos) }}</p>
+    <div class="grid-empresas">
+      @for (emp of empresas(); track emp.id_empresa) {
+        <div class="card-empresa">
+          
+          <div class="card-header">
+            <div class="avatar-logo">
+              {{ emp.nombre.charAt(0) }}
+            </div>
+            <div class="header-text">
+              <h3>{{ emp.nombre }}</h3>
+              <div class="location">
+                <app-icon name="map-pin" [size]="14"></app-icon>
+                <span>{{ emp.ciudad || 'México' }}, {{ emp.estado || 'MX' }}</span>
+              </div>
+            </div>
           </div>
-          <div class="empresa-actions">
-            <a [routerLink]="['/cliente/empresas', empresa.id_empresa]" class="btn btn-outline" style="text-decoration:none;">
-              Ver perfil
-            </a>
-            <button class="btn btn-grad" (click)="contactar(empresa.id_empresa)">
-              Contactar
+
+          <div class="card-body">
+            <p class="description">Especialistas en cumplimiento ambiental y auditorías certificadas.</p>
+            
+            <div class="tags-container">
+              <span class="tags-label">Especialidades:</span>
+              <div class="tags-list">
+                @for (modId of emp.modulos; track modId) {
+                  <span class="tag">{{ getModuloNombre(modId) }}</span>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <button class="btn-contactar" (click)="contactar(emp)">
+              <app-icon name="message-square" [size]="18" class="mr-2"></app-icon>
+              Contactar Ahora
             </button>
           </div>
+
         </div>
       }
     </div>
   }
 </div>
-
-
-
-
-
-
-
-

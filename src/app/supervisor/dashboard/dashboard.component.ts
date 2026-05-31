@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ApiService } from '../../services/api.service';
@@ -8,7 +8,7 @@ import { EmptyStateComponent } from '../../shared/components/empty-state/empty-s
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { Auditoria } from '../../models/auditoria.model';
-import { SolicitudPago } from '../../models/pago.model';
+import { forkJoin } from 'rxjs'; // 👈 Importante para hacer múltiples peticiones
 
 @Component({
   selector: 'app-supervisor-dashboard',
@@ -25,16 +25,17 @@ import { SolicitudPago } from '../../models/pago.model';
   styleUrl: './dashboard.component.css'
 })
 export class SupervisorDashboardComponent implements OnInit {
-  loading = signal<boolean>(true);
-  totalClientes = signal<number>(0);
-  auditoriasPorEstado = signal<Record<number, number>>({});
-  solicitudesPendientes = signal<number>(0);
-  auditoriasActivas = signal<Auditoria[]>([]);
+  private apiService = inject(ApiService);
+  private authService = inject(AuthService);
 
-  constructor(
-    private apiService: ApiService,
-    private authService: AuthService
-  ) {}
+  loading = signal<boolean>(true);
+  
+  // Contadores
+  totalClientes = signal<number>(0);
+  solicitudesPendientes = signal<number>(0);
+  
+  // Listas
+  auditoriasActivas = signal<Auditoria[]>([]);
 
   ngOnInit(): void {
     this.loadDashboardData();
@@ -49,33 +50,41 @@ export class SupervisorDashboardComponent implements OnInit {
       return;
     }
 
-    // Cargar solicitudes de pago
-    this.apiService.get<any>(`/api/supervisor/solicitudes-pago/${idEmpresa}`, { page: 1, limit: 100 })
-      .subscribe({
-        next: (response) => {
-          const solicitudes = Array.isArray(response) ? response : response.data || [];
-          const pendientes = solicitudes.filter((s: SolicitudPago) => s.id_estado === 1).length;
-          this.solicitudesPendientes.set(pendientes);
-        },
-        error: (error) => {
-          console.error('Error cargando solicitudes:', error);
-        }
-      });
+    // Realizamos las 3 peticiones en paralelo
+    forkJoin({
+      // 1. Solicitudes de Pago (URL corregida: SIN ID en la ruta)
+      pagos: this.apiService.get<any>('/api/supervisor/solicitudes-pago'),
+      
+      // 2. Auditorías de la empresa (Aquí SÍ va el ID porque así lo definiste en el back)
+      auditorias: this.apiService.get<any>(`/api/supervisor/auditorias/${idEmpresa}`),
+      
+      // 3. Clientes con los que se ha trabajado
+      clientes: this.apiService.get<any[]>('/api/supervisor/clientes-con-auditorias')
+    }).subscribe({
+      next: (results) => {
+        // A. Procesar Pagos Pendientes (Estado 1)
+        const pagosData = Array.isArray(results.pagos) ? results.pagos : results.pagos.data || [];
+        const pendientes = pagosData.filter((p: any) => p.id_estado === 1).length;
+        this.solicitudesPendientes.set(pendientes);
 
-    // Cargar auditorías (simulado - ajustar según tu backend)
-    this.loading.set(false);
-  }
+        // B. Procesar Auditorías Activas (Estado 1 o 2)
+        const auditData = Array.isArray(results.auditorias) ? results.auditorias : results.auditorias.data || [];
+        // Filtramos las que no estén finalizadas (estado 3)
+        const activas = auditData.filter((a: any) => a.id_estado !== 3);
+        
+        // Ordenamos: las más recientes primero
+        activas.sort((a: any, b: any) => new Date(b.creada_en).getTime() - new Date(a.creada_en).getTime());
+        this.auditoriasActivas.set(activas);
 
-  getEstadoNombre(estado: number): string {
-    const estados: Record<number, string> = {
-      1: 'CREADA',
-      2: 'EN_PROCESO',
-      3: 'FINALIZADA'
-    };
-    return estados[estado] || 'DESCONOCIDO';
+        // C. Procesar Total de Clientes
+        this.totalClientes.set(results.clientes.length);
+
+        this.loading.set(false);
+      },
+      error: (err) => {
+        console.error('Error cargando dashboard:', err);
+        this.loading.set(false);
+      }
+    });
   }
 }
-
-
-
-

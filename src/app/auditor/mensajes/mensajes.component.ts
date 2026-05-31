@@ -1,130 +1,144 @@
-import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, signal, inject, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
-import { Conversacion, Mensaje } from '../../models/mensaje.model';
+import { IconComponent } from '../../shared/components/icon/icon.component';
+
+interface Mensaje {
+  id_mensaje: number;
+  id_conversacion: number;
+  emisor_tipo: 'CLIENTE' | 'SUPERVISOR' | 'AUDITOR';
+  emisor_id: number;
+  contenido: string;
+  creado_en: string;
+}
+
+interface Conversacion {
+  id_conversacion: number;
+  // El auditor ve "Clientes", no empresas auditoras
+  cliente?: { 
+    nombre: string; 
+    nombre_empresa: string; 
+  }; 
+  creado_en: string;
+  ultimo_mensaje?: Mensaje;
+  asunto?: string;
+}
 
 @Component({
   selector: 'app-auditor-mensajes',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     LoadingSpinnerComponent,
-    EmptyStateComponent
+    EmptyStateComponent,
+    IconComponent
   ],
   templateUrl: './mensajes.component.html',
   styleUrl: './mensajes.component.css'
 })
-export class MensajesComponent implements OnInit {
+export class MensajesComponent implements OnInit, AfterViewChecked {
+  private apiService = inject(ApiService);
+  private authService = inject(AuthService);
+
   loading = signal<boolean>(true);
   conversaciones = signal<Conversacion[]>([]);
   conversacionSeleccionada = signal<Conversacion | null>(null);
   mensajes = signal<Mensaje[]>([]);
-  nuevoMensaje = signal<string>('');
+  textoMensaje = '';
+  shouldScroll = false;
 
-  constructor(
-    private apiService: ApiService,
-    private authService: AuthService
-  ) {}
+  @ViewChild('chatViewport') private chatViewport!: ElementRef;
 
   ngOnInit(): void {
-    this.loadConversaciones();
+    this.cargarConversaciones();
   }
 
-  loadConversaciones(): void {
-    this.loading.set(true);
-    const idAuditor = this.authService.getIdUsuario();
-    if (!idAuditor) { this.loading.set(false); return; }
-
-    this.apiService.get<any>(`/api/auditor/conversaciones/${idAuditor}`)
-      .subscribe({
-        next: (response) => {
-          const conversaciones = Array.isArray(response) ? response : (response?.data || []);
-          this.conversaciones.set(conversaciones);
-          this.loading.set(false);
-        },
-        error: (error) => {
-          console.error('Error cargando conversaciones:', error);
-          this.loading.set(false);
-        }
-      });
-  }
-
-  seleccionarConversacion(conversacion: Conversacion): void {
-    this.conversacionSeleccionada.set(conversacion);
-    this.cargarMensajes(conversacion.id_conversacion);
-  }
-
-  cargarMensajes(idConversacion: number): void {
-    this.apiService.get<any>(`/api/auditor/mensajes/${idConversacion}`)
-      .subscribe({
-        next: (response) => {
-          const mensajes = Array.isArray(response) ? response : (response?.data || []);
-          this.mensajes.set(mensajes);
-          setTimeout(() => this.scrollToBottom(), 100);
-        },
-        error: (error) => {
-          console.error('Error cargando mensajes:', error);
-        }
-      });
-  }
-
-  enviarMensaje(): void {
-    const contenido = this.nuevoMensaje().trim();
-    if (!contenido || !this.conversacionSeleccionada()) return;
-
-    const idAuditor = this.authService.getIdUsuario();
-    if (!idAuditor) return;
-
-    const mensaje = {
-      id_conversacion: this.conversacionSeleccionada()!.id_conversacion,
-      id_usuario: idAuditor,
-      contenido: contenido,
-      tipo: 'TEXTO'
-    };
-
-    this.apiService.post<Mensaje>('/api/auditor/mensajes', mensaje)
-      .subscribe({
-        next: () => {
-          this.nuevoMensaje.set('');
-          this.cargarMensajes(this.conversacionSeleccionada()!.id_conversacion);
-          this.loadConversaciones();
-        },
-        error: (error) => {
-          console.error('Error enviando mensaje:', error);
-        }
-      });
-  }
-
-  scrollToBottom(): void {
-    const chatContainer = document.getElementById('chat-messages');
-    if (chatContainer) {
-      chatContainer.scrollTop = chatContainer.scrollHeight;
+  ngAfterViewChecked() {
+    if (this.shouldScroll) {
+      this.scrollToBottom();
+      this.shouldScroll = false;
     }
   }
 
-  formatearFecha(fecha: string): string {
-    const date = new Date(fecha);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const minutos = Math.floor(diff / 60000);
-    if (minutos < 1) return 'Ahora';
-    if (minutos < 60) return `Hace ${minutos} min`;
-    if (minutos < 1440) return `Hace ${Math.floor(minutos / 60)} horas`;
-    return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+  cargarConversaciones() {
+    // Endpoint específico de auditor
+    this.apiService.get<Conversacion[]>('/api/auditor/conversaciones')
+      .subscribe({
+        next: (data) => {
+          const ordenadas = [...data].sort((a, b) => {
+            const fa = new Date(a.ultimo_mensaje?.creado_en || a.creado_en).getTime();
+            const fb = new Date(b.ultimo_mensaje?.creado_en || b.creado_en).getTime();
+            return fb - fa;
+          });
+          this.conversaciones.set(ordenadas);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          console.error('Error cargando chats:', err);
+          this.loading.set(false);
+        }
+      });
   }
 
-  esMensajePropio(mensaje: Mensaje): boolean {
-    return mensaje.id_usuario === this.authService.getIdUsuario();
+  seleccionar(conv: Conversacion) {
+    this.conversacionSeleccionada.set(conv);
+    this.shouldScroll = true;
+    this.cargarMensajes(conv.id_conversacion);
+  }
+
+  cargarMensajes(id: number) {
+    this.apiService.get<Mensaje[]>(`/api/auditor/mensajes/${id}`)
+      .subscribe({
+        next: (msgs) => {
+          const ordenados = [...msgs].sort((a, b) => new Date(a.creado_en).getTime() - new Date(b.creado_en).getTime());
+          this.mensajes.set(ordenados);
+          this.shouldScroll = true;
+          setTimeout(() => this.scrollToBottom(), 0);
+        }
+      });
+  }
+
+  enviar() {
+    if (!this.textoMensaje.trim() || !this.conversacionSeleccionada()) return;
+
+    const payload = {
+      id_conversacion: this.conversacionSeleccionada()!.id_conversacion,
+      contenido: this.textoMensaje
+    };
+
+    this.apiService.post<Mensaje>('/api/auditor/mensajes', payload)
+      .subscribe({
+        next: (nuevo) => {
+          this.mensajes.update(m => [...m, nuevo]);
+          this.textoMensaje = '';
+          this.shouldScroll = true;
+          this.cargarConversaciones(); // Actualizar orden de lista
+        }
+      });
+  }
+
+  scrollToBottom() {
+    try {
+      this.chatViewport.nativeElement.scrollTop = this.chatViewport.nativeElement.scrollHeight;
+    } catch(err) {}
+  }
+
+  // Identifica si el mensaje es mío (Auditor)
+  esPropio(msg: Mensaje): boolean {
+    // Puedes validar por ID específico o por rol
+    return msg.emisor_tipo === 'AUDITOR' && msg.emisor_id === this.authService.getIdUsuario();
+  }
+
+  esCliente(msg: Mensaje): boolean {
+    return msg.emisor_tipo === 'CLIENTE';
+  }
+
+  esSupervisor(msg: Mensaje): boolean {
+    return msg.emisor_tipo === 'SUPERVISOR';
   }
 }
-
-
-
-
-
-
-
-

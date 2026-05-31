@@ -23,11 +23,11 @@ export class StatusBadgeComponent {
 
   private getAuditoriaEstado(estado: number): { texto: string; clase: string } {
     const estados: Record<number, { texto: string; clase: string }> = {
-      1: { texto: 'CREADA', clase: 'estado-creada' },
-      2: { texto: 'EN_PROCESO', clase: 'estado-proceso' },
-      3: { texto: 'FINALIZADA', clase: 'estado-finalizada' }
+      1: { texto: 'Creada', clase: 'estado-creada' },
+      2: { texto: 'En Proceso', clase: 'estado-proceso' },
+      3: { texto: 'Finalizada', clase: 'estado-finalizada' }
     };
-    return estados[estado] || { texto: 'DESCONOCIDO', clase: 'estado-desconocido' };
+    return estados[estado] || { texto: 'Desconocido', clase: 'estado-desconocido' };
   }
 
   private getPagoEstado(estado: number): { texto: string; clase: string } {

@@ -20,8 +20,10 @@ export class ThemeService {
   apply(theme: 'light' | 'dark'): void {
     this.current.set(theme);
     const root = document.documentElement;
-    if (theme === 'dark') root.classList.add('dark');
-    else root.classList.remove('dark');
+    const isDark = theme === 'dark';
+
+    root.classList.toggle('dark', isDark);
+    document.body.classList.toggle('dark', isDark);
     localStorage.setItem('theme', theme);
   }
 }

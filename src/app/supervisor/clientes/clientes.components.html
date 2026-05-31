@@ -1,0 +1,68 @@
+<div class="clientes-page">
+  <div class="page-header">
+    <div class="header-content">
+      <h2>Cartera de Clientes</h2>
+      <p class="subtitle">Empresas con auditorías activas o históricas</p>
+    </div>
+    
+    <div class="header-stat" *ngIf="!loading()">
+      <span class="stat-value">{{ clientes().length }}</span>
+      <span class="stat-label">Empresas</span>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <app-loading-spinner />
+  } @else if (clientes().length === 0) {
+    <app-empty-state 
+      mensaje="Aún no tienes clientes con auditorías registradas." 
+      icono="users">
+    </app-empty-state>
+  } @else {
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Empresa</th>
+            <th>Contacto Principal</th>
+            <th>Ubicación</th>
+            <th class="text-center">Auditorías</th>
+            <th>Estado</th>
+            <th class="text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (cliente of clientes(); track cliente.id_empresa) {
+            <tr>
+              <td>
+                <div class="empresa-cell">
+                  <div class="avatar-char">{{ cliente.nombre.charAt(0) }}</div>
+                  <span class="empresa-nombre">{{ cliente.nombre }}</span>
+                </div>
+              </td>
+              <td>
+                <span class="text-gray-600">{{ cliente.contacto }}</span>
+              </td>
+              <td>
+                {{ cliente.ciudad || '-' }}, {{ cliente.pais || 'México' }}
+              </td>
+              <td class="text-center">
+                <span class="badge-count">{{ cliente.total_auditorias }}</span>
+              </td>
+              <td>
+                <span [class]="cliente.activo ? 'status-active' : 'status-inactive'">
+                  {{ cliente.activo ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td class="text-right">
+                <a [routerLink]="['/supervisor/mensajes']" [queryParams]="{empresa: cliente.id_empresa}" class="btn-icon" title="Enviar Mensaje">
+                  <app-icon name="message-square" [size]="18"></app-icon>
+                </a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>

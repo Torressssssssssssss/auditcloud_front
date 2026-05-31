@@ -24,8 +24,7 @@ export class AuditorLayoutComponent {
     { ruta: '/auditor/evidencias', icono: 'paperclip', etiqueta: 'Evidencias' },
     { ruta: '/auditor/reportes', icono: 'file-text', etiqueta: 'Reportes' },
     { ruta: '/auditor/mensajes', icono: 'chat', etiqueta: 'Mensajes' },
-    { ruta: '/auditor/perfil', icono: 'user', etiqueta: 'Perfil' },
-    { ruta: '/auditor/pagos', icono: 'credit-card', etiqueta: 'Pagos' }
+    { ruta: '/auditor/perfil', icono: 'user', etiqueta: 'Perfil' }
   ];
 }
 

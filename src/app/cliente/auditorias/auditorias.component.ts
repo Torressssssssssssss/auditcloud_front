@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ApiService } from '../../services/api.service';
@@ -6,7 +6,16 @@ import { AuthService } from '../../services/auth.service';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
-import { Auditoria } from '../../models/auditoria.model';
+import { IconComponent } from '../../shared/components/icon/icon.component';
+
+// Interfaz que coincide con lo que manda el backend ahora
+interface AuditoriaCliente {
+  id_auditoria: number;
+  id_estado: number;
+  fecha_creacion: string;
+  empresa?: { nombre: string };
+  modulos?: number[];
+}
 
 @Component({
   selector: 'app-cliente-auditorias',
@@ -17,78 +26,75 @@ import { Auditoria } from '../../models/auditoria.model';
     RouterModule,
     LoadingSpinnerComponent,
     EmptyStateComponent,
-    StatusBadgeComponent
+    StatusBadgeComponent,
+    IconComponent
   ],
   templateUrl: './auditorias.component.html',
-  styleUrl: './auditorias.component.css'
+  styleUrls: ['./auditorias.component.css']
 })
 export class AuditoriasComponent implements OnInit {
+  private api = inject(ApiService);
+  private auth = inject(AuthService);
+
   loading = signal<boolean>(true);
-  auditorias = signal<Auditoria[]>([]);
+  listaAuditorias = signal<AuditoriaCliente[]>([]);
+  
+  // Filtros reactivos
   filtroEstado = signal<number | null>(null);
   filtroModulo = signal<number | null>(null);
 
-  constructor(
-    private apiService: ApiService,
-    private authService: AuthService
-  ) {}
-
   ngOnInit(): void {
-    this.loadAuditorias();
+    this.cargarDatos();
   }
 
-  loadAuditorias(): void {
+  cargarDatos() {
     this.loading.set(true);
-    const idCliente = this.authService.getIdUsuario();
-    
-    if (!idCliente) {
-      this.loading.set(false);
-      return;
-    }
+    const idCliente = this.auth.getIdUsuario();
 
-    this.apiService.get<any>(`/api/cliente/auditorias/${idCliente}`, { page: 1, limit: 100 })
+    this.api.get<AuditoriaCliente[]>(`/api/cliente/auditorias/${idCliente}`)
       .subscribe({
-        next: (response) => {
-          const auditorias = Array.isArray(response) ? response : (response?.data || []);
-          this.auditorias.set(auditorias);
+        next: (data) => {
+          // Si el backend devuelve { data: [...] }, extraemos el array. Si no, usamos data directo.
+          const auditorias = Array.isArray(data) ? data : (data as any).data || [];
+          this.listaAuditorias.set(auditorias);
           this.loading.set(false);
         },
-        error: (error) => {
-          console.error('Error cargando auditorías:', error);
+        error: (err) => {
+          console.error(err);
           this.loading.set(false);
         }
       });
   }
 
-  get auditoriasFiltradas(): Auditoria[] {
-    let result = this.auditorias();
-    
-    if (this.filtroEstado()) {
-      result = result.filter(a => a.id_estado === this.filtroEstado());
+  // Lógica de filtrado en cliente
+  auditoriasFiltradas = computed(() => {
+    let lista = this.listaAuditorias();
+    const estado = this.filtroEstado();
+    const modulo = this.filtroModulo();
+
+    if (estado) {
+      lista = lista.filter(a => a.id_estado === estado);
     }
-    
-    if (this.filtroModulo()) {
-      result = result.filter(a => 
-        a.modulos?.includes(this.filtroModulo()!)
-      );
+    if (modulo) {
+      lista = lista.filter(a => a.modulos?.includes(modulo));
     }
-    
-    return result;
+    return lista;
+  });
+
+  // Helpers para la vista
+  getModulosTexto(ids: number[] | undefined): string {
+    if (!ids || ids.length === 0) return 'Sin módulos';
+    const map: Record<number, string> = { 1: 'Agua', 2: 'Residuos', 3: 'Energía' };
+    return ids.map(id => map[id] || `Módulo ${id}`).join(', ');
   }
 
-  getModulosTexto(modulos: number[] | undefined): string {
-    if (!modulos || modulos.length === 0) return '-';
-    const nombres: Record<number, string> = { 1: 'Agua', 2: 'Residuos', 3: 'Energía' };
-    return modulos.map(m => nombres[m] || m.toString()).join(', ');
+  onEstadoChange(e: Event) {
+    const val = (e.target as HTMLSelectElement).value;
+    this.filtroEstado.set(val ? +val : null);
   }
 
-  onEstadoChange(event: Event): void {
-    const target = event.target as HTMLSelectElement;
-    this.filtroEstado.set(target.value ? +target.value : null);
-  }
-
-  onModuloChange(event: Event): void {
-    const target = event.target as HTMLSelectElement;
-    this.filtroModulo.set(target.value ? +target.value : null);
+  onModuloChange(e: Event) {
+    const val = (e.target as HTMLSelectElement).value;
+    this.filtroModulo.set(val ? +val : null);
   }
 }

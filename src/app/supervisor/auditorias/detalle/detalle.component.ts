@@ -4,39 +4,44 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../../../services/api.service';
 import { AuthService } from '../../../services/auth.service';
+
+// 👇 1. IMPORTAR LOS COMPONENTES COMPARTIDOS QUE FALTABAN
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+
+// Importa tu modelo actualizado
 import { Auditoria } from '../../../models/auditoria.model';
-import { Usuario } from '../../../models/usuario.model';
-import { ModuloAmbiental } from '../../../models/usuario.model';
 
 @Component({
   selector: 'app-auditoria-detalle',
   standalone: true,
+  // 👇 2. AGREGARLOS AL ARRAY DE IMPORTS
   imports: [
-    CommonModule,
-    DatePipe,
-    RouterModule,
+    CommonModule, 
+    DatePipe, 
+    RouterModule, 
     ReactiveFormsModule,
-    LoadingSpinnerComponent,
-    EmptyStateComponent,
-    StatusBadgeComponent,
-    ConfirmDialogComponent
+    ConfirmDialogComponent,
+    LoadingSpinnerComponent, // <--- Soluciona NG8001
+    EmptyStateComponent,     // <--- Soluciona NG8001
+    StatusBadgeComponent     // <--- Soluciona NG8001 y NG8002
   ],
   templateUrl: './detalle.component.html',
-  styleUrl: './detalle.component.css'
+  styleUrls: ['./detalle.component.css']
 })
 export class AuditoriaDetalleComponent implements OnInit {
   loading = signal<boolean>(true);
   auditoria = signal<Auditoria | null>(null);
-  auditoresDisponibles = signal<Usuario[]>([]);
-  auditoresAsignados = signal<Usuario[]>([]);
-  asignacionForm: FormGroup;
-  estadoForm: FormGroup;
+  
+  auditoresDisponibles = signal<any[]>([]);
+  auditoresAsignados = signal<any[]>([]);
+  
   showAsignacion = signal<boolean>(false);
-  showConfirmEstado = signal<boolean>(false);
+  asignacionForm: FormGroup;
+
+  showConfirmEstado = signal(false);
   nuevoEstado = signal<number | null>(null);
 
   constructor(
@@ -49,148 +54,126 @@ export class AuditoriaDetalleComponent implements OnInit {
     this.asignacionForm = this.fb.group({
       id_auditor: ['', Validators.required]
     });
+  }
 
-    this.estadoForm = this.fb.group({
-      id_estado: ['', Validators.required]
-    });
+  // 👇 3. AGREGAR EL GETTER PARA EL FORMULARIO (Soluciona TS2339 id_auditor)
+  get id_auditor() {
+    return this.asignacionForm.get('id_auditor');
   }
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.loadAuditoria(+id);
-      this.loadAuditores();
     }
   }
 
   loadAuditoria(id: number): void {
     this.loading.set(true);
-    // Nota: Ajustar endpoint según tu backend
-    this.apiService.get<Auditoria>(`/api/supervisor/auditorias/${id}`)
-      .subscribe({
-        next: (auditoria) => {
-          this.auditoria.set(auditoria);
-          this.estadoForm.patchValue({ id_estado: auditoria.id_estado });
-          this.loadAuditoresAsignados(id);
-          this.loading.set(false);
-        },
-        error: (error) => {
-          console.error('Error cargando auditoría:', error);
-          this.loading.set(false);
-        }
-      });
-  }
+    const idEmpresa = this.authService.getIdEmpresa()||0;
+    console.log('Cargando auditoría con ID:', id);
 
-  loadAuditores(): void {
-    const idEmpresa = this.authService.getIdEmpresa();
-    if (!idEmpresa) return;
-
-    this.apiService.get<any>(`/api/supervisor/auditores/${idEmpresa}`, { page: 1, limit: 100 })
+    this.apiService.get<any>(`/api/supervisor/auditorias/${idEmpresa}`)
       .subscribe({
         next: (response) => {
-          const auditores = Array.isArray(response) ? response : (response?.data || []);
-          this.auditoresDisponibles.set(auditores);
+          const lista = Array.isArray(response) ? response : (response.data || []);
+          const encontrada = lista.find((a: any) => a.id_auditoria === id);
+          
+          if (encontrada) {
+            this.auditoria.set(encontrada);
+            this.loadAuditoresAsignados(id);
+            this.loadAuditoresDisponibles(idEmpresa);
+          }
+          this.loading.set(false);
         },
-        error: (error) => {
-          console.error('Error cargando auditores:', error);
+        error: (err) => {
+          console.error(err);
+          this.loading.set(false);
         }
       });
   }
 
-  loadAuditoresAsignados(idAuditoria: number): void {
-    // Nota: Ajustar endpoint según tu backend
-    this.apiService.get<any>(`/api/supervisor/auditorias/${idAuditoria}/participantes`)
+  loadAuditoresDisponibles(idEmpresa: number) {
+    this.apiService.get<any>(`/api/supervisor/auditores/${idEmpresa}`)
       .subscribe({
-        next: (response) => {
-          const auditores = Array.isArray(response) ? response : (response?.data || []);
-          this.auditoresAsignados.set(auditores);
-        },
-        error: (error) => {
-          console.error('Error cargando participantes:', error);
-        }
+        next: (res) => this.auditoresDisponibles.set(res.data || res)
       });
   }
 
-  asignarAuditor(): void {
-    if (this.asignacionForm.invalid || !this.auditoria()) return;
+  loadAuditoresAsignados(idAuditoria: number) {
+    this.apiService.get<any[]>(`/api/supervisor/auditorias/${idAuditoria}/participantes`)
+      .subscribe({
+        next: (data) => this.auditoresAsignados.set(data),
+        error: (err) => console.error('Error cargando participantes', err)
+      });
+  }
 
-    const idAuditoria = this.auditoria()!.id_auditoria;
-    const idAuditor = +this.asignacionForm.value.id_auditor;
+  agregarModulo(idModulo: number): void {
+    const current = this.auditoria();
+    if (!current || !current.id_auditoria) return;
 
-    this.apiService.post<any>(`/api/supervisor/auditorias/${idAuditoria}/asignar`, { id_auditor: idAuditor })
+    this.apiService.post(`/api/supervisor/auditorias/${current.id_auditoria}/modulos`, { id_modulo: idModulo })
       .subscribe({
         next: () => {
+          alert('Módulo agregado');
+          this.loadAuditoria(current.id_auditoria);
+        },
+        error: (err) => alert(err.error?.message || 'Error al agregar módulo')
+      });
+  }
+
+  asignarAuditor() {
+    if (this.asignacionForm.invalid) return;
+    const idAuditoria = this.auditoria()?.id_auditoria || 0;
+    const idAuditor = this.asignacionForm.value.id_auditor;
+
+    this.apiService.post(`/api/supervisor/auditorias/${idAuditoria}/asignar`, { id_auditor: idAuditor })
+      .subscribe({
+        next: () => {
+          alert('Auditor asignado correctamente');
           this.loadAuditoresAsignados(idAuditoria);
           this.asignacionForm.reset();
           this.showAsignacion.set(false);
         },
-        error: (error) => {
-          console.error('Error asignando auditor:', error);
-        }
+        error: (err) => alert(err.error?.message || 'Error al asignar')
       });
   }
-
-  cambiarEstado(): void {
-    if (!this.auditoria() || !this.nuevoEstado()) return;
-
-    const idAuditoria = this.auditoria()!.id_auditoria;
-
-    this.apiService.put<any>(`/api/supervisor/auditorias/${idAuditoria}/estado`, { id_estado: this.nuevoEstado() })
-      .subscribe({
-        next: () => {
-          this.loadAuditoria(idAuditoria);
-          this.showConfirmEstado.set(false);
-          this.nuevoEstado.set(null);
-        },
-        error: (error) => {
-          console.error('Error cambiando estado:', error);
-        }
-      });
-  }
-
-  solicitarCambioEstado(nuevoEstado: number): void {
-    this.nuevoEstado.set(nuevoEstado);
+  
+  solicitarCambioEstado(estado: number) {
+    this.nuevoEstado.set(estado);
     this.showConfirmEstado.set(true);
   }
 
-  confirmarCambioEstado(): void {
-    this.cambiarEstado();
-  }
-
-  cancelarCambioEstado(): void {
+  cancelarCambioEstado() {
     this.showConfirmEstado.set(false);
     this.nuevoEstado.set(null);
   }
 
-  agregarModulo(idModulo: number): void {
-    if (!this.auditoria()) return;
+  confirmarCambioEstado() {
+    const current = this.auditoria();
+    console.log('Cambiando estado a:', this.nuevoEstado());
+    const estado = this.nuevoEstado();
 
-    const idAuditoria = this.auditoria()!.id_auditoria;
+    if (!current || !estado) return;
 
-    this.apiService.post<any>(`/api/supervisor/auditorias/${idAuditoria}/modulos`, { id_modulo: idModulo })
+    this.apiService.put(`/api/supervisor/auditorias/${current.id_auditoria}/estado`, { id_estado: estado })
       .subscribe({
         next: () => {
-          this.loadAuditoria(idAuditoria);
+          alert('Estado actualizado correctamente');
+          this.showConfirmEstado.set(false);
+          this.loadAuditoria(current.id_auditoria);
         },
-        error: (error) => {
-          console.error('Error agregando módulo:', error);
-        }
+        error: (err) => alert(err.error?.message || 'Error al cambiar estado')
       });
   }
 
-  getModuloNombre(id: number): string {
-    const nombres: Record<number, string> = { 1: 'Agua', 2: 'Residuos', 3: 'Energía' };
-    return nombres[id] || id.toString();
-  }
-
   getEstadoNombre(id: number): string {
-    const nombres: Record<number, string> = {
-      1: 'CREADA',
-      2: 'EN_PROCESO',
-      3: 'FINALIZADA'
-    };
-    return nombres[id] || 'DESCONOCIDO';
+    const estados: any = { 1: 'CREADA', 2: 'EN PROCESO', 3: 'FINALIZADA' };
+    return estados[id] || 'DESCONOCIDO';
   }
 
-  get id_auditor() { return this.asignacionForm.get('id_auditor'); }
+  getModuloNombre(id: number): string {
+    const nombres: any = { 1: 'Agua', 2: 'Residuos', 3: 'Energía' };
+    return nombres[id] || `Módulo ${id}`;
+  }
 }

@@ -13,6 +13,9 @@
       </div>
       <div class="header-actions">
         <app-theme-toggle></app-theme-toggle>
+        @if (usuarioRol === 'Cliente') {
+          <app-notificaciones></app-notificaciones>
+        }
         <div class="user-info">
           <span class="user-greeting">Hola, {{ usuarioNombre }}</span>
           <span class="user-role">{{ usuarioRol }}</span>
