@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http'; 
+import { environment } from '../../../environments/environment';
 import { NuevaSolicitudComponent } from './nueva-solicitud.component';
 import { SolicitudPago } from '../../models/pago.model';
 // 👇 2. ACTUALIZAR LA INTERFAZ (Para que no marque error con id_cliente)
@@ -49,7 +50,7 @@ export class PagosComponent implements OnInit {
     });
 
     // Llamamos al nuevo endpoint GET que creamos en auditor.routes.js
-    this.http.get<any[]>('http://localhost:3000/api/auditor/solicitudes-pago', { headers })
+    this.http.get<any[]>(`${environment.apiUrl}/api/auditor/solicitudes-pago`, { headers })
       .subscribe({
         next: (data) => {
           this.solicitudes.set(data);

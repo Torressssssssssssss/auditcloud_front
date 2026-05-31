@@ -2,7 +2,7 @@
 
 Esta guía documenta todas las rutas que el backend debe implementar según el flujo de trabajo de AuditCloud.
 
-**Base URL:** `http://localhost:3000`
+**Base URL:** `http://192.168.1.243:3000`
 
 **Autenticación:** Todas las rutas (excepto login/registro) requieren un token JWT en el header:
 ```

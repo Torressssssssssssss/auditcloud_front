@@ -4,7 +4,8 @@ export interface Usuario {
   id_rol: number;
   nombre: string;
   correo: string;
-  activo?: boolean;
+  rol?: string;
+  activo?: number | boolean;
 }
 
 export interface LoginResponse {

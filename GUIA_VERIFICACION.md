@@ -9,7 +9,7 @@ Esta guía te ayudará a verificar que todas las funcionalidades están trabajan
 ## 📋 PREPARACIÓN
 
 ### Antes de empezar:
-- [✅] Backend corriendo en `http://localhost:3000`
+- [✅] Backend corriendo en `http://192.168.1.243:3000`
 - [✅] Frontend corriendo en `http://localhost:4200`
 - [✅] Base de datos configurada
 - [✅] Consola del navegador abierta (F12) para ver errores

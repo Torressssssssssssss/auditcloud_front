@@ -2,7 +2,14 @@
 
 Esta guía documenta todas las rutas que el backend debe implementar según el flujo de trabajo de AuditCloud.
 
-**Base URL:** `http://localhost:3000`
+**Base URL:** `http://192.168.1.243:3000`
+
+**Frontend Angular:** usa la variable centralizada `src/environments/environment.ts` con `apiUrl = 'http://192.168.1.243:3000'`.
+
+**Usuarios demo:**
+- Supervisor: `supervisor@auditcloud.com / 123456`
+- Auditor: `auditor@auditcloud.com / 123456`
+- Cliente: `cliente@auditcloud.com / 123456`
 
 **Autenticación:** Todas las rutas (excepto login/registro) requieren un token JWT en el header:
 ```

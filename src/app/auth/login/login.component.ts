@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { Rol } from '../../models/usuario.model';
 
 @Component({
   selector: 'app-login',
@@ -40,15 +39,8 @@ export class LoginComponent {
     const { correo, password } = this.loginForm.value;
 
     this.authService.login(correo, password).subscribe({
-      next: () => {
-        const rol = this.authService.getRol();
-        if (rol === Rol.SUPERVISOR) {
-          this.router.navigate(['/supervisor/dashboard']);
-        } else if (rol === Rol.AUDITOR) {
-          this.router.navigate(['/auditor/dashboard']);
-        } else if (rol === Rol.CLIENTE) {
-          this.router.navigate(['/cliente/dashboard']);
-        }
+      next: (response) => {
+        this.router.navigate([this.authService.getDashboardRoute(response.usuario)]);
       },
       error: (error) => {
         this.errorMessage.set('Correo o contraseña incorrectos');

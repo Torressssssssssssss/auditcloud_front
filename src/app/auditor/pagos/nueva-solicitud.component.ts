@@ -2,6 +2,7 @@ import { Component, EventEmitter, Output, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-nueva-solicitud',
@@ -61,7 +62,7 @@ export class NuevaSolicitudComponent {
     });
 
     // 3. Enviar petición a la ruta de AUDITOR
-this.http.post('http://localhost:3000/api/auditor/solicitudes-pago', payload, { headers }) 
+this.http.post(`${environment.apiUrl}/api/auditor/solicitudes-pago`, payload, { headers }) 
      .subscribe({
         next: () => {
           this.enviando.set(false);
