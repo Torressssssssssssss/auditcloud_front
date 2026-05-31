@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, ViewChild, ElementRef, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { loadScript } from '@paypal/paypal-js';
+import { environment } from '../../environments/environment';
 
 // TODO: Configura tu Client ID de PayPal Sandbox/Production
 const PAYPAL_CLIENT_ID = 'AecrVLNqy9BcJV5i8xvwpz9u8aaD-KqVT6Wn3LI9gY_a_fzlWHPJYLnqFxMYuJhM7sePR3LZ9nrEpW4p';
@@ -42,7 +43,7 @@ export class PagoPaypalComponent implements OnInit {
           // 1. Crear Orden
           createOrder: (data: any, actions: any) => {
             this.procesando.set(true);
-            return fetch('http://localhost:3000/api/paypal/create-order', {
+            return fetch(`${environment.apiUrl}/api/paypal/create-order`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -70,7 +71,7 @@ export class PagoPaypalComponent implements OnInit {
           // 2. Capturar Pago
           onApprove: (data: any, actions: any) => {
             this.procesando.set(true);
-            return fetch('http://localhost:3000/api/paypal/capture-order', {
+            return fetch(`${environment.apiUrl}/api/paypal/capture-order`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',

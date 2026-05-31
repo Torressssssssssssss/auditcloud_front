@@ -2,6 +2,7 @@ import { Component, OnInit, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { environment } from '../../../environments/environment';
 // Importamos el botón de PayPal que ya tienes
 import { PagoPaypalComponent } from '../../pago-paypal-component/pago-paypal-component'; 
 
@@ -53,7 +54,7 @@ export class PagosComponent implements OnInit {
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
     // Consumimos el endpoint de cliente
-    this.http.get<SolicitudPago[]>(`http://localhost:3000/api/cliente/solicitudes-pago/${usuario.id_usuario}`, { headers })
+    this.http.get<SolicitudPago[]>(`${environment.apiUrl}/api/cliente/solicitudes-pago/${usuario.id_usuario}`, { headers })
       .subscribe({
         next: (data) => {
           this.todasLasSolicitudes.set(data);

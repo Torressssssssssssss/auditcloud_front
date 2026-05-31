@@ -1,10 +1,10 @@
-import { Component, signal, OnInit, AfterViewInit, inject } from '@angular/core';
+import { Component, signal, OnInit, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterModule, ActivatedRoute } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { Rol } from '../../models/usuario.model';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { ApiService } from '../../services/api.service';
 
 declare global {
   interface Window {
@@ -25,34 +25,31 @@ export class LoginComponent implements OnInit, AfterViewInit {
   loginForm: FormGroup;
   errorMessage = signal<string>('');
   loading = signal<boolean>(false);
-  googleClientId = '417831327586-01dvdhj92iao6kgcfpkp20dkiseiv4bq.apps.googleusercontent.com'; // Reemplaza con tu Client ID
+  googleClientId = '417831327586-01dvdhj92iao6kgcfpkp20dkiseiv4bq.apps.googleusercontent.com';
   showCompanyModal = signal<boolean>(false);
   companyForm: FormGroup;
   completingProfile = signal<boolean>(false);
-  private http = inject(HttpClient); // Inyectamos HTTP Client directo o úsalo vía ApiService
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private router: Router,
-    private route: ActivatedRoute
+    private apiService: ApiService
   ) {
     this.loginForm = this.fb.group({
       correo: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
     });
 
-    // Inicializar formulario del modal
     this.companyForm = this.fb.group({
       nombre_empresa: ['', [Validators.required, Validators.minLength(2)]],
       ciudad: ['', Validators.required],
       estado: ['', Validators.required],
-      rfc: [''] // Opcional
+      rfc: ['']
     });
   }
 
   ngOnInit(): void {
-    // Configurar el callback global de Google
     window.handleGoogleCredential = (response: any) => {
       this.handleGoogleCredentialResponse(response);
     };
@@ -61,7 +58,6 @@ export class LoginComponent implements OnInit, AfterViewInit {
   private googleButtonElement: HTMLElement | null = null;
 
   ngAfterViewInit(): void {
-    // Inicializar Google Identity Services cuando el componente esté listo
     const initializeGoogle = () => {
       if (window.google) {
         window.google.accounts.id.initialize({
@@ -71,7 +67,6 @@ export class LoginComponent implements OnInit, AfterViewInit {
           }
         });
 
-        // Crear un contenedor oculto para el botón oficial de Google
         const hiddenContainer = document.createElement('div');
         hiddenContainer.id = 'hidden-google-button';
         hiddenContainer.style.position = 'absolute';
@@ -81,7 +76,6 @@ export class LoginComponent implements OnInit, AfterViewInit {
         hiddenContainer.style.pointerEvents = 'none';
         document.body.appendChild(hiddenContainer);
 
-        // Renderizar el botón oficial de Google en el contenedor oculto
         window.google.accounts.id.renderButton(hiddenContainer, {
           type: 'standard',
           size: 'large',
@@ -91,12 +85,10 @@ export class LoginComponent implements OnInit, AfterViewInit {
           logo_alignment: 'left'
         });
 
-        // Guardar referencia al elemento del botón
         setTimeout(() => {
           this.googleButtonElement = hiddenContainer.querySelector('div[role="button"]') as HTMLElement;
         }, 300);
       } else {
-        // Esperar a que el script de Google se cargue
         setTimeout(initializeGoogle, 100);
       }
     };
@@ -113,15 +105,12 @@ export class LoginComponent implements OnInit, AfterViewInit {
     this.loading.set(true);
     this.errorMessage.set('');
 
-    // Intentar hacer clic en el botón oficial de Google
     if (this.googleButtonElement) {
       this.googleButtonElement.click();
     } else {
-      // Si el botón no está listo, usar el método prompt
       window.google.accounts.id.prompt((notification: any) => {
         if (notification.isNotDisplayed() || notification.isSkippedMoment() || notification.isDismissedMoment()) {
           this.loading.set(false);
-          // Intentar renderizar el botón de nuevo
           setTimeout(() => {
             const hiddenContainer = document.getElementById('hidden-google-button');
             if (hiddenContainer) {
@@ -145,28 +134,12 @@ export class LoginComponent implements OnInit, AfterViewInit {
     this.completingProfile.set(true);
     const formValues = this.companyForm.value;
 
-    // 👇 1. RECUPERAR EL TOKEN
-    const token = localStorage.getItem('auditcloud_token');
-    
-    if (!token) {
-      this.errorMessage.set('Error de sesión. Por favor inicia sesión nuevamente.');
-      this.completingProfile.set(false);
-      return;
-    }
-
-    // 👇 2. CREAR HEADERS CON AUTORIZACIÓN
-    const headers = new HttpHeaders({
-      'Authorization': `Bearer ${token}`
-    });
-
-    // 👇 3. ENVIAR CON HEADERS
-    this.http.post('http://localhost:3000/api/auth/complete-profile', formValues, { headers })
+    this.apiService.post<any>('/api/auth/complete-profile', formValues)
       .subscribe({
         next: (resp: any) => {
           this.completingProfile.set(false);
           this.showCompanyModal.set(false);
           
-          // Actualizar el usuario en localStorage con el nuevo id_empresa si el backend lo devuelve
           const userStr = localStorage.getItem('auditcloud_user');
           if (userStr && resp.id_empresa) {
             const user = JSON.parse(userStr);
@@ -178,7 +151,6 @@ export class LoginComponent implements OnInit, AfterViewInit {
         },
         error: (err) => {
           console.error(err);
-          // Si el error sigue siendo 401, es que el token expiró o es inválido
           if (err.status === 401) {
              this.errorMessage.set('Sesión expirada. Intenta ingresar nuevamente.');
           } else {
@@ -197,26 +169,13 @@ export class LoginComponent implements OnInit, AfterViewInit {
 
     this.authService.loginWithGoogle(response.credential, Rol.CLIENTE).subscribe({
       next: (resp: any) => {
-        // 👇 1. GUARDAR EL TOKEN INMEDIATAMENTE
-        // Es vital guardar esto para que las siguientes peticiones (como complete-profile) funcionen
-        localStorage.setItem('auditcloud_token', resp.token);
-        
-        // También guardamos datos del usuario si es necesario
-        if (resp.usuario) {
-          localStorage.setItem('auditcloud_user', JSON.stringify(resp.usuario));
-        }
-
-        // 2. VERIFICAR SI REQUIERE COMPLETAR PERFIL
         if (resp.require_company_info) {
           this.loading.set(false);
           this.showCompanyModal.set(true); 
         } else {
-          const rol = this.authService.getRol();
-          if (rol) {
-            this.redirectByRole(rol);
-          } else {
-            this.router.navigate(['/login']);
-          }
+          const user = resp.usuario || this.authService.getUsuarioActual();
+          this.router.navigate([this.authService.getDashboardRoute(user)]);
+          this.loading.set(false);
         }
       },
       error: (error) => {
@@ -225,19 +184,6 @@ export class LoginComponent implements OnInit, AfterViewInit {
         this.loading.set(false);
       }
     });
-  }
-
-  private redirectByRole(idRol: number): void {
-    if (idRol === Rol.SUPERVISOR) {
-      this.router.navigate(['/supervisor/dashboard']);
-    } else if (idRol === Rol.AUDITOR) {
-      this.router.navigate(['/auditor/dashboard']);
-    } else if (idRol === Rol.CLIENTE) {
-      this.router.navigate(['/cliente/dashboard']);
-    } else {
-      this.router.navigate(['/login']);
-    }
-    this.loading.set(false);
   }
 
   onSubmit(): void {
@@ -252,15 +198,8 @@ export class LoginComponent implements OnInit, AfterViewInit {
     const { correo, password } = this.loginForm.value;
 
     this.authService.login(correo, password).subscribe({
-      next: () => {
-        const rol = this.authService.getRol();
-        if (rol === Rol.SUPERVISOR) {
-          this.router.navigate(['/supervisor/dashboard']);
-        } else if (rol === Rol.AUDITOR) {
-          this.router.navigate(['/auditor/dashboard']);
-        } else if (rol === Rol.CLIENTE) {
-          this.router.navigate(['/cliente/dashboard']);
-        }
+      next: (response) => {
+        this.router.navigate([this.authService.getDashboardRoute(response.usuario)]);
       },
       error: (error) => {
         this.errorMessage.set('Correo o contraseña incorrectos');

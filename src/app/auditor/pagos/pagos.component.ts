@@ -1,17 +1,61 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClient, HttpHeaders } from '@angular/common/http'; 
+import { environment } from '../../../environments/environment';
+import { NuevaSolicitudComponent } from './nueva-solicitud.component';
+import { SolicitudPago } from '../../models/pago.model';
 
 @Component({
   selector: 'app-auditor-pagos',
   standalone: true,
-  imports: [CommonModule],
-  template: `
-    <div style="max-width:720px;margin:2rem auto;padding:1.5rem;background:#fff;border-radius:8px;border:1px solid #eee;text-align:center;">
-      <h3 style="margin:0 0 0.5rem 0;color:#111827;">Sección de Pagos (deshabilitada)</h3>
-      <p style="margin:0;color:#6b7280;">El módulo de Pagos para el perfil Auditor fue removido. Usa la sección de Supervisor o Cliente para gestionar cobros.</p>
-    </div>
-  `
+  imports: [CommonModule, NuevaSolicitudComponent], 
+  templateUrl: './pagos.component.html',
+  styleUrls: ['./pagos.component.css']
 })
-export class PagosComponent {
-  // Componente stub: ya no se usa desde las rutas. Mantener por compatibilidad local.
+export class PagosComponent implements OnInit {
+  private http = inject(HttpClient);
+  
+  solicitudes = signal<SolicitudPago[]>([]);
+  mostrarFormulario = signal(false); 
+  cargando = signal(false);
+
+  usuarioLogueado = JSON.parse(localStorage.getItem('auditcloud_user') || '{}');
+
+  ngOnInit() {
+    this.cargarSolicitudes();
+  }
+
+  cargarSolicitudes() {
+    this.cargando.set(true);
+
+    const token = localStorage.getItem('auditcloud_token');
+    
+    if (!token) {
+      console.error('No hay token de sesión');
+      this.cargando.set(false);
+      return;
+    }
+
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${token}`
+    });
+
+    this.http.get<any[]>(`${environment.apiUrl}/api/auditor/solicitudes-pago`, { headers })
+      .subscribe({
+        next: (data) => {
+          this.solicitudes.set(data);
+          this.cargando.set(false);
+        },
+        error: (err) => {
+          console.error('Error cargando historial de cobros:', err);
+          this.cargando.set(false);
+        }
+      });
+  }
+
+  onSolicitudCreada() {
+    this.mostrarFormulario.set(false);
+    this.cargarSolicitudes();
+    alert('Solicitud de cobro creada exitosamente.');
+  }
 }
