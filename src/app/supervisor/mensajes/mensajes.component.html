@@ -54,8 +54,17 @@
           <span class="subtitle">Contacto: {{ conversacionSeleccionada()?.cliente?.nombre }}</span>
         </div>
         <div class="header-actions">
+          <button class="btn-secondary" (click)="abrirSolicitudPago()">Generar solicitud de pago</button>
         </div>
       </div>
+
+      @if (exitoSolicitud()) {
+        <div class="status-banner success">{{ exitoSolicitud() }}</div>
+      }
+
+      @if (errorSolicitud() && !mostrarModalSolicitud()) {
+        <div class="status-banner error">{{ errorSolicitud() }}</div>
+      }
 
       <div class="messages-viewport" #chatViewport>
         @for (msg of mensajes(); track msg.id_mensaje) {
@@ -84,6 +93,66 @@
           <app-icon name="send"></app-icon>
         </button>
       </div>
+
+      @if (mostrarModalSolicitud()) {
+        <div class="modal-backdrop" (click)="cerrarSolicitudPago()">
+          <div class="payment-modal" (click)="$event.stopPropagation()">
+            <div class="payment-modal-header">
+              <div>
+                <h3>Generar solicitud de pago</h3>
+                <p>Crea una solicitud para el cliente seleccionado.</p>
+              </div>
+              <button class="btn-modal-close" (click)="cerrarSolicitudPago()" [disabled]="creandoSolicitud()">✕</button>
+            </div>
+
+            <div class="payment-meta">
+              <div>
+                <span>Cliente</span>
+                <strong>{{ conversacionSeleccionada()?.cliente?.nombre }}</strong>
+              </div>
+              <div>
+                <span>Empresa</span>
+                <strong>{{ conversacionSeleccionada()?.cliente?.nombre_empresa }}</strong>
+              </div>
+            </div>
+
+            @if (errorSolicitud()) {
+              <div class="status-banner error">{{ errorSolicitud() }}</div>
+            }
+
+            <form class="payment-form" (ngSubmit)="crearSolicitudPago()">
+              <label>
+                <span>Monto (MXN)</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  [(ngModel)]="montoSolicitud"
+                  name="montoSolicitud"
+                  placeholder="Ej. 1500.00"
+                />
+              </label>
+
+              <label>
+                <span>Concepto</span>
+                <textarea
+                  [(ngModel)]="conceptoSolicitud"
+                  name="conceptoSolicitud"
+                  rows="3"
+                  placeholder="Describe el concepto del cobro"
+                ></textarea>
+              </label>
+
+              <div class="payment-actions">
+                <button type="button" class="btn-cancel" (click)="cerrarSolicitudPago()" [disabled]="creandoSolicitud()">Cancelar</button>
+                <button type="submit" class="btn-submit" [disabled]="creandoSolicitud() || !montoSolicitud || !conceptoSolicitud.trim()">
+                  {{ creandoSolicitud() ? 'Creando...' : 'Crear solicitud' }}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      }
     }
   </div>
 </div>

@@ -5,12 +5,28 @@
   justify-content: center;
   padding: var(--spacing-xl) var(--spacing-lg);
   text-align: center;
+  gap: 0.9rem;
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-lg);
+  background: var(--bg-secondary);
 }
 
 .empty-icon {
   font-size: 4rem;
-  margin-bottom: var(--spacing-md);
-  opacity: 0.4;
+  line-height: 1;
+  opacity: 0.45;
+  color: var(--text-tertiary);
+}
+
+.empty-icon-svg {
+  width: 72px;
+  height: 72px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
 }
 
 .empty-message {
@@ -19,4 +35,5 @@
   margin: 0;
   font-weight: 500;
   letter-spacing: -0.01em;
+  max-width: 28rem;
 }

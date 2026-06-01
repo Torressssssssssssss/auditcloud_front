@@ -37,8 +37,8 @@
             <div class="tags-container">
               <span class="tags-label">Especialidades:</span>
               <div class="tags-list">
-                @for (modId of emp.modulos; track modId) {
-                  <span class="tag">{{ getModuloNombre(modId) }}</span>
+                @for (modulo of getModulos(emp); track modulo.key) {
+                  <span class="tag">{{ modulo.label }}</span>
                 }
               </div>
             </div>

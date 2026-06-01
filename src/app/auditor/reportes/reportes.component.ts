@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
+import { environment } from '../../../environments/environment';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { IconComponent } from '../../shared/components/icon/icon.component';
@@ -110,7 +111,7 @@ export class ReportesComponent implements OnInit {
     const token = localStorage.getItem('auditcloud_token');
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-    this.http.post('http://localhost:3000/api/auditor/reportes', formData, { headers }).subscribe({
+    this.http.post(`${environment.apiUrl}/api/auditor/reportes`, formData, { headers }).subscribe({
       next: () => {
         alert('Reporte subido y auditoría finalizada con éxito.');
         this.enviando.set(false);

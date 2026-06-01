@@ -1,4 +1,5 @@
 <div class="mensajes-layout">
+
   <div class="sidebar">
     <div class="sidebar-header">
       <h3>Mensajes</h3>
@@ -7,32 +8,34 @@
     @if (loading()) {
       <app-loading-spinner />
     } @else {
-      <div class="conversaciones-list" #chatNav>
+      <div class="lista-conversaciones">
         @for (conv of conversaciones(); track conv.id_conversacion) {
           <div class="conv-item"
                [class.active]="conversacionSeleccionada()?.id_conversacion === conv.id_conversacion"
                (click)="seleccionarConversacion(conv)">
 
-            <div class="conv-avatar">
+            <div class="avatar-circle">
               {{ conv.empresa?.nombre?.charAt(0) || 'E' }}
             </div>
 
             <div class="conv-info">
               <div class="conv-top">
-                <span class="conv-name">{{ conv.empresa?.nombre }}</span>
+                <span class="conv-title">{{ conv.empresa?.nombre }}</span>
                 <span class="conv-date">
                   {{ (conv.ultimo_mensaje?.creado_en || conv.creado_en) | date:'shortTime' }}
                 </span>
               </div>
               <div class="conv-preview">
-                <span class="conv-from" *ngIf="conv.ultimo_mensaje">{{ conv.ultimo_mensaje.emisor_tipo === 'CLIENTE' ? 'Tú:' : conv.ultimo_mensaje.emisor_tipo + ':' }}</span>
-                {{ conv.ultimo_mensaje?.contenido || 'Iniciar conversación' }}
+                <span class="text-xs text-gray-500 mr-1">
+                  {{ conv.ultimo_mensaje?.emisor_tipo === 'CLIENTE' ? 'Tú:' : conv.ultimo_mensaje?.emisor_tipo + ':' }}
+                </span>
+                {{ conv.ultimo_mensaje?.contenido || 'Nueva conversación' }}
               </div>
             </div>
           </div>
         }
         @if (conversaciones().length === 0) {
-          <app-empty-state mensaje="No hay conversaciones iniciadas." />
+          <app-empty-state mensaje="No hay conversaciones activas." />
         }
       </div>
     }
@@ -48,33 +51,25 @@
       <div class="chat-header">
         <div class="header-info">
           <h3>{{ conversacionSeleccionada()?.empresa?.nombre }}</h3>
-          <span class="subtitle">Empresa auditada</span>
+          <span class="subtitle">Empresa auditora</span>
+        </div>
+        <div class="header-actions">
         </div>
       </div>
 
       <div class="messages-viewport" #chatContainer>
         @for (msg of mensajes(); track msg.id_mensaje) {
-          @if (esSolicitudPago(msg)) {
-            <div class="msg-system">
-              <div class="system-card">
-                <app-icon name="credit-card"></app-icon>
-                <span>{{ msg.contenido }}</span>
-                <a [routerLink]="['/cliente/pagos']" class="btn-link">Ir a pagos</a>
-              </div>
+          <div class="msg-row"
+               [ngClass]="{
+                 'me': esPropio(msg),
+                 'client': esSupervisor(msg),
+                 'auditor': (!esPropio(msg) && !esSupervisor(msg))
+               }">
+            <div class="msg-bubble">
+              <p>{{ msg.contenido }}</p>
+              <span class="msg-time">{{ msg.creado_en | date:'shortTime' }}</span>
             </div>
-          } @else {
-            <div class="msg-row"
-                 [ngClass]="{
-                   'me': esPropio(msg),
-                   'supervisor': esSupervisor(msg),
-                   'auditor': esAuditor(msg)
-                 }">
-              <div class="msg-bubble">
-                <p>{{ msg.contenido }}</p>
-                <span class="msg-time">{{ msg.creado_en | date:'shortTime' }}</span>
-              </div>
-            </div>
-          }
+          </div>
         }
       </div>
 

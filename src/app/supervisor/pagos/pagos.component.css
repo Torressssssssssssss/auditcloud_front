@@ -18,6 +18,12 @@
   color: var(--text-primary);
 }
 
+.subtitle {
+  margin: 0.35rem 0 0;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
 .header-actions {
   display: flex;
   gap: 0.75rem;
@@ -25,23 +31,21 @@
   flex-wrap: wrap;
 }
 
-.btn-new {
-  background: #059669;
-  color: white;
+.btn-secondary {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
   padding: 0.625rem 1.25rem;
   border-radius: 6px;
   font-weight: 600;
   font-size: 0.95rem;
-  border: none;
+  border: 1px solid var(--border-color);
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.btn-new:hover {
-  background: #047857;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+.btn-secondary:hover {
+  background: var(--bg-secondary);
+  border-color: var(--text-tertiary);
 }
 
 .btn-refresh {
@@ -61,33 +65,8 @@
   border-color: var(--text-tertiary);
 }
 
-.form-wrap {
-  margin-bottom: 2rem;
-  animation: slideDown 0.3s ease;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .table-section {
   margin-top: 2rem;
-}
-
-.section-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 2px solid var(--border-color);
 }
 
 .table-card {
@@ -112,6 +91,21 @@
   font-weight: 500;
 }
 
+.empty-container h3 {
+  margin: 0 0 0.5rem;
+  color: var(--text-primary);
+  font-size: 1.05rem;
+}
+
+.empty-container p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.empty-action {
+  margin-top: 1rem;
+}
+
 .table-responsive {
   overflow-x: auto;
 }
@@ -119,6 +113,7 @@
 .pagos-table {
   width: 100%;
   border-collapse: collapse;
+  background: var(--bg-secondary);
 }
 
 .pagos-table thead {
@@ -138,27 +133,27 @@
 
 .pagos-table tbody tr {
   border-bottom: 1px solid var(--border-color);
-  transition: background-color 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .pagos-table tbody tr:hover {
-  background-color: var(--bg-tertiary);
+  background-color: color-mix(in srgb, var(--accent-primary) 4%, var(--bg-secondary));
 }
 
 .pagos-table tbody tr.row-pending {
-  background-color: #fffbeb;
+  background-color: color-mix(in srgb, var(--warning) 7%, var(--bg-secondary));
 }
 
 .pagos-table tbody tr.row-pending:hover {
-  background-color: #fef3c7;
+  background-color: color-mix(in srgb, var(--warning) 11%, var(--bg-secondary));
 }
 
 .pagos-table tbody tr.row-paid {
-  background-color: #f0fdf4;
+  background-color: color-mix(in srgb, var(--success) 7%, var(--bg-secondary));
 }
 
 .pagos-table tbody tr.row-paid:hover {
-  background-color: #dcfce7;
+  background-color: color-mix(in srgb, var(--success) 11%, var(--bg-secondary));
 }
 
 .pagos-table td {
@@ -169,12 +164,12 @@
 
 .cell-id {
   font-weight: 700;
-  color: #4f46e5;
+  color: var(--accent-primary);
 }
 
 .cell-amount {
   font-weight: 700;
-  color: #059669;
+  color: var(--success);
 }
 
 .cell-date {
@@ -188,42 +183,44 @@
 
 .badge-pending {
   display: inline-block;
-  background: #fbbf24;
-  color: #92400e;
+  background: color-mix(in srgb, var(--warning) 18%, var(--bg-secondary));
+  color: color-mix(in srgb, var(--warning) 80%, #000);
   padding: 0.375rem 0.75rem;
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 700;
+  border: 1px solid color-mix(in srgb, var(--warning) 35%, transparent);
 }
 
 .badge-paid {
   display: inline-block;
-  background: #86efac;
-  color: #166534;
+  background: color-mix(in srgb, var(--success) 18%, var(--bg-secondary));
+  color: color-mix(in srgb, var(--success) 72%, #000);
   padding: 0.375rem 0.75rem;
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 700;
+  border: 1px solid color-mix(in srgb, var(--success) 35%, transparent);
 }
 
 html.dark .pagos-table tbody tr.row-pending {
-  background-color: rgba(255, 159, 10, 0.1);
+  background-color: color-mix(in srgb, var(--warning) 9%, var(--bg-secondary));
 }
 
 html.dark .pagos-table tbody tr.row-pending:hover {
-  background-color: rgba(255, 159, 10, 0.18);
+  background-color: color-mix(in srgb, var(--warning) 14%, var(--bg-secondary));
 }
 
 html.dark .pagos-table tbody tr.row-paid {
-  background-color: rgba(48, 209, 88, 0.1);
+  background-color: color-mix(in srgb, var(--success) 9%, var(--bg-secondary));
 }
 
 html.dark .pagos-table tbody tr.row-paid:hover {
-  background-color: rgba(48, 209, 88, 0.18);
+  background-color: color-mix(in srgb, var(--success) 14%, var(--bg-secondary));
 }
 
 html.dark .cell-id {
-  color: #8ab4ff;
+  color: color-mix(in srgb, var(--accent-primary) 88%, white);
 }
 
 html.dark .cell-amount {
@@ -231,13 +228,57 @@ html.dark .cell-amount {
 }
 
 html.dark .badge-pending {
-  background: rgba(255, 159, 10, 0.2);
-  color: #ffd9a0;
+  background: color-mix(in srgb, var(--warning) 22%, var(--bg-secondary));
+  color: color-mix(in srgb, var(--warning) 75%, white);
+  border-color: color-mix(in srgb, var(--warning) 30%, transparent);
 }
 
 html.dark .badge-paid {
-  background: rgba(48, 209, 88, 0.2);
-  color: #c1f6d5;
+  background: color-mix(in srgb, var(--success) 22%, var(--bg-secondary));
+  color: color-mix(in srgb, var(--success) 70%, white);
+  border-color: color-mix(in srgb, var(--success) 30%, transparent);
+}
+
+html.dark .pagos-table thead {
+  background: var(--bg-tertiary);
+}
+
+html.dark .pagos-table tbody tr,
+html.dark .pagos-table td {
+  background: transparent;
+  color: var(--text-primary);
+}
+
+html.dark .pagos-table tbody tr:hover td {
+  color: var(--text-primary);
+}
+
+html.dark .table-card {
+  box-shadow: var(--shadow-sm);
+}
+
+html.dark .btn-secondary,
+html.dark .btn-refresh {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+html.dark .btn-secondary:hover,
+html.dark .btn-refresh:hover {
+  background: color-mix(in srgb, var(--accent-primary) 6%, var(--bg-tertiary));
+  border-color: var(--border-color);
+}
+
+html.dark .empty-container {
+  color: var(--text-secondary);
+}
+
+html.dark .empty-container p {
+  color: var(--text-secondary);
+}
+
+html.dark .loading-container {
+  color: var(--text-secondary);
 }
 
 @media (max-width: 768px) {
@@ -254,8 +295,11 @@ html.dark .badge-paid {
     width: 100%;
   }
 
-  .btn-new,
   .btn-refresh {
+    flex: 1;
+  }
+
+  .btn-secondary {
     flex: 1;
   }
 

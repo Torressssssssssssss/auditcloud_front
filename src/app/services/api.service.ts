@@ -3,6 +3,34 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
+export interface SolicitudPagoPayload {
+  id_empresa: number;
+  id_cliente?: number;
+  monto: number;
+  concepto: string;
+}
+
+export interface SolicitudPagoItem {
+  id_solicitud: number;
+  id_empresa?: number;
+  id_empresa_auditora?: number;
+  id_empresa_cliente?: number;
+  id_cliente?: number;
+  monto: number;
+  concepto: string;
+  id_estado: number;
+  creado_en: string;
+  nombre_empresa_cliente?: string;
+  es_mio?: boolean;
+}
+
+export interface SolicitudesPagoResponse {
+  total: number;
+  page: number;
+  limit: number;
+  data: SolicitudPagoItem[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -53,6 +81,14 @@ export class ApiService {
     return this.http.post<T>(`${this.baseUrl}${endpoint}`, body, {
       headers: this.getHeaders()
     });
+  }
+
+  listSupervisorSolicitudesPago(params?: { page?: number; limit?: number }) {
+    return this.get<SolicitudesPagoResponse>('/api/supervisor/solicitudes-pago', params);
+  }
+
+  createSupervisorSolicitudPago(payload: SolicitudPagoPayload) {
+    return this.post('/api/supervisor/solicitudes-pago', payload);
   }
 
   put<T>(endpoint: string, body: any): Observable<T> {

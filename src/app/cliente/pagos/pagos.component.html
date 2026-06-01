@@ -1,93 +1,92 @@
-<div class="container mx-auto p-6 space-y-8 cliente-pagos">
-  <h2 class="text-3xl font-bold text-gray-800 border-b pb-4">Mis Solicitudes de Pago</h2>
+<div class="cliente-pagos">
+  <header class="page-header">
+    <div class="header-copy">
+      <h1>Mis Solicitudes de Pago</h1>
+      <p>Consulta tus pagos pendientes e historial de pagos.</p>
+    </div>
+  </header>
 
-  <section>
-    <h3 class="text-xl font-semibold text-gray-700 mb-4 flex items-center gap-2">
-      <span class="bg-yellow-100 text-yellow-800 text-sm font-medium px-2.5 py-0.5 rounded">
-        {{ pendientes().length }}
-      </span>
-      Pendientes por Pagar
-    </h3>
-
-    <div *ngIf="pendientes().length === 0" class="empty-state">
-      <svg class="icon-success" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-      </svg>
-      <p>¡Excelente! No tienes pagos pendientes en este momento.</p>
+  <section class="section-card">
+    <div class="section-head">
+      <h2>Pagos pendientes</h2>
+      <span class="section-count">{{ pendientes().length }}</span>
     </div>
 
-    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-      <div *ngFor="let solicitud of pendientes()" class="payment-card">
-        <div class="card-badge badge-pend">PENDIENTE</div>
+    <div *ngIf="estadoPago()" class="payment-status-banner">
+      {{ estadoPago() }}
+    </div>
 
-        <div class="card-body">
-          <div class="card-header">
-            <svg class="icon-invoice" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <p class="card-date">{{ solicitud.creado_en | date:'mediumDate' }}</p>
-          </div>
-          
-          <h4 class="card-concept">{{ solicitud.concepto }}</h4>
-          
-          <div class="card-amount">
-            <span class="amount-value">{{ solicitud.monto | currency:'MXN':'symbol':'1.2-2' }}</span>
-            <span class="amount-currency">MXN</span>
-          </div>
-
-          <div class="card-divider"></div>
-          
-          <div class="paypal-section">
-            <p class="pay-text">Pagar con:</p>
-            <div class="paypal-wrap" role="group" aria-label="Opciones de pago">
-              <app-pago-paypal
-                class="paypal-component"
-                [solicitud]="solicitud"
-                (pagoExitoso)="onPagoRealizado($event)"
-                aria-label="Botón PayPal para pagar la solicitud">
-              </app-pago-paypal>
-            </div>
-          </div>
+    <div *ngIf="pendientes().length === 0" class="empty-state">
+      <div class="empty-state-card">
+        <div class="empty-state-icon" aria-hidden="true">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h4m4 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
+        <div class="empty-state-content">
+          <h3>No tienes pagos pendientes</h3>
+          <p>Cuando se genere una solicitud de pago, aparecerá en esta sección.</p>
         </div>
       </div>
     </div>
+
+    <div class="pending-list" *ngIf="pendientes().length > 0">
+      <article *ngFor="let solicitud of pendientes()" class="payment-card">
+        <div class="payment-top">
+          <div>
+            <p class="payment-label">Pendiente</p>
+            <h3 class="payment-concept">{{ solicitud.concepto }}</h3>
+          </div>
+          <span class="payment-date">{{ solicitud.creado_en | date:'mediumDate' }}</span>
+        </div>
+
+        <div class="payment-amount">
+          <span class="amount-value">{{ solicitud.monto | currency:'MXN':'symbol':'1.2-2' }}</span>
+          <span class="amount-note">MXN</span>
+        </div>
+
+        <div class="payment-actions">
+          <span class="pay-text">Pagar con Mercado Pago</span>
+          <button
+            type="button"
+            class="mp-pay-button"
+            [disabled]="procesandoId() === solicitud.id_solicitud"
+            (click)="pagarConMercadoPago(solicitud)">
+            {{ procesandoId() === solicitud.id_solicitud ? 'Redirigiendo...' : 'Pagar' }}
+          </button>
+        </div>
+      </article>
+    </div>
   </section>
 
-  <section class="mt-12">
-    <h3 class="text-xl font-semibold text-gray-700 mb-4">Historial de Pagos Realizados</h3>
+  <section class="section-card">
+    <div class="section-head">
+      <h2>Historial de pagos</h2>
+    </div>
 
-    <div class="table-container-pagos">
+    <div class="table-container-pagos" *ngIf="historial().length > 0; else emptyHistory">
       <table class="data-table-pagos">
         <thead>
           <tr>
             <th>Concepto</th>
             <th>Monto</th>
-            <th>Fecha Pago</th>
+            <th>Fecha de pago</th>
             <th>Estado</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let item of historial()">
-            <td>
-              <p class="concepto-text">{{ item.concepto }}</p>
-            </td>
-            <td>
-              <span class="monto-text">{{ item.monto | currency:'MXN':'symbol':'1.2-2' }}</span>
-            </td>
-            <td>
-              <span class="fecha-text">{{ item.pagada_en | date:'medium' }}</span>
-            </td>
-            <td>
-              <span class="badge-paid">Pagado</span>
-            </td>
-          </tr>
-          <tr *ngIf="historial().length === 0">
-            <td colspan="4" class="empty-table-message">
-              No tienes pagos en el historial.
-            </td>
+            <td class="concepto-text">{{ item.concepto }}</td>
+            <td class="monto-text">{{ item.monto | currency:'MXN':'symbol':'1.2-2' }}</td>
+            <td class="fecha-text">{{ item.pagada_en | date:'medium' }}</td>
+            <td><span class="badge-paid">Pagado</span></td>
           </tr>
         </tbody>
       </table>
     </div>
+
+    <ng-template #emptyHistory>
+      <div class="history-empty">Aún no tienes pagos registrados.</div>
+    </ng-template>
   </section>
 </div>

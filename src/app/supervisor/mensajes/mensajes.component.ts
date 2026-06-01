@@ -1,9 +1,8 @@
 import { Component, OnInit, signal, inject, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router'; // Necesario para redirigir a Pagos
-import { ApiService } from '../../services/api.service';
-import { AuthService } from '../../services/auth.service';
+import { RouterModule } from '@angular/router';
+import { ApiService, SolicitudPagoPayload } from '../../services/api.service';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { IconComponent } from '../../shared/components/icon/icon.component';
@@ -45,13 +44,17 @@ interface Conversacion {
 })
 export class MensajesComponent implements OnInit, AfterViewChecked {
   private apiService = inject(ApiService);
-  private authService = inject(AuthService);
-  private router = inject(Router); // Inyectamos Router
 
   loading = signal<boolean>(true);
   conversaciones = signal<Conversacion[]>([]);
   conversacionSeleccionada = signal<Conversacion | null>(null);
   mensajes = signal<Mensaje[]>([]);
+  mostrarModalSolicitud = signal(false);
+  creandoSolicitud = signal(false);
+  errorSolicitud = signal<string | null>(null);
+  exitoSolicitud = signal<string | null>(null);
+  montoSolicitud: number | null = null;
+  conceptoSolicitud = '';
   textoMensaje = '';
   shouldScroll = false;
 
@@ -124,20 +127,61 @@ export class MensajesComponent implements OnInit, AfterViewChecked {
       });
   }
 
-  // --- FUNCIÓN SOLICITADA ---
-  irACrearSolicitud() {
-    const conv = this.conversacionSeleccionada();
-    if (!conv || !conv.cliente) return;
+    abrirSolicitudPago() {
+      const conv = this.conversacionSeleccionada();
+      if (!conv?.cliente) {
+        this.errorSolicitud.set('La conversación seleccionada no tiene datos suficientes para generar la solicitud.');
+        return;
+      }
 
-    // Redirige al componente de Pagos del Supervisor
-    // Pasamos el ID de la empresa cliente como parámetro opcional (si tu router lo soporta)
-    // o simplemente vamos a la página para que él lo llene.
-    this.router.navigate(['/supervisor/pagos'], { 
-      queryParams: { 
-        crear: true, 
-        empresa: conv.cliente.id_empresa 
-      } 
-    });
+      this.errorSolicitud.set(null);
+      this.exitoSolicitud.set(null);
+      this.montoSolicitud = null;
+      this.conceptoSolicitud = '';
+      this.mostrarModalSolicitud.set(true);
+    }
+
+    cerrarSolicitudPago() {
+      if (this.creandoSolicitud()) return;
+      this.mostrarModalSolicitud.set(false);
+      this.errorSolicitud.set(null);
+    }
+
+    crearSolicitudPago() {
+      const conv = this.conversacionSeleccionada();
+      const cliente = conv?.cliente;
+
+      if (!cliente?.id_empresa || !cliente?.id_usuario) {
+        this.errorSolicitud.set('No se puede generar la solicitud porque faltan la empresa o el usuario destino en la conversación.');
+        return;
+      }
+
+      if (!this.montoSolicitud || !this.conceptoSolicitud.trim()) {
+        this.errorSolicitud.set('El monto y el concepto son obligatorios.');
+        return;
+      }
+
+      const payload: SolicitudPagoPayload = {
+        id_empresa: Number(cliente.id_empresa),
+        id_cliente: Number(cliente.id_usuario),
+        monto: Number(this.montoSolicitud),
+        concepto: this.conceptoSolicitud.trim()
+      };
+
+      this.creandoSolicitud.set(true);
+      this.errorSolicitud.set(null);
+
+      this.apiService.createSupervisorSolicitudPago(payload).subscribe({
+        next: () => {
+          this.creandoSolicitud.set(false);
+          this.mostrarModalSolicitud.set(false);
+          this.exitoSolicitud.set('Solicitud de pago creada correctamente.');
+        },
+        error: (error) => {
+          this.creandoSolicitud.set(false);
+          this.errorSolicitud.set(error?.error?.message || 'No fue posible crear la solicitud de pago.');
+        }
+      });
   }
 
   scrollToBottom() {

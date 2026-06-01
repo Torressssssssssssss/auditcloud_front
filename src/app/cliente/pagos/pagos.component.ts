@@ -1,10 +1,8 @@
 import { Component, OnInit, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
-// Importamos el botón de PayPal que ya tienes
-import { PagoPaypalComponent } from '../../pago-paypal-component/pago-paypal-component'; 
 
 interface SolicitudPago {
   id_solicitud: number;
@@ -19,17 +17,20 @@ interface SolicitudPago {
 @Component({
   selector: 'app-cliente-pagos',
   standalone: true,
-  imports: [CommonModule, PagoPaypalComponent], // Solo importamos PayPal, NO nueva solicitud
+  imports: [CommonModule],
   templateUrl: './pagos.component.html',
   styleUrls: ['./pagos.component.css']
 })
 export class PagosComponent implements OnInit {
   private http = inject(HttpClient);
+  private route = inject(ActivatedRoute);
   private router = inject(Router);
   
   // Lista cruda de todas las solicitudes
   todasLasSolicitudes = signal<SolicitudPago[]>([]);
   cargando = signal(true);
+  procesandoId = signal<number | null>(null);
+  estadoPago = signal('');
 
   // Filtros automáticos (Signals computadas)
   pendientes = computed(() => this.todasLasSolicitudes().filter(s => s.id_estado === 1));
@@ -37,6 +38,51 @@ export class PagosComponent implements OnInit {
 
   ngOnInit() {
     this.cargarDatos();
+    this.revisarRetornoMercadoPago();
+  }
+
+  revisarRetornoMercadoPago() {
+    this.route.queryParamMap.subscribe((params) => {
+      const status = params.get('status');
+      const paymentId = params.get('payment_id');
+      const externalReference = params.get('external_reference');
+
+      if (status === 'success' || status === 'approved') {
+        if (paymentId) {
+          const headers = this.obtenerHeaders();
+          this.http.post<{ status?: string; message?: string }>(
+            `${environment.apiUrl}/api/pagos/mercadopago/confirmar`,
+            {
+              payment_id: paymentId,
+              id_solicitud: externalReference ? Number(externalReference) : undefined
+            },
+            { headers }
+          ).subscribe({
+            next: (res) => {
+              this.estadoPago.set(res?.status === 'approved'
+                ? 'Pago confirmado con Mercado Pago.'
+                : 'Pago recibido. Verificando confirmación.');
+              this.cargarDatos();
+            },
+            error: (err) => {
+              this.estadoPago.set(err?.error?.message || 'Pago recibido. Pendiente de confirmación.');
+              this.cargarDatos();
+            }
+          });
+        } else {
+          this.estadoPago.set('Pago recibido. Si no aparece de inmediato, refresca la lista.');
+        }
+      } else if (status === 'failure') {
+        this.estadoPago.set('El pago fue rechazado o cancelado.');
+      } else if (status === 'pending') {
+        this.estadoPago.set('El pago quedó pendiente de aprobación.');
+      }
+    });
+  }
+
+  obtenerHeaders() {
+    const token = localStorage.getItem('auditcloud_token');
+    return new HttpHeaders({ 'Authorization': `Bearer ${token}` });
   }
 
   cargarDatos() {
@@ -67,9 +113,30 @@ export class PagosComponent implements OnInit {
       });
   }
 
-  // Se ejecuta cuando el hijo (PayPal) termina el proceso
-  onPagoRealizado(auditoria: any) {
-    alert(`¡Pago exitoso! Se ha generado la auditoría #${auditoria.id_auditoria}`);
-    this.cargarDatos(); // Recargamos para que la solicitud pase de "Pendiente" a "Historial"
+  pagarConMercadoPago(solicitud: SolicitudPago) {
+    this.procesandoId.set(solicitud.id_solicitud);
+    this.estadoPago.set('');
+
+    const headers = this.obtenerHeaders();
+    this.http.post<{ id_preferencia: string; init_point?: string; sandbox_init_point?: string }>(
+      `${environment.apiUrl}/api/pagos/mercadopago/preferencia`,
+      { id_solicitud: solicitud.id_solicitud },
+      { headers }
+    ).subscribe({
+      next: (data) => {
+        const urlDestino = data?.sandbox_init_point || data?.init_point;
+        if (!urlDestino) {
+          this.procesandoId.set(null);
+          this.estadoPago.set('No se pudo obtener la URL de Mercado Pago.');
+          return;
+        }
+
+        window.location.href = urlDestino;
+      },
+      error: (err) => {
+        this.procesandoId.set(null);
+        this.estadoPago.set(err?.error?.message || 'No fue posible iniciar el pago con Mercado Pago.');
+      }
+    });
   }
 }

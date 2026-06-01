@@ -42,13 +42,13 @@
   display: flex;
   flex-direction: column;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: var(--shadow-sm);
 }
 
 .card-empresa:hover {
   transform: translateY(-4px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  border-color: var(--accent-primary);
+  box-shadow: var(--shadow-md);
+  border-color: color-mix(in srgb, var(--accent-primary) 28%, var(--border-color));
 }
 
 /* CARD HEADER */
@@ -62,8 +62,8 @@
 .avatar-logo {
   width: 56px;
   height: 56px;
-  background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
-  color: #4338ca;
+  background: color-mix(in srgb, var(--accent-primary) 14%, var(--bg-secondary));
+  color: var(--accent-primary);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -148,7 +148,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: #4f46e5;
+  background: var(--accent-primary);
   color: white;
   border: none;
   padding: 0.75rem;
@@ -160,11 +160,7 @@
 }
 
 .btn-contactar:hover {
-  background: #4338ca;
+  background: color-mix(in srgb, var(--accent-primary) 86%, #000);
 }
 
 .mr-2 { margin-right: 0.5rem; }
-
-html.dark .avatar-logo {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
-}

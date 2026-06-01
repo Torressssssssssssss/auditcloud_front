@@ -54,8 +54,39 @@ export class EmpresasComponent implements OnInit {
     });
   }
 
-  getModuloNombre(id: number): string {
-    const nombres: Record<number, string> = { 1: 'Agua', 2: 'Residuos', 3: 'Energía' };
-    return nombres[id] || `Módulo ${id}`;
+  getModulos(empresa: any): Array<{ key: string; label: string }> {
+    const modulos = Array.isArray(empresa?.modulos) ? empresa.modulos : [];
+
+    return modulos.map((modulo: any, index: number) => ({
+      key: String(modulo?.id_modulo ?? modulo?.id ?? modulo?.nombre ?? index),
+      label: this.getModuloNombre(modulo)
+    }));
+  }
+
+  getModuloNombre(modulo: any): string {
+    if (modulo === null || modulo === undefined) {
+      return 'SIN MÓDULO';
+    }
+
+    if (typeof modulo === 'number' || typeof modulo === 'string') {
+      const nombres: Record<string, string> = {
+        '1': 'AGUA',
+        '2': 'RESIDUOS',
+        '3': 'ENERGIA'
+      };
+      return nombres[String(modulo)] || `MÓDULO ${modulo}`;
+    }
+
+    const nombre = modulo.nombre || modulo.nombre_modulo || modulo.titulo || modulo.label || modulo.descripcion;
+    if (nombre) {
+      return String(nombre).toUpperCase();
+    }
+
+    const id = modulo.id_modulo || modulo.id || modulo.modulo_id;
+    if (id) {
+      return this.getModuloNombre(id);
+    }
+
+    return 'MÓDULO';
   }
 }

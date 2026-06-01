@@ -1,5 +1,11 @@
 <div class="empty-state">
-  <div class="empty-icon">{{ icono }}</div>
+  @if (usaIcono) {
+    <div class="empty-icon empty-icon-svg">
+      <app-icon [name]="iconName" [size]="44"></app-icon>
+    </div>
+  } @else {
+    <div class="empty-icon">{{ icono }}</div>
+  }
   <p class="empty-message">{{ mensaje }}</p>
 </div>
 

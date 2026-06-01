@@ -75,7 +75,8 @@ export const routes: Routes = [
       },
       {
         path: 'pagos/nueva',
-        loadComponent: () => import('./supervisor/pagos/nueva-solicitud.component').then(m => m.NuevaSolicitudComponent)
+        redirectTo: 'mensajes',
+        pathMatch: 'full'
       }
     ]
   },
