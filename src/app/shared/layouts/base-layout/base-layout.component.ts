@@ -1,6 +1,6 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, RouterOutlet, ActivatedRoute } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { NavbarComponent, NavItem } from '../../components/navbar/navbar.component';
 import { ThemeToggleComponent } from '../../components/theme-toggle/theme-toggle.component';
 import { NotificacionesComponent } from '../../components/notificaciones/notificaciones.component';
@@ -17,10 +17,9 @@ export class BaseLayoutComponent {
   @Input() navItems: NavItem[] = [];
   @Input() title: string = 'Dashboard';
 
-  constructor(
-    private authService: AuthService,
-    private route: ActivatedRoute
-  ) {}
+  isMobileMenuOpen = false;
+
+  constructor(private authService: AuthService) {}
 
   get usuarioNombre(): string {
     return this.authService.getUsuarioActual()?.nombre || '';
@@ -34,15 +33,22 @@ export class BaseLayoutComponent {
     return '';
   }
 
+  toggleMobileMenu(): void {
+    this.isMobileMenuOpen = !this.isMobileMenuOpen;
+  }
+
+  closeMobileMenu(): void {
+    this.isMobileMenuOpen = false;
+  }
+
   onLogout(): void {
+    this.closeMobileMenu();
     this.authService.logout();
   }
 
   onActivate(component: any): void {
-    // Puedes actualizar el título dinámicamente si el componente hijo lo expone
     if (component && component.title) {
       this.title = component.title;
     }
   }
 }
-

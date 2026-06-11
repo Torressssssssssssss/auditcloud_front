@@ -161,7 +161,7 @@
 
 .action-btn {
   flex: 1;
-  min-width: 200px;
+  min-width: min(100%, 200px);
   background: var(--bg-secondary);
   border: 2px dashed var(--border-color);
   border-radius: var(--radius-md);

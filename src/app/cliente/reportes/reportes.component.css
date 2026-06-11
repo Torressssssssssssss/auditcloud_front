@@ -40,7 +40,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  min-width: 200px;
+  min-width: min(100%, 200px);
   flex: 1;
 }
 
@@ -83,7 +83,7 @@ html.dark .filter-group select:focus {
 /* Grid de Cards estilo Roblox */
 .reportes-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
   gap: var(--spacing-lg);
   padding: var(--spacing-sm) 0;
 }

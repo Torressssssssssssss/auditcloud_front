@@ -3,12 +3,24 @@
     [items]="navItems"
     [usuarioNombre]="usuarioNombre"
     [usuarioRol]="usuarioRol"
+    [isOpen]="isMobileMenuOpen"
+    (close)="closeMobileMenu()"
     (logout)="onLogout()">
   </app-navbar>
   
   <div class="main-content">
     <header class="header">
       <div class="header-left">
+        <button
+          type="button"
+          class="menu-toggle"
+          [attr.aria-expanded]="isMobileMenuOpen"
+          aria-label="Abrir menu"
+          (click)="toggleMobileMenu()">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
         <h1 class="page-title">{{ title }}</h1>
       </div>
       <div class="header-actions">
@@ -20,7 +32,7 @@
           <span class="user-greeting">Hola, {{ usuarioNombre }}</span>
           <span class="user-role">{{ usuarioRol }}</span>
         </div>
-        <div class="user-avatar">
+        <div class="user-avatar" aria-hidden="true">
           {{ usuarioNombre.charAt(0).toUpperCase() }}
         </div>
       </div>
@@ -31,4 +43,3 @@
     </main>
   </div>
 </div>
-

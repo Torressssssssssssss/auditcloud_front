@@ -1,7 +1,10 @@
-<nav class="sidebar">
+<div class="sidebar-backdrop" [class.visible]="isOpen" (click)="closeMenu()"></div>
+
+<nav class="sidebar" [class.open]="isOpen" aria-label="Menu principal">
   <div class="logo">
     <div class="logo-icon">A</div>
     <span class="logo-text">AuditCloud</span>
+    <button type="button" class="sidebar-close" aria-label="Cerrar menu" (click)="closeMenu()">×</button>
   </div>
   
   <ul class="nav-list">
@@ -11,7 +14,8 @@
           [routerLink]="item.ruta"
           routerLinkActive="active"
           [routerLinkActiveOptions]="{ exact: item.exact || false }" 
-          class="nav-item">
+          class="nav-item"
+          (click)="closeMenu()">
           <app-icon [name]="item.icono" [size]="20" class="nav-icon"></app-icon>
           <span class="nav-label">{{ item.etiqueta }}</span>
           @if (item.badge && item.badge > 0) {
@@ -29,4 +33,3 @@
     </a>
   </div>
 </nav>
-

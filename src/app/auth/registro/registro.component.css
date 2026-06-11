@@ -1,6 +1,6 @@
 /* Auth page always light, even when html.dark is present. */
 .page-grad {
-  height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -8,7 +8,8 @@
   padding: var(--spacing-md);
   position: relative;
   transition: background 0.3s ease;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 html.dark .page-grad {
@@ -63,7 +64,8 @@ html.dark .page-grad {
   position: relative;
   z-index: 1;
   transition: all 0.3s ease;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 html.dark .card-xl {
@@ -231,7 +233,8 @@ html.dark .btn-grad {
   letter-spacing: -0.01em;
   box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .btn-grad::before {
@@ -248,7 +251,7 @@ html.dark .btn-grad {
 }
 
 .btn-grad:hover:not(:disabled)::before {
-  width: 1200px;
+  width: min(1200px, 100%);
   height: 1200px;
 }
 
@@ -340,5 +343,20 @@ html.dark .auth-footer p {
   
   .auth-footer p {
     font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .registro-container {
+    align-items: flex-start;
+    padding: 1rem;
+  }
+
+  .registro-card,
+  .register-card {
+    width: 100%;
+    max-width: 560px;
+    padding: 1rem;
+    margin: 1rem auto;
   }
 }

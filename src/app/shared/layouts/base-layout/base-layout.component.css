@@ -1,12 +1,15 @@
 .layout-container {
   display: flex;
   min-height: 100vh;
+  width: 100%;
+  min-width: 0;
   background: var(--bg-primary);
   transition: background 0.3s ease;
 }
 
 .main-content {
   flex: 1;
+  min-width: 0;
   margin-left: 260px;
   display: flex;
   flex-direction: column;
@@ -17,11 +20,12 @@
 
 .header {
   background: var(--bg-secondary);
-  padding: var(--spacing-lg) var(--spacing-xl);
+  padding: clamp(0.75rem, 2vw, var(--spacing-lg)) clamp(1rem, 3vw, var(--spacing-xl));
   border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--spacing-md);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -31,29 +35,59 @@
 }
 
 html.dark .header {
-  background: var(--bg-secondary); /* Gris oscuro (#1a1a1a) */
+  background: var(--bg-secondary);
+}
+
+.header-left,
+.header-actions {
+  display: flex;
+  align-items: center;
+  min-width: 0;
 }
 
 .header-left {
-  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.header-actions {
+  gap: clamp(0.4rem, 1.5vw, var(--spacing-md));
+  flex-shrink: 0;
+}
+
+.menu-toggle {
+  display: none;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   align-items: center;
-  gap: var(--spacing-md);
+  justify-content: center;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.menu-toggle span {
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
 }
 
 .page-title {
-  font-size: 1.75rem;
+  font-size: clamp(1.25rem, 2.4vw, 1.75rem);
   font-weight: 700;
   color: var(--text-primary);
   margin: 0;
   font-family: 'Playfair Display', serif;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
   transition: color 0.3s ease;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .user-info {
@@ -68,7 +102,7 @@ html.dark .header {
   font-size: 0.875rem;
   color: var(--text-secondary);
   font-weight: 500;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   transition: color 0.3s ease;
 }
 
@@ -84,6 +118,7 @@ html.dark .header {
 .user-avatar {
   width: 40px;
   height: 40px;
+  flex: 0 0 40px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
   color: white;
@@ -103,7 +138,9 @@ html.dark .header {
 
 .content-area {
   flex: 1;
-  padding: var(--spacing-xl);
+  min-width: 0;
+  padding: clamp(1rem, 3vw, var(--spacing-xl));
+  overflow-x: hidden;
   overflow-y: auto;
   max-width: 1400px;
   width: 100%;
@@ -111,8 +148,11 @@ html.dark .header {
   transition: padding 0.3s ease;
 }
 
-/* Responsive */
 @media (max-width: 1024px) {
+  .main-content {
+    margin-left: 240px;
+  }
+
   .content-area {
     padding: var(--spacing-lg);
   }
@@ -121,14 +161,15 @@ html.dark .header {
 @media (max-width: 768px) {
   .main-content {
     margin-left: 0;
+    width: 100%;
+  }
+
+  .menu-toggle {
+    display: inline-flex;
   }
   
   .header {
-    padding: var(--spacing-md) var(--spacing-lg);
-  }
-  
-  .page-title {
-    font-size: 1.5rem;
+    padding: 0.75rem 1rem;
   }
   
   .content-area {
@@ -137,5 +178,30 @@ html.dark .header {
   
   .user-info {
     display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .header {
+    gap: 0.5rem;
+  }
+
+  .header-actions {
+    gap: 0.35rem;
+  }
+
+  .page-title {
+    max-width: 48vw;
+  }
+
+  .user-avatar {
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
+    font-size: 0.9rem;
+  }
+
+  .content-area {
+    padding: 0.875rem;
   }
 }

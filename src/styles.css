@@ -675,3 +675,330 @@ html.dark .badge-info {
     padding: var(--spacing-lg);
   }
 }
+
+/* Responsive foundation added for mobile/tablet/desktop layouts */
+html {
+  overflow-x: hidden;
+  text-size-adjust: 100%;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+*,
+*::before,
+*::after {
+  min-width: 0;
+}
+
+img,
+svg,
+video,
+canvas,
+iframe {
+  max-width: 100%;
+}
+
+img,
+video,
+canvas {
+  height: auto;
+}
+
+button,
+input,
+select,
+textarea {
+  max-width: 100%;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+}
+
+h1 { font-size: clamp(1.8rem, 4vw, 2.5rem); }
+h2 { font-size: clamp(1.55rem, 3vw, 2rem); }
+h3 { font-size: clamp(1.2rem, 2.4vw, 1.5rem); }
+
+.dashboard,
+.perfil-page,
+.empresas-page,
+.auditorias-page,
+.pagos-page,
+.reportes-page,
+.evidencias-page,
+.usuarios-page,
+.clientes-page,
+.configuracion-page,
+.mensajes-page,
+.detalle-page {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.dashboard-header,
+.page-header,
+.section-header,
+.card-header,
+.form-header,
+.panel-header,
+.header,
+.filters,
+.filter-row,
+.actions,
+.action-bar,
+.form-actions,
+.button-group,
+.visit-card,
+.message-item,
+.info-item {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.stats-grid,
+.cards-grid,
+.empresas-grid,
+.reportes-grid,
+.perfil-grid,
+.dashboard-sections,
+.info-grid,
+.details-grid,
+.form-grid,
+.metrics-grid,
+.auditorias-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)) !important;
+}
+
+.card,
+.card-xl,
+.stat-card,
+.dashboard-section,
+.info-card,
+.form-card,
+.panel-card,
+.table-card,
+.card-table,
+.payment-card,
+.reporte-card,
+.audit-card,
+.empresa-card,
+.solicitud-form,
+.modal-content,
+.dialog-content {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.table-container,
+.table-responsive,
+.card-table,
+.table-card,
+.table-container-pagos {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+table,
+.data-table,
+.pagos-table,
+.data-table-pagos {
+  width: 100%;
+  min-width: 680px;
+}
+
+table tbody tr:hover {
+  transform: none;
+}
+
+.btn,
+.btn-primary,
+.btn-secondary,
+.btn-outline,
+.btn-login,
+.btn-google-custom,
+.action-btn,
+.btn-new,
+.btn-submit,
+.btn-cancel,
+button[type='submit'] {
+  max-width: 100%;
+  white-space: normal;
+}
+
+@media (max-width: 1280px) {
+  .content-area {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 1024px) {
+  .stats-grid,
+  .cards-grid,
+  .empresas-grid,
+  .reportes-grid,
+  .perfil-grid,
+  .dashboard-sections,
+  .info-grid,
+  .details-grid,
+  .form-grid,
+  .metrics-grid,
+  .auditorias-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --spacing-lg: 1.25rem;
+    --spacing-xl: 1.5rem;
+  }
+
+  body {
+    font-size: 15px;
+  }
+
+  .card,
+  .card-xl,
+  .stat-card,
+  .dashboard-section,
+  .info-card,
+  .form-card,
+  .panel-card,
+  .table-card,
+  .card-table,
+  .payment-card,
+  .reporte-card,
+  .audit-card,
+  .empresa-card,
+  .solicitud-form {
+    padding: var(--spacing-md) !important;
+  }
+
+  .stat-card,
+  .visit-card,
+  .message-item,
+  .info-item {
+    align-items: flex-start;
+  }
+
+  .stats-grid,
+  .cards-grid,
+  .empresas-grid,
+  .reportes-grid,
+  .perfil-grid,
+  .dashboard-sections,
+  .info-grid,
+  .details-grid,
+  .form-grid,
+  .metrics-grid,
+  .auditorias-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .form-actions,
+  .button-group,
+  .actions,
+  .action-bar,
+  .filters,
+  .filter-row {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+
+  .form-actions > *,
+  .button-group > *,
+  .actions > *,
+  .action-bar > *,
+  .filters > *,
+  .filter-row > * {
+    width: 100%;
+  }
+
+  .btn,
+  .btn-primary,
+  .btn-secondary,
+  .btn-outline,
+  .btn-login,
+  .btn-google-custom,
+  .action-btn,
+  .btn-new,
+  .btn-submit,
+  .btn-cancel,
+  button[type='submit'] {
+    width: 100%;
+    justify-content: center;
+  }
+
+  table,
+  .data-table,
+  .pagos-table,
+  .data-table-pagos {
+    min-width: 560px;
+  }
+
+  table th,
+  table td,
+  .data-table th,
+  .data-table td,
+  .pagos-table th,
+  .pagos-table td,
+  .data-table-pagos th,
+  .data-table-pagos td {
+    padding: 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .dialog-overlay {
+    padding: 1rem;
+    align-items: flex-start;
+    overflow-y: auto;
+  }
+
+  .dialog-content,
+  .modal-content {
+    width: min(100%, 560px) !important;
+    margin: 4vh auto;
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --spacing-md: 1rem;
+    --spacing-lg: 1rem;
+    --spacing-xl: 1.25rem;
+  }
+
+  .content-area {
+    padding-left: 0.875rem;
+    padding-right: 0.875rem;
+  }
+
+  .stat-card {
+    flex-direction: column;
+  }
+
+  .stat-icon-wrapper {
+    width: 48px !important;
+    height: 48px !important;
+  }
+
+  .stat-content h3 {
+    font-size: clamp(1.6rem, 10vw, 2rem) !important;
+  }
+
+  table,
+  .data-table,
+  .pagos-table,
+  .data-table-pagos {
+    min-width: 520px;
+  }
+}

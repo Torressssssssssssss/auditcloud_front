@@ -45,8 +45,8 @@
   position: absolute;
   top: calc(100% + 0.5rem);
   right: 0;
-  width: 380px;
-  max-height: 500px;
+  width: min(380px, calc(100vw - 2rem));
+  max-height: min(500px, calc(100vh - 5rem));
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
@@ -222,3 +222,19 @@
   background: var(--text-secondary);
 }
 
+
+@media (max-width: 480px) {
+  .notificaciones-dropdown {
+    position: fixed;
+    top: 4.25rem;
+    right: 0.75rem;
+    left: 0.75rem;
+    width: auto;
+    max-height: calc(100vh - 5rem);
+  }
+
+  .dropdown-header,
+  .notificacion-item {
+    padding: 0.875rem;
+  }
+}

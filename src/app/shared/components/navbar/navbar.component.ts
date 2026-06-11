@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router, ActivatedRoute } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { IconComponent, IconName } from '../icon/icon.component';
 
 export interface NavItem {
@@ -23,14 +23,13 @@ export class NavbarComponent {
   @Input() items: NavItem[] = [];
   @Input() usuarioNombre: string = '';
   @Input() usuarioRol: string = '';
+  @Input() isOpen = false;
   @Output() logout = new EventEmitter<void>();
+  @Output() close = new EventEmitter<void>();
 
   currentRoute = signal<string>('');
 
-  constructor(
-    private router: Router,
-    private route: ActivatedRoute
-  ) {
+  constructor(private router: Router) {
     this.router.events.subscribe(() => {
       this.currentRoute.set(this.router.url);
     });
@@ -40,8 +39,11 @@ export class NavbarComponent {
     return this.currentRoute().startsWith(route);
   }
 
+  closeMenu(): void {
+    this.close.emit();
+  }
+
   onLogout(): void {
     this.logout.emit();
   }
 }
-
