@@ -5,6 +5,7 @@ import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { IconComponent, IconName } from '../../shared/components/icon/icon.component';
 import { ActivatedRoute } from '@angular/router';
+import { FileService } from '../../services/file.service';
 // Interfaz del ítem individual (Evidencia o Comentario)
 interface TimelineItem {
   id: string;
@@ -40,6 +41,7 @@ export class TimelineComponent implements OnInit, OnChanges {
   private api = inject(ApiService);
   private auth = inject(AuthService);
   private route = inject(ActivatedRoute); 
+  private fileService = inject(FileService);
 
   // Lista de Auditorías (cada una con sus items dentro)
   grupos = signal<AuditoriaGroup[]>([]);
@@ -126,6 +128,12 @@ export class TimelineComponent implements OnInit, OnChanges {
         },
         error: () => this.enviando.set(false)
       });
+  }
+
+
+  verArchivo(item: TimelineItem, event: Event): void {
+    event.stopPropagation();
+    this.fileService.open(item.url, item.nombre_archivo);
   }
 
   getIcono(tipo: string, subtipo?: string): IconName {

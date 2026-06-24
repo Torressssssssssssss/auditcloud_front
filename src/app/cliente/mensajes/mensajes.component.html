@@ -2,7 +2,10 @@
 
   <div class="sidebar">
     <div class="sidebar-header">
-      <h3>Mensajes</h3>
+      <div>
+        <h3>Mensajes</h3>
+        <span>Conversaciones activas</span>
+      </div>
     </div>
 
     @if (loading()) {
@@ -14,28 +17,26 @@
                [class.active]="conversacionSeleccionada()?.id_conversacion === conv.id_conversacion"
                (click)="seleccionarConversacion(conv)">
 
-            <div class="avatar-circle">
-              {{ conv.empresa?.nombre?.charAt(0) || 'E' }}
+            <div class="avatar-circle" aria-hidden="true">
+              <app-icon name="building" [size]="20"></app-icon>
             </div>
 
             <div class="conv-info">
               <div class="conv-top">
-                <span class="conv-title">{{ conv.empresa?.nombre }}</span>
+                <span class="conv-title">{{ conv.empresa?.nombre || 'Empresa auditora' }}</span>
                 <span class="conv-date">
-                  {{ (conv.ultimo_mensaje?.creado_en || conv.creado_en) | date:'shortTime' }}
+                  {{ previewFecha(conv) | date:'shortTime' }}
                 </span>
               </div>
               <div class="conv-preview">
-                <span class="text-xs text-gray-500 mr-1">
-                  {{ conv.ultimo_mensaje?.emisor_tipo === 'CLIENTE' ? 'Tú:' : conv.ultimo_mensaje?.emisor_tipo + ':' }}
-                </span>
-                {{ conv.ultimo_mensaje?.contenido || 'Nueva conversación' }}
+                <span class="conv-from">{{ previewRemitente(conv) }}:</span>
+                <span>{{ previewContenido(conv) }}</span>
               </div>
             </div>
           </div>
         }
         @if (conversaciones().length === 0) {
-          <app-empty-state mensaje="No hay conversaciones activas." />
+          <app-empty-state mensaje="No hay conversaciones activas." icono="message-square" />
         }
       </div>
     }
@@ -44,32 +45,63 @@
   <div class="chat-area">
     @if (!conversacionSeleccionada()) {
       <div class="chat-placeholder">
-        <app-icon name="message-square" [size]="48" class="text-gray-300 mb-4"></app-icon>
+        <div class="placeholder-icon">
+          <app-icon name="message-square" [size]="42"></app-icon>
+        </div>
         <p>Selecciona un chat para comenzar</p>
       </div>
     } @else {
       <div class="chat-header">
         <div class="header-info">
-          <h3>{{ conversacionSeleccionada()?.empresa?.nombre }}</h3>
-          <span class="subtitle">Empresa auditora</span>
-        </div>
-        <div class="header-actions">
+          <div class="header-icon" aria-hidden="true">
+            <app-icon name="building" [size]="20"></app-icon>
+          </div>
+          <div>
+            <h3>{{ conversacionSeleccionada()?.empresa?.nombre || 'Empresa auditora' }}</h3>
+            <span class="subtitle">Chat comercial</span>
+          </div>
         </div>
       </div>
 
       <div class="messages-viewport" #chatContainer>
-        @for (msg of mensajes(); track msg.id_mensaje) {
-          <div class="msg-row"
-               [ngClass]="{
-                 'me': esPropio(msg),
-                 'client': esSupervisor(msg),
-                 'auditor': (!esPropio(msg) && !esSupervisor(msg))
-               }">
-            <div class="msg-bubble">
-              <p>{{ msg.contenido }}</p>
-              <span class="msg-time">{{ msg.creado_en | date:'shortTime' }}</span>
+        @if (chatItems().length === 0) {
+          <app-empty-state mensaje="Aún no hay mensajes en esta conversación." icono="message-square" />
+        }
+
+        @for (item of chatItems(); track item.id) {
+          @if (item.tipo === 'mensaje') {
+            <div class="msg-row" [class.me]="esPropio(item.mensaje)" [class.them]="!esPropio(item.mensaje)">
+              <div class="msg-meta" *ngIf="!esPropio(item.mensaje)">{{ nombreRemitente(item.mensaje) }}</div>
+              <div class="msg-bubble">
+                <p>{{ item.mensaje.contenido }}</p>
+                <span class="msg-time">{{ item.mensaje.creado_en | date:'shortTime' }}</span>
+              </div>
             </div>
-          </div>
+          } @else {
+            <div class="msg-row payment-row" [class.me]="esPagoPropio(item.solicitud)" [class.them]="!esPagoPropio(item.solicitud)">
+              <div class="msg-meta">Solicitud de pago</div>
+              <article class="payment-chat-card">
+                <div class="payment-card-top">
+                  <div class="payment-icon" aria-hidden="true">
+                    <app-icon name="credit-card" [size]="20"></app-icon>
+                  </div>
+                  <span [class]="estadoPagoClase(item.solicitud)">{{ estadoPagoTexto(item.solicitud) }}</span>
+                </div>
+                <h4>{{ item.solicitud.concepto || 'Solicitud de pago' }}</h4>
+                <div class="payment-amount">{{ formatoMonto(item.solicitud.monto) }}</div>
+                <div class="payment-date">
+                  <app-icon name="clock" [size]="14"></app-icon>
+                  <span>{{ (item.solicitud.creado_en || item.solicitud.pagada_en) | date:'mediumDate' }}</span>
+                </div>
+                @if (puedePagar(item.solicitud)) {
+                  <a routerLink="/cliente/pagos" class="payment-pay-button">
+                    <app-icon name="arrow-right" [size]="16"></app-icon>
+                    Pagar
+                  </a>
+                }
+              </article>
+            </div>
+          }
         }
       </div>
 
@@ -80,8 +112,8 @@
           (keyup.enter)="enviarMensaje()"
           placeholder="Escribe un mensaje..."
         />
-        <button class="btn-send" (click)="enviarMensaje()" [disabled]="!textoMensaje.trim()">
-          <app-icon name="send"></app-icon>
+        <button class="btn-send" type="button" (click)="enviarMensaje()" [disabled]="!textoMensaje.trim()" aria-label="Enviar mensaje">
+          <app-icon name="send" [size]="20"></app-icon>
         </button>
       </div>
     }

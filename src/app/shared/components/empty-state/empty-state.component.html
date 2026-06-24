@@ -1,18 +1,6 @@
 <div class="empty-state">
-  @if (usaIcono) {
-    <div class="empty-icon empty-icon-svg">
-      <app-icon [name]="iconName" [size]="44"></app-icon>
-    </div>
-  } @else {
-    <div class="empty-icon">{{ icono }}</div>
-  }
+  <div class="empty-icon empty-icon-svg" aria-hidden="true">
+    <app-icon [name]="iconName" [size]="42"></app-icon>
+  </div>
   <p class="empty-message">{{ mensaje }}</p>
 </div>
-
-
-
-
-
-
-
-

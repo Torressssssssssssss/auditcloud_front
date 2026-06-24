@@ -9,6 +9,7 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
+import { FileService } from '../../services/file.service';
 
 @Component({
   selector: 'app-auditor-reportes',
@@ -30,6 +31,7 @@ export class ReportesComponent implements OnInit {
   private apiService = inject(ApiService);
   private authService = inject(AuthService);
   private fb = inject(FormBuilder);
+  private fileService = inject(FileService);
 
   loading = signal<boolean>(true);
   enviando = signal<boolean>(false);
@@ -126,5 +128,9 @@ export class ReportesComponent implements OnInit {
         this.enviando.set(false);
       }
     });
+  }
+
+  verReporte(reporte: any): void {
+    this.fileService.open(reporte.url, reporte.nombre_archivo || reporte.nombre);
   }
 }

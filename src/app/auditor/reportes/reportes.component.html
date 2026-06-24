@@ -94,10 +94,10 @@
               <td>{{ repo.nombre_cliente || 'N/A' }}</td>
               <td>{{ repo.nombre }}</td>
               <td>
-                <a [href]="repo.url" target="_blank" class="pdf-link">
+                <button type="button" (click)="verReporte(repo)" class="pdf-link">
                   <app-icon name="file-text" [size]="16"></app-icon>
                   {{ repo.nombre_archivo }}
-                </a>
+                </button>
               </td>
               <td class="text-sm text-gray-500">{{ repo.fecha_creacion | date:'medium' }}</td>
             </tr>

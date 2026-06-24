@@ -6,6 +6,7 @@ export interface SolicitudPago {
   creado_en: string;
   id_cliente?: number;
   id_empresa?: number;
+  id_empresa_auditora?: number;
   id_empresa_cliente?: number; 
   nombre_empresa_cliente?: string; 
   pagada_en?: string;

@@ -133,9 +133,9 @@
         @if (itemSeleccionado()!.tipo === 'EVIDENCIA' && itemSeleccionado()!.url) {
           <div class="attachment-area">
             <app-icon name="paperclip" [size]="16"></app-icon>
-            <a [href]="itemSeleccionado()!.url" target="_blank">
-              {{ itemSeleccionado()!.nombre_archivo || 'Ver Archivo Adjunto' }}
-            </a>
+            <button type="button" (click)="verArchivo(itemSeleccionado()!)">
+              {{ itemSeleccionado()!.nombre_archivo || "Ver Archivo Adjunto" }}
+            </button>
           </div>
         }
       </div>

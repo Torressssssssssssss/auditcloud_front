@@ -1,6 +1,6 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
@@ -8,7 +8,7 @@ import { EmptyStateComponent } from '../../shared/components/empty-state/empty-s
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { Auditoria } from '../../models/auditoria.model';
-import { forkJoin } from 'rxjs'; // 👈 Importante para hacer múltiples peticiones
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-supervisor-dashboard',
@@ -27,12 +27,15 @@ import { forkJoin } from 'rxjs'; // 👈 Importante para hacer múltiples petici
 export class SupervisorDashboardComponent implements OnInit {
   private apiService = inject(ApiService);
   private authService = inject(AuthService);
+  private router = inject(Router);
 
   loading = signal<boolean>(true);
   
   // Contadores
   totalClientes = signal<number>(0);
   solicitudesPendientes = signal<number>(0);
+  pendientesAsignacion = signal<number>(0);
+  conversaciones = signal<number>(0);
   
   // Listas
   auditoriasActivas = signal<Auditoria[]>([]);
@@ -59,7 +62,8 @@ export class SupervisorDashboardComponent implements OnInit {
       auditorias: this.apiService.get<any>(`/api/supervisor/auditorias/${idEmpresa}`),
       
       // 3. Clientes con los que se ha trabajado
-      clientes: this.apiService.get<any[]>('/api/supervisor/clientes-con-auditorias')
+      clientes: this.apiService.listSupervisorCarteraClientes(),
+      conversaciones: this.apiService.get<any[]>('/api/supervisor/conversaciones')
     }).subscribe({
       next: (results) => {
         // A. Procesar Pagos Pendientes (Estado 1)
@@ -76,8 +80,11 @@ export class SupervisorDashboardComponent implements OnInit {
         activas.sort((a: any, b: any) => new Date(b.creada_en).getTime() - new Date(a.creada_en).getTime());
         this.auditoriasActivas.set(activas);
 
-        // C. Procesar Total de Clientes
-        this.totalClientes.set(results.clientes.length);
+        // C. Procesar cartera de pagos aprobados y pendientes de asignación
+        const clientesData = Array.isArray(results.clientes) ? results.clientes : [];
+        this.totalClientes.set(clientesData.length);
+        this.pendientesAsignacion.set(clientesData.filter((c: any) => c.pendiente_asignar_auditor).length);
+        this.conversaciones.set(Array.isArray(results.conversaciones) ? results.conversaciones.length : 0);
 
         this.loading.set(false);
       },
@@ -86,5 +93,9 @@ export class SupervisorDashboardComponent implements OnInit {
         this.loading.set(false);
       }
     });
+  }
+
+  navigateTo(route: string): void {
+    this.router.navigate([route]);
   }
 }

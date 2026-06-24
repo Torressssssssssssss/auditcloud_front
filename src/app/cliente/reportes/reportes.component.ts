@@ -1,12 +1,13 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { IconComponent, IconName } from '../../shared/components/icon/icon.component';
 import { Auditoria } from '../../models/auditoria.model';
+import { FileService } from '../../services/file.service';
 
 interface Reporte {
   id_reporte: number;
@@ -41,10 +42,16 @@ export class ClienteReportesComponent implements OnInit {
 
   constructor(
     private apiService: ApiService,
-    private authService: AuthService
+    private authService: AuthService,
+    private fileService: FileService,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
+    this.route.queryParams.subscribe(params => {
+      const idAuditoria = Number(params["auditoria"]);
+      this.filtroAuditoria.set(idAuditoria || null);
+    });
     this.loadAuditorias();
     this.loadReportes();
   }
@@ -100,32 +107,10 @@ export class ClienteReportesComponent implements OnInit {
   }
 
   descargarReporte(reporte: Reporte): void {
-    if (reporte.url) {
-      // Si la URL es relativa, construir la URL completa
-      const url = reporte.url.startsWith('http') 
-        ? reporte.url 
-        : `http://localhost:3000${reporte.url}`;
-      window.open(url, '_blank');
-    } else {
-      // Intentar descargar desde el endpoint
-      this.apiService.get<Blob>(`/api/cliente/auditorias/${reporte.id_auditoria}/reporte`, {}, { responseType: 'blob' })
-        .subscribe({
-          next: (blob: Blob) => {
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${reporte.nombre}.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-          },
-          error: (error) => {
-            console.error('Error descargando reporte:', error);
-            alert('No se pudo descargar el reporte. Por favor, intente más tarde.');
-          }
-        });
-    }
+    this.fileService.downloadEndpoint(
+      `/api/cliente/auditorias/${reporte.id_auditoria}/reporte`,
+      `${reporte.nombre}.pdf`
+    );
   }
 
   onAuditoriaChange(event: Event): void {

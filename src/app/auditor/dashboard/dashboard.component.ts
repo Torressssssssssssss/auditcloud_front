@@ -1,6 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
@@ -27,10 +27,12 @@ export class AuditorDashboardComponent implements OnInit {
   loading = signal<boolean>(true);
   auditoriasPorEstado = signal<Record<number, number>>({});
   proximasVisitas = signal<Auditoria[]>([]);
+  auditoriasAsignadas = signal<Auditoria[]>([]);
 
   constructor(
     private apiService: ApiService,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -49,6 +51,7 @@ export class AuditorDashboardComponent implements OnInit {
     this.apiService.get<Auditoria[]>(`/api/auditor/auditorias-asignadas/${idAuditor}`)
       .subscribe({
         next: (auditorias) => {
+          this.auditoriasAsignadas.set(auditorias);
           const estados: Record<number, number> = {};
           auditorias.forEach(a => {
             estados[a.id_estado] = (estados[a.id_estado] || 0) + 1;
@@ -69,6 +72,10 @@ export class AuditorDashboardComponent implements OnInit {
 
   getTotalAuditorias(): number {
     return Object.values(this.auditoriasPorEstado()).reduce((a, b) => a + b, 0);
+  }
+
+  navigateTo(route: string): void {
+    this.router.navigate([route]);
   }
 }
 

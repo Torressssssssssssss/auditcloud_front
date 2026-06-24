@@ -7,7 +7,7 @@
     <app-loading-spinner />
   } @else {
     <div class="stats-grid">
-      <div class="stat-card card">
+      <div class="stat-card card" role="button" tabindex="0" (click)="navigateTo('/supervisor/clientes')">
         <div class="stat-icon-wrapper">
           <app-icon name="building" [size]="32" class="stat-icon"></app-icon>
         </div>
@@ -17,23 +17,43 @@
         </div>
       </div>
 
-      <div class="stat-card card">
+      <div class="stat-card card" role="button" tabindex="0" (click)="navigateTo('/supervisor/clientes')">
+        <div class="stat-icon-wrapper">
+          <app-icon name="alert-circle" [size]="32" class="stat-icon"></app-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ pendientesAsignacion() }}</h3>
+          <p>Pendientes de Asignar</p>
+        </div>
+      </div>
+
+      <div class="stat-card card" role="button" tabindex="0" (click)="navigateTo('/supervisor/pagos')">
         <div class="stat-icon-wrapper">
           <app-icon name="credit-card" [size]="32" class="stat-icon"></app-icon>
         </div>
         <div class="stat-content">
           <h3>{{ solicitudesPendientes() }}</h3>
-          <p>Solicitudes Pendientes</p>
+          <p>Solicitudes de Pago Pendientes</p>
         </div>
       </div>
 
-      <div class="stat-card card">
+      <div class="stat-card card" role="button" tabindex="0" (click)="navigateTo('/supervisor/auditorias')">
         <div class="stat-icon-wrapper">
           <app-icon name="document" [size]="32" class="stat-icon"></app-icon>
         </div>
         <div class="stat-content">
           <h3>{{ auditoriasActivas().length }}</h3>
           <p>Auditorías Activas</p>
+        </div>
+      </div>
+
+      <div class="stat-card card" role="button" tabindex="0" (click)="navigateTo('/supervisor/mensajes')">
+        <div class="stat-icon-wrapper">
+          <app-icon name="message-square" [size]="32" class="stat-icon"></app-icon>
+        </div>
+        <div class="stat-content">
+          <h3>{{ conversaciones() }}</h3>
+          <p>Mensajes</p>
         </div>
       </div>
     </div>
@@ -56,7 +76,7 @@
             <tbody>
               @for (auditoria of auditoriasActivas(); track auditoria.id_auditoria) {
                 <tr>
-                  <td>{{ auditoria.cliente?.nombre_empresa || 'N/A' }}</td>
+                  <td>{{ auditoria.cliente?.nombre_empresa || auditoria.empresa_cliente?.nombre || auditoria.cliente?.nombre || 'N/A' }}</td>
                   <td>
                     <app-status-badge [estado]="auditoria.id_estado" tipo="auditoria" />
                   </td>
@@ -85,7 +105,3 @@
     </div>
   }
 </div>
-
-
-
-

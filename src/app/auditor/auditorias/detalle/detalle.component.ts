@@ -9,6 +9,7 @@ import { EmptyStateComponent } from '../../../shared/components/empty-state/empt
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { Auditoria } from '../../../models/auditoria.model';
 import { IconComponent } from '../../../shared/components/icon/icon.component'; // Asegúrate de tener iconos
+import { FileService } from '../../../services/file.service';
 
 // Interfaz para la tabla unificada
 interface BitacoraItem {
@@ -41,6 +42,7 @@ interface BitacoraItem {
 })
 export class AuditoriaDetalleComponent implements OnInit {
   private api = inject(ApiService);
+  private fileService = inject(FileService);
   private route = inject(ActivatedRoute);
   public router = inject(Router);
 
@@ -129,6 +131,10 @@ export class AuditoriaDetalleComponent implements OnInit {
     this.itemSeleccionado.set(item);
     this.showModalDetalle.set(true);
   }
+  verArchivo(item: BitacoraItem): void {
+    this.fileService.open(item.url, item.nombre_archivo);
+  }
+
 
   // --- OBJETIVO (Tu lógica existente) ---
   startEditObjetivo() { this.tempObjetivo = this.auditoria()?.objetivo || ''; this.isEditingObjetivo.set(true); }

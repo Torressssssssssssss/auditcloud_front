@@ -2,10 +2,14 @@ import { Component, OnInit, signal, inject, ViewChild, ElementRef, AfterViewChec
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { ApiService, SolicitudPagoPayload } from '../../services/api.service';
+import { ApiService, SolicitudPagoItem, SolicitudPagoPayload } from '../../services/api.service';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { IconComponent } from '../../shared/components/icon/icon.component';
+
+type ChatItem =
+  | { tipo: 'mensaje'; id: string; fecha: string; mensaje: Mensaje }
+  | { tipo: 'pago'; id: string; fecha: string; solicitud: SolicitudPagoItem };
 
 interface Mensaje {
   id_mensaje: number;
@@ -49,6 +53,7 @@ export class MensajesComponent implements OnInit, AfterViewChecked {
   conversaciones = signal<Conversacion[]>([]);
   conversacionSeleccionada = signal<Conversacion | null>(null);
   mensajes = signal<Mensaje[]>([]);
+  solicitudesPago = signal<SolicitudPagoItem[]>([]);
   mostrarModalSolicitud = signal(false);
   creandoSolicitud = signal(false);
   errorSolicitud = signal<string | null>(null);
@@ -61,6 +66,7 @@ export class MensajesComponent implements OnInit, AfterViewChecked {
   @ViewChild('chatViewport') private chatViewport!: ElementRef;
 
   ngOnInit(): void {
+    this.cargarSolicitudesPago();
     this.cargarConversaciones();
   }
 
@@ -69,6 +75,17 @@ export class MensajesComponent implements OnInit, AfterViewChecked {
       this.scrollToBottom();
       this.shouldScroll = false;
     }
+  }
+
+  cargarSolicitudesPago() {
+    this.apiService.listSupervisorSolicitudesPago({ page: 1, limit: 200 })
+      .subscribe({
+        next: (response) => this.solicitudesPago.set(response?.data || []),
+        error: (err) => {
+          console.warn('No se cargaron solicitudes de pago para el chat supervisor.', err);
+          this.solicitudesPago.set([]);
+        }
+      });
   }
 
   cargarConversaciones() {
@@ -176,6 +193,7 @@ export class MensajesComponent implements OnInit, AfterViewChecked {
           this.creandoSolicitud.set(false);
           this.mostrarModalSolicitud.set(false);
           this.exitoSolicitud.set('Solicitud de pago creada correctamente.');
+          this.cargarSolicitudesPago();
         },
         error: (error) => {
           this.creandoSolicitud.set(false);
@@ -196,5 +214,85 @@ export class MensajesComponent implements OnInit, AfterViewChecked {
 
   esCliente(msg: Mensaje): boolean {
     return msg.emisor_tipo === 'CLIENTE';
+  }
+
+  esPagoPropio(solicitud: SolicitudPagoItem): boolean {
+    const conv = this.conversacionSeleccionada();
+    if (!conv?.cliente) return false;
+
+    const mismoCliente = Number(solicitud.id_cliente) === Number(conv.cliente.id_usuario);
+    const mismaEmpresaCliente = !solicitud.id_empresa_cliente || Number(solicitud.id_empresa_cliente) === Number(conv.cliente.id_empresa);
+    return mismoCliente && mismaEmpresaCliente;
+  }
+
+  chatItems(): ChatItem[] {
+    const mensajes: ChatItem[] = this.mensajes().map((mensaje) => ({
+      tipo: 'mensaje',
+      id: `mensaje-${mensaje.id_mensaje || mensaje.creado_en}`,
+      fecha: mensaje.creado_en,
+      mensaje
+    }));
+
+    const pagos: ChatItem[] = this.solicitudesChat().map((solicitud) => ({
+      tipo: 'pago',
+      id: `pago-${solicitud.id_solicitud}`,
+      fecha: solicitud.creado_en || solicitud.pagada_en || '',
+      solicitud
+    }));
+
+    return [...mensajes, ...pagos].sort((a, b) => this.timeValue(a.fecha) - this.timeValue(b.fecha));
+  }
+
+  solicitudesChat(): SolicitudPagoItem[] {
+    const conv = this.conversacionSeleccionada();
+    if (!conv?.cliente) return [];
+
+    const idsVistos = new Set<number>();
+    return this.solicitudesPago()
+      .filter((solicitud) => {
+        const mismoCliente = Number(solicitud.id_cliente) === Number(conv.cliente?.id_usuario);
+        const mismaEmpresaCliente = !solicitud.id_empresa_cliente || Number(solicitud.id_empresa_cliente) === Number(conv.cliente?.id_empresa);
+        return mismoCliente && mismaEmpresaCliente;
+      })
+      .filter((solicitud) => {
+        if (idsVistos.has(solicitud.id_solicitud)) return false;
+        idsVistos.add(solicitud.id_solicitud);
+        return true;
+      });
+  }
+
+  previewRemitente(conv: Conversacion): string {
+    const msg = conv.ultimo_mensaje;
+    if (!msg) return 'Sistema';
+    if (msg.emisor_tipo === 'SUPERVISOR') return 'Tú';
+    return conv.cliente?.nombre || this.nombrePorRol(msg.emisor_tipo);
+  }
+
+  estadoPagoTexto(solicitud: SolicitudPagoItem): string {
+    const estado = Number(solicitud.id_estado);
+    if (estado === 2 || solicitud.pagada_en || (solicitud as any).mercadopago_status === 'approved') return 'Pagado';
+    if (estado === 3) return 'Rechazado';
+    if (estado === 4) return 'En proceso';
+    return 'Pendiente';
+  }
+
+  estadoPagoClase(solicitud: SolicitudPagoItem): string {
+    return `payment-status ${this.estadoPagoTexto(solicitud).toLowerCase().replace(' ', '-')}`;
+  }
+
+  formatoMonto(monto: number | string): string {
+    return Number(monto || 0).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+  }
+
+  private nombrePorRol(tipo?: string): string {
+    if (tipo === 'AUDITOR') return 'Auditor';
+    if (tipo === 'SUPERVISOR') return 'Supervisor';
+    if (tipo === 'CLIENTE') return 'Cliente';
+    return 'Usuario';
+  }
+
+  private timeValue(fecha?: string): number {
+    const value = fecha ? new Date(fecha).getTime() : 0;
+    return Number.isNaN(value) ? 0 : value;
   }
 }

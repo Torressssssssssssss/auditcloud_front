@@ -9,6 +9,8 @@ import { EmptyStateComponent } from '../../shared/components/empty-state/empty-s
 import { Evidencia } from '../../models/evidencia.model';
 import { Auditoria } from '../../models/auditoria.model';
 import { ActivatedRoute } from '@angular/router';
+import { environment } from '../../../environments/environment';
+import { FileService } from '../../services/file.service';
 
 @Component({
   selector: 'app-auditor-evidencia',
@@ -21,12 +23,13 @@ import { ActivatedRoute } from '@angular/router';
     EmptyStateComponent
   ],
   templateUrl: './evidencias.component.html',
-  styleUrls: ['./evidencias.component.css']
+  styleUrls: ["./evidencias.component.css"]
 })
 export class EvidenciasComponent implements OnInit {
   private http = inject(HttpClient);
   private apiService = inject(ApiService);
   private authService = inject(AuthService);
+  private fileService = inject(FileService);
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
 
@@ -156,7 +159,7 @@ export class EvidenciasComponent implements OnInit {
       'Authorization': `Bearer ${token}`
     });
 
-    this.http.post('http://localhost:3000/api/auditor/evidencias', formData, { headers })
+    this.http.post(environment.apiUrl + '/api/auditor/evidencias', formData, { headers })
       .subscribe({
         next: () => {
           alert('Registrado correctamente');
@@ -214,5 +217,13 @@ export class EvidenciasComponent implements OnInit {
   onModuloChange(event: Event): void {
     const val = (event.target as HTMLSelectElement).value;
     this.filtroModulo.set(val ? +val : null);
+  }
+
+  verArchivo(evidencia: Evidencia): void {
+    this.fileService.open(evidencia.url, evidencia.nombre_archivo);
+  }
+
+  descargarArchivo(evidencia: Evidencia): void {
+    this.fileService.download(evidencia.url, evidencia.nombre_archivo);
   }
 }

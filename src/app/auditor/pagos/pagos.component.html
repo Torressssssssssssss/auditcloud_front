@@ -30,7 +30,7 @@
           <td class="px-4 py-2">{{ solicitud.concepto }}</td>
           <td class="px-4 py-2 font-bold text-gray-800">{{ solicitud.monto | currency:'MXN':'symbol':'1.2-2' }}</td>
           <td class="px-4 py-2">
-            <span [ngClass]="solicitud.id_estado === 1 ? 'text-yellow-600 bg-yellow-100 px-2 py-1 rounded-full text-xs' : 'text-green-600 bg-green-100 px-2 py-1 rounded-full text-xs'">
+            <span [ngClass]="solicitud.id_estado === 1 ? 'badge-pending' : 'badge-paid'">
               {{ solicitud.id_estado === 1 ? 'PENDIENTE' : 'PAGADO' }}
             </span>
           </td>

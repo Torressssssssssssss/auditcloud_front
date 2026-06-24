@@ -7,6 +7,7 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { StatusBadgeComponent } from '../../shared/components/status-badge/status-badge.component';
 import { IconComponent } from '../../shared/components/icon/icon.component';
+import { FileService } from '../../services/file.service';
 
 // Interfaces locales para tipado estricto
 interface AuditoriaRow {
@@ -50,6 +51,7 @@ interface EvidenciaRow {
 export class EvidenciasComponent implements OnInit {
   private api = inject(ApiService);
   private auth = inject(AuthService);
+  private fileService = inject(FileService);
 
   loadingAuditorias = signal(true);
   loadingEvidencias = signal(false);
@@ -175,5 +177,9 @@ export class EvidenciasComponent implements OnInit {
   limpiarSeleccion() {
     this.auditoriaSeleccionada.set(null);
     this.listaEvidencias.set([]);
+  }
+
+  verArchivo(evidencia: EvidenciaRow): void {
+    this.fileService.open(evidencia.url, evidencia.nombre_archivo);
   }
 }

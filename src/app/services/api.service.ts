@@ -20,6 +20,7 @@ export interface SolicitudPagoItem {
   concepto: string;
   id_estado: number;
   creado_en: string;
+  pagada_en?: string;
   nombre_empresa_cliente?: string;
   es_mio?: boolean;
 }
@@ -29,6 +30,34 @@ export interface SolicitudesPagoResponse {
   page: number;
   limit: number;
   data: SolicitudPagoItem[];
+}
+
+export interface AuditorDisponible {
+  id_usuario: number;
+  nombre: string;
+  correo?: string;
+}
+
+export interface CarteraClienteItem {
+  id_empresa: number;
+  nombre: string;
+  ciudad?: string | null;
+  pais?: string | null;
+  contacto?: string;
+  activo?: boolean;
+  id_cliente: number;
+  id_solicitud: number;
+  id_solicitud_pago: number;
+  concepto?: string;
+  monto?: number;
+  id_estado_pago?: number;
+  pagada_en?: string | null;
+  id_auditoria?: number | null;
+  id_estado_auditoria?: number | null;
+  total_auditorias?: number;
+  estado_operativo: string;
+  pendiente_asignar_auditor: boolean;
+  auditor_asignado?: AuditorDisponible | null;
 }
 
 @Injectable({
@@ -89,6 +118,30 @@ export class ApiService {
 
   createSupervisorSolicitudPago(payload: SolicitudPagoPayload) {
     return this.post('/api/supervisor/solicitudes-pago', payload);
+  }
+
+  listSupervisorCarteraClientes() {
+    return this.get<CarteraClienteItem[]>('/api/supervisor/clientes-cartera');
+  }
+
+  listSupervisorAuditores(idEmpresa: number) {
+    return this.get<{ total: number; page: number; limit: number; data: AuditorDisponible[] }>(`/api/supervisor/auditores/${idEmpresa}`, { page: 1, limit: 100 });
+  }
+
+  assignSupervisorAuditorToSolicitud(idSolicitud: number, idAuditor: number) {
+    return this.post(`/api/supervisor/solicitudes-pago/${idSolicitud}/asignar-auditor`, { id_auditor: idAuditor });
+  }
+
+  assignSupervisorAuditorToAuditoria(idAuditoria: number, idAuditor: number) {
+    return this.post(`/api/supervisor/auditorias/${idAuditoria}/asignar`, { id_auditor: idAuditor });
+  }
+
+  changeSupervisorAuditorToAuditoria(idAuditoria: number, idAuditor: number) {
+    return this.put(`/api/supervisor/auditorias/${idAuditoria}/asignar`, { id_auditor: idAuditor });
+  }
+
+  removeSupervisorAuditorFromAuditoria(idAuditoria: number) {
+    return this.delete(`/api/supervisor/auditorias/${idAuditoria}/asignar`);
   }
 
   put<T>(endpoint: string, body: any): Observable<T> {

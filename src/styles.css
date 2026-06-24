@@ -52,6 +52,16 @@ h6 { font-size: 1rem; }
 
 /* Color Variables - Light Mode */
 :root {
+  --audit-bg-clear: #F6FAFF;
+  --audit-blue-cloud: #EAF4FF;
+  --audit-blue-pastel: #DCEEFF;
+  --audit-blue-soft: #CFE5FF;
+  --audit-blue-medium: #BFD9FF;
+  --audit-lilac: #A78BFA;
+  --audit-primary-button: #7C8CFF;
+  --audit-text-primary: #1F2937;
+  --audit-text-secondary: #6B7280;
+  --audit-border-soft: rgba(31, 41, 55, 0.12);
   --bg-primary: #fafafa;
   --bg-secondary: #ffffff;
   --bg-tertiary: #f5f5f5;
@@ -556,51 +566,107 @@ table tbody tr:last-child td {
 }
 
 /* Badge Styles */
-.badge {
+.badge,
+.badge-success,
+.badge-warning,
+.badge-error,
+.badge-info,
+.badge-pending,
+.badge-paid,
+.status-chip {
   display: inline-flex;
   align-items: center;
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
+  justify-content: center;
+  min-height: 1.75rem;
+  padding: 0.34rem 0.72rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
   font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
-.badge-success {
-  background: rgba(52, 199, 89, 0.1);
-  color: var(--success);
+.badge-success,
+.badge-paid,
+.status-paid,
+.status-approved,
+.status-completed {
+  background: #dcfce7;
+  border-color: #86efac;
+  color: #166534;
 }
 
-.badge-warning {
-  background: rgba(255, 149, 0, 0.1);
-  color: var(--warning);
+.badge-warning,
+.badge-pending,
+.status-pending {
+  background: #fff7d6;
+  border-color: #f4d46a;
+  color: #7a4d00;
 }
 
-.badge-error {
-  background: rgba(255, 59, 48, 0.1);
-  color: var(--error);
+.badge-error,
+.status-rejected,
+.status-cancelled,
+.status-error {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #991b1b;
 }
 
-.badge-info {
-  background: rgba(0, 122, 255, 0.1);
-  color: var(--accent-primary);
+.badge-info,
+.status-process {
+  background: #dceeff;
+  border-color: #bfd9ff;
+  color: #1d4ed8;
 }
 
-html.dark .badge-success {
-  background: rgba(48, 209, 88, 0.2);
+.status-review {
+  background: #ede9fe;
+  border-color: #c4b5fd;
+  color: #5b21b6;
 }
 
-html.dark .badge-warning {
-  background: rgba(255, 159, 10, 0.2);
+html.dark .badge-success,
+html.dark .badge-paid,
+html.dark .status-paid,
+html.dark .status-approved,
+html.dark .status-completed {
+  background: rgba(34, 197, 94, 0.16);
+  border-color: rgba(34, 197, 94, 0.36);
+  color: #86efac;
 }
 
-html.dark .badge-error {
-  background: rgba(255, 69, 58, 0.2);
+html.dark .badge-warning,
+html.dark .badge-pending,
+html.dark .status-pending {
+  background: rgba(245, 158, 11, 0.18);
+  border-color: rgba(245, 158, 11, 0.38);
+  color: #fcd34d;
 }
 
-html.dark .badge-info {
-  background: rgba(10, 132, 255, 0.2);
+html.dark .badge-error,
+html.dark .status-rejected,
+html.dark .status-cancelled,
+html.dark .status-error {
+  background: rgba(239, 68, 68, 0.16);
+  border-color: rgba(239, 68, 68, 0.36);
+  color: #fca5a5;
+}
+
+html.dark .badge-info,
+html.dark .status-process {
+  background: rgba(59, 130, 246, 0.16);
+  border-color: rgba(59, 130, 246, 0.36);
+  color: #93c5fd;
+}
+
+html.dark .status-review {
+  background: rgba(167, 139, 250, 0.18);
+  border-color: rgba(167, 139, 250, 0.38);
+  color: #c4b5fd;
 }
 
 /* Scrollbar Styles - iOS inspired */

@@ -1,21 +1,21 @@
-<div class="login-container">
-  <div class="login-card">
-    <div class="login-header">
-      <div class="logo-large">
-        <div class="logo-icon-large">A</div>
+<div class="auth-page login-page">
+  <div class="auth-card login-card">
+    <div class="auth-header login-header">
+      <div class="auth-brand logo-large">
+        <div class="auth-logo logo-icon-large">A</div>
         <h1>AuditCloud</h1>
       </div>
-      <p class="subtitle">Inicia sesión en tu cuenta</p>
+      <p class="auth-subtitle subtitle">Inicia sesión en tu cuenta</p>
     </div>
 
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form login-form">
         @if (errorMessage()) {
-          <div class="rounded-md bg-red-100 text-red-600 p-3 text-sm text-center">
+          <div class="auth-error rounded-md bg-red-100 text-red-600 p-3 text-sm text-center">
           {{ errorMessage() }}
         </div>
       }
 
-      <div class="form-group">
+      <div class="auth-field form-group">
         <label for="correo">Correo electrónico</label>
         <input
           type="email"
@@ -25,7 +25,7 @@
           [class.error]="correo?.invalid && correo?.touched"
         />
           @if (correo?.invalid && correo?.touched) {
-            <span class="text-xs text-red-600">
+            <span class="auth-field-error text-xs text-red-600">
             @if (correo?.errors?.['required']) {
               El correo es obligatorio
             } @else if (correo?.errors?.['email']) {
@@ -35,7 +35,7 @@
         }
       </div>
 
-      <div class="form-group">
+      <div class="auth-field form-group">
         <label for="password">Contraseña</label>
         <input
           type="password"
@@ -45,7 +45,7 @@
           [class.error]="password?.invalid && password?.touched"
         />
           @if (password?.invalid && password?.touched) {
-            <span class="text-xs text-red-600">
+            <span class="auth-field-error text-xs text-red-600">
             @if (password?.errors?.['required']) {
               La contraseña es obligatoria
             } @else if (password?.errors?.['minlength']) {
@@ -55,10 +55,9 @@
         }
       </div>
 
-      <!-- Botón de Google Identity Services -->
-      <button 
-        type="button" 
-        class="btn-google-custom"
+      <button
+        type="button"
+        class="auth-button auth-button-google btn-google-custom"
         (click)="triggerGoogleSignIn()"
         [disabled]="loading()">
         <svg class="google-icon" viewBox="0 0 24 24" width="20" height="20">
@@ -70,11 +69,11 @@
         <span>Acceder o registrarse con Google</span>
       </button>
 
-      <div class="divider">
+      <div class="auth-divider divider">
         <span>o</span>
       </div>
 
-        <button type="submit" class="btn-login btn-elegant"
+        <button type="submit" class="auth-button auth-button-primary btn-login btn-elegant"
           [disabled]="loginForm.invalid || loading()">
         @if (loading()) {
           <span>Cargando...</span>
@@ -86,11 +85,20 @@
           <a routerLink="/registro">¿No tienes cuenta? Regístrate</a>
         </div>
 
-        <div class="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600">
-          <p class="font-semibold text-slate-800">Usuarios demo</p>
-          <p>Supervisor: supervisor@auditcloud.com / 123456</p>
-          <p>Auditor: auditor@auditcloud.com / 123456</p>
-          <p>Cliente: cliente@auditcloud.com / 123456</p>
+        <div class="demo-users" aria-label="Credenciales de usuarios demo">
+          <div class="demo-users-header">
+            <span>Usuarios demo</span>
+          </div>
+
+          @for (usuario of demoUsers; track usuario.rol) {
+            <button
+              type="button"
+              class="demo-user-button"
+              (click)="usarCredencialesDemo(usuario)">
+              <span class="demo-role">{{ usuario.rol }}</span>
+              <span class="demo-credentials">{{ usuario.correo }} / {{ usuario.password }}</span>
+            </button>
+          }
         </div>
     </form>
   </div>
@@ -100,43 +108,43 @@
 </div>
 
 @if (showCompanyModal()) {
-  <div class="modal-overlay">
-    <div class="modal-content slide-up">
-      <div class="modal-header">
+  <div class="modal-overlay auth-modal-overlay">
+    <div class="modal-content auth-modal-content slide-up">
+      <div class="modal-header auth-modal-header">
         <h2>¡Bienvenido!</h2>
         <p>Para continuar, necesitamos registrar los datos de tu empresa.</p>
       </div>
 
-      <form [formGroup]="companyForm" (ngSubmit)="submitCompanyDetails()" class="company-form">
-        
-        <div class="form-group">
+      <form [formGroup]="companyForm" (ngSubmit)="submitCompanyDetails()" class="company-form auth-form">
+
+        <div class="auth-field form-group">
           <label>Nombre de la Empresa</label>
-          <input type="text" formControlName="nombre_empresa" placeholder="Ej. Auditores S.A." 
+          <input type="text" formControlName="nombre_empresa" placeholder="Ej. Auditores S.A."
                  [class.error]="companyForm.get('nombre_empresa')?.invalid && companyForm.get('nombre_empresa')?.touched">
           @if (companyForm.get('nombre_empresa')?.invalid && companyForm.get('nombre_empresa')?.touched) {
-            <span class="field-error">Campo requerido</span>
+            <span class="auth-field-error field-error">Campo requerido</span>
           }
         </div>
 
         <div class="row-group">
-          <div class="form-group">
+          <div class="auth-field form-group">
             <label>Ciudad</label>
-            <input type="text" formControlName="ciudad" 
+            <input type="text" formControlName="ciudad"
                    [class.error]="companyForm.get('ciudad')?.invalid && companyForm.get('ciudad')?.touched">
           </div>
-          <div class="form-group">
+          <div class="auth-field form-group">
             <label>Estado</label>
-            <input type="text" formControlName="estado" 
+            <input type="text" formControlName="estado"
                    [class.error]="companyForm.get('estado')?.invalid && companyForm.get('estado')?.touched">
           </div>
         </div>
 
-        <div class="form-group">
+        <div class="auth-field form-group">
           <label>RFC (Opcional)</label>
           <input type="text" formControlName="rfc" placeholder="AAA010101XXX">
         </div>
 
-        <button type="submit" class="btn-login btn-elegant mt-4" [disabled]="completingProfile()">
+        <button type="submit" class="auth-button auth-button-primary btn-login btn-elegant mt-4" [disabled]="completingProfile()">
           {{ completingProfile() ? 'Guardando...' : 'Finalizar Registro' }}
         </button>
 
@@ -144,6 +152,3 @@
     </div>
   </div>
 }
-
-
-

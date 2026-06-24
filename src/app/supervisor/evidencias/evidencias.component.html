@@ -143,10 +143,10 @@
                     {{ evidencia.descripcion }}
                   </td>
                   <td>
-                    <a [href]="evidencia.url" target="_blank" class="link-archivo">
+                    <button type="button" (click)="verArchivo(evidencia)" class="link-archivo">
                       <app-icon name="download" [size]="16"></app-icon>
                       {{ evidencia.nombre_archivo || 'Ver Archivo' }}
-                    </a>
+                    </button>
                   </td>
                   <td>{{ evidencia.creado_en | date:'short' }}</td>
                 </tr>

@@ -116,10 +116,48 @@ export class ClienteDashboardComponent implements OnInit {
     return item.id_conversacion;
   }
 
+  getRemitenteUltimoMensaje(conversacion: any): string {
+    const mensaje = conversacion?.ultimo_mensaje;
+    if (!mensaje) return 'Sistema';
+
+    const tipo = mensaje.emisor_tipo || mensaje.tipo_remitente || mensaje.tipo;
+    const idRemitente = Number(mensaje.emisor_id ?? mensaje.id_remitente ?? mensaje.id_usuario ?? 0);
+    const idUsuario = this.authService.getIdUsuario();
+
+    if (tipo === 'CLIENTE' && (!idRemitente || idRemitente === idUsuario)) return 'Tú';
+
+    return mensaje.remitente_nombre
+      || mensaje.nombre_remitente
+      || mensaje.usuario?.nombre
+      || conversacion.nombre_contacto
+      || this.nombrePorRol(tipo);
+  }
+
+  getContenidoUltimoMensaje(conversacion: any): string {
+    return conversacion?.ultimo_mensaje?.contenido || 'Sin mensajes';
+  }
+
+  getFechaUltimoMensaje(conversacion: any): string {
+    return conversacion?.ultimo_mensaje?.creado_en
+      || conversacion?.ultimo_mensaje?.fecha_envio
+      || conversacion?.fecha_creacion
+      || conversacion?.creado_en
+      || '';
+  }
+
   formatDate(dateString: string): string {
     if (!dateString) return '';
     const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return '';
     return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
   }
+
+  private nombrePorRol(tipo?: string): string {
+    if (tipo === 'AUDITOR') return 'Auditora Demo';
+    if (tipo === 'SUPERVISOR') return 'Supervisor';
+    if (tipo === 'CLIENTE') return 'Cliente Demo';
+    return 'Usuario';
+  }
 }
+
 

@@ -4,7 +4,9 @@
     <div class="loading-state">Cargando historial de la empresa...</div>
   } @else if (grupos().length === 0) {
     <div class="empty-state">
-      <app-icon name="folder" [size]="40"></app-icon>
+      <div class="empty-state-icon" aria-hidden="true">
+        <app-icon name="timeline" [size]="42"></app-icon>
+      </div>
       <p>No hay historiales de auditoría para esta empresa.</p>
     </div>
   } @else {
@@ -49,10 +51,10 @@
                       <p class="item-desc">{{ item.descripcion }}</p>
 
                       @if (item.url) {
-                        <a [href]="item.url" target="_blank" class="file-link">
+                        <button type="button" (click)="verArchivo(item, $event)" class="file-link">
                           <app-icon name="paperclip" [size]="12"></app-icon>
                           {{ item.nombre_archivo || 'Ver Adjunto' }}
-                        </a>
+                        </button>
                       }
                     </div>
                   </div>

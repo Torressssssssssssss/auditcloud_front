@@ -40,41 +40,60 @@
       <div class="info-card">
         <h3>Módulos Ambientales</h3>
         <div class="modulos-list">
-            @if (auditoria()!.modulos && auditoria()!.modulos!.length > 0) {
-            @for (modulo of auditoria()!.modulos; track modulo) {
+            @if (modulosUnicos.length > 0) {
+            @for (modulo of modulosUnicos; track modulo) {
               <span class="modulo-tag">{{ getModuloNombre(modulo) }}</span>
             }
           } @else {
             <p class="text-muted">No hay módulos asignados</p>
           }
         </div>
+        @if (moduloAviso()) {
+          <div class="inline-alert" [class.success]="moduloAviso()!.tipo === 'success'" [class.error]="moduloAviso()!.tipo === 'error'">
+            {{ moduloAviso()!.mensaje }}
+          </div>
+        }
         <div class="modulos-actions">
-          <button class="btn btn-secondary" (click)="agregarModulo(1)">+ Agua</button>
-          <button class="btn btn-secondary" (click)="agregarModulo(2)">+ Residuos</button>
-          <button class="btn btn-secondary" (click)="agregarModulo(3)">+ Energía</button>
+          <button class="btn btn-secondary" [class.is-added]="moduloYaAgregado(1)" [disabled]="moduloYaAgregado(1)" (click)="agregarModulo(1)">+ Agua</button>
+          <button class="btn btn-secondary" [class.is-added]="moduloYaAgregado(2)" [disabled]="moduloYaAgregado(2)" (click)="agregarModulo(2)">+ Residuos</button>
+          <button class="btn btn-secondary" [class.is-added]="moduloYaAgregado(3)" [disabled]="moduloYaAgregado(3)" (click)="agregarModulo(3)">+ Energía</button>
         </div>
       </div>
 
       <!-- Auditores Asignados -->
       <div class="info-card">
         <h3>Auditores Asignados</h3>
+        @if (asignacionAviso()) {
+          <div class="inline-alert" [class.success]="asignacionAviso()!.tipo === 'success'" [class.error]="asignacionAviso()!.tipo === 'error'">
+            {{ asignacionAviso()!.mensaje }}
+          </div>
+        }
+
         @if (auditoresAsignados().length === 0) {
           <p class="text-muted">No hay auditores asignados</p>
+          <button class="btn btn-primary" (click)="abrirAsignacion('asignar')">Asignar auditor</button>
         } @else {
-          <ul class="auditores-list">
+          <div class="auditores-list">
             @for (auditor of auditoresAsignados(); track auditor.id_usuario) {
-              <li>{{ auditor.nombre }} ({{ auditor.correo }})</li>
+              <div class="auditor-assignment">
+                <div>
+                  <span class="assignment-status">Auditor asignado</span>
+                  <strong>{{ auditor.nombre || 'Auditor' }}</strong>
+                  @if (auditor.correo) { <small>{{ auditor.correo }}</small> }
+                </div>
+              </div>
             }
-          </ul>
+          </div>
+          <div class="assignment-actions">
+            <button class="btn btn-secondary" type="button" (click)="abrirAsignacion('cambiar')">Cambiar auditor</button>
+            <button class="btn btn-danger" type="button" (click)="quitarAuditor()">Quitar auditor</button>
+          </div>
         }
-        <button class="btn btn-primary" (click)="showAsignacion.set(!showAsignacion())">
-          {{ showAsignacion() ? 'Cancelar' : '+ Asignar Auditor' }}
-        </button>
         
         @if (showAsignacion()) {
           <form [formGroup]="asignacionForm" (ngSubmit)="asignarAuditor()" class="asignacion-form">
             <div class="form-group">
-              <label>Seleccionar Auditor:</label>
+              <label>{{ asignacionModo() === 'cambiar' ? 'Nuevo auditor:' : 'Seleccionar auditor:' }}</label>
               <select formControlName="id_auditor" [class.error]="id_auditor?.invalid && id_auditor?.touched">
                 <option value="">Seleccionar...</option>
                 @for (auditor of auditoresDisponibles(); track auditor.id_usuario) {
@@ -82,9 +101,12 @@
                 }
               </select>
             </div>
-            <button type="submit" class="btn btn-primary" [disabled]="asignacionForm.invalid">
-              Asignar
-            </button>
+            <div class="assignment-actions">
+              <button type="submit" class="btn btn-primary" [disabled]="asignacionForm.invalid">
+                {{ asignacionModo() === 'cambiar' ? 'Guardar cambio' : 'Asignar' }}
+              </button>
+              <button type="button" class="btn btn-secondary" (click)="cerrarAsignacion()">Cancelar</button>
+            </div>
           </form>
         }
       </div>
@@ -96,12 +118,12 @@
         <div class="estado-actions">
           @if (auditoria()!.id_estado === 1) {
             <button class="btn btn-primary" (click)="solicitarCambioEstado(2)">
-              Marcar como EN_PROCESO
+              Marcar como En proceso
             </button>
           }
           @if (auditoria()!.id_estado === 2) {
             <button class="btn btn-primary" (click)="solicitarCambioEstado(3)">
-              Marcar como FINALIZADA
+              Marcar como Finalizada
             </button>
           }
         </div>

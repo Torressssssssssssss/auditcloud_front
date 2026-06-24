@@ -1,11 +1,15 @@
 import { Component, OnInit, signal, inject, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ApiService } from '../../services/api.service';
+import { ApiService, SolicitudPagoItem } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { IconComponent } from '../../shared/components/icon/icon.component';
+
+type ChatItem =
+  | { tipo: 'mensaje'; id: string; fecha: string; mensaje: Mensaje }
+  | { tipo: 'pago'; id: string; fecha: string; solicitud: SolicitudPagoItem };
 
 interface Mensaje {
   id_mensaje: number;
@@ -20,6 +24,8 @@ interface Conversacion {
   id_conversacion: number;
   // El auditor ve "Clientes", no empresas auditoras
   cliente?: { 
+    id_usuario?: number;
+    id_empresa?: number;
     nombre: string; 
     nombre_empresa: string; 
   }; 
@@ -49,12 +55,14 @@ export class MensajesComponent implements OnInit, AfterViewChecked {
   conversaciones = signal<Conversacion[]>([]);
   conversacionSeleccionada = signal<Conversacion | null>(null);
   mensajes = signal<Mensaje[]>([]);
+  solicitudesPago = signal<SolicitudPagoItem[]>([]);
   textoMensaje = '';
   shouldScroll = false;
 
   @ViewChild('chatViewport') private chatViewport!: ElementRef;
 
   ngOnInit(): void {
+    this.cargarSolicitudesPago();
     this.cargarConversaciones();
   }
 
@@ -63,6 +71,17 @@ export class MensajesComponent implements OnInit, AfterViewChecked {
       this.scrollToBottom();
       this.shouldScroll = false;
     }
+  }
+
+  cargarSolicitudesPago() {
+    this.apiService.get<SolicitudPagoItem[]>('/api/auditor/solicitudes-pago')
+      .subscribe({
+        next: (data) => this.solicitudesPago.set(Array.isArray(data) ? data : []),
+        error: (err) => {
+          console.warn('No se cargaron solicitudes de pago para el chat auditor.', err);
+          this.solicitudesPago.set([]);
+        }
+      });
   }
 
   cargarConversaciones() {
@@ -140,5 +159,80 @@ export class MensajesComponent implements OnInit, AfterViewChecked {
 
   esSupervisor(msg: Mensaje): boolean {
     return msg.emisor_tipo === 'SUPERVISOR';
+  }
+
+  esPagoPropio(solicitud: SolicitudPagoItem): boolean {
+    return Number((solicitud as any).creado_por_auditor || 0) === Number(this.authService.getIdUsuario());
+  }
+
+  chatItems(): ChatItem[] {
+    const mensajes: ChatItem[] = this.mensajes().map((mensaje) => ({
+      tipo: 'mensaje',
+      id: `mensaje-${mensaje.id_mensaje || mensaje.creado_en}`,
+      fecha: mensaje.creado_en,
+      mensaje
+    }));
+
+    const pagos: ChatItem[] = this.solicitudesChat().map((solicitud) => ({
+      tipo: 'pago',
+      id: `pago-${solicitud.id_solicitud}`,
+      fecha: solicitud.creado_en || solicitud.pagada_en || '',
+      solicitud
+    }));
+
+    return [...mensajes, ...pagos].sort((a, b) => this.timeValue(a.fecha) - this.timeValue(b.fecha));
+  }
+
+  solicitudesChat(): SolicitudPagoItem[] {
+    const conv = this.conversacionSeleccionada();
+    if (!conv?.cliente) return [];
+
+    const idsVistos = new Set<number>();
+    return this.solicitudesPago()
+      .filter((solicitud) => {
+        const mismoCliente = !conv.cliente?.id_usuario || Number(solicitud.id_cliente) === Number(conv.cliente.id_usuario);
+        const mismaEmpresaCliente = !conv.cliente?.id_empresa || !solicitud.id_empresa_cliente || Number(solicitud.id_empresa_cliente) === Number(conv.cliente.id_empresa);
+        return mismoCliente && mismaEmpresaCliente;
+      })
+      .filter((solicitud) => {
+        if (idsVistos.has(solicitud.id_solicitud)) return false;
+        idsVistos.add(solicitud.id_solicitud);
+        return true;
+      });
+  }
+
+  previewRemitente(conv: Conversacion): string {
+    const msg = conv.ultimo_mensaje;
+    if (!msg) return 'Sistema';
+    if (msg.emisor_tipo === 'AUDITOR' && msg.emisor_id === this.authService.getIdUsuario()) return 'Tú';
+    return conv.cliente?.nombre || this.nombrePorRol(msg.emisor_tipo);
+  }
+
+  estadoPagoTexto(solicitud: SolicitudPagoItem): string {
+    const estado = Number(solicitud.id_estado);
+    if (estado === 2 || solicitud.pagada_en || (solicitud as any).mercadopago_status === 'approved') return 'Pagado';
+    if (estado === 3) return 'Rechazado';
+    if (estado === 4) return 'En proceso';
+    return 'Pendiente';
+  }
+
+  estadoPagoClase(solicitud: SolicitudPagoItem): string {
+    return `payment-status ${this.estadoPagoTexto(solicitud).toLowerCase().replace(' ', '-')}`;
+  }
+
+  formatoMonto(monto: number | string): string {
+    return Number(monto || 0).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+  }
+
+  private nombrePorRol(tipo?: string): string {
+    if (tipo === 'AUDITOR') return 'Auditor';
+    if (tipo === 'SUPERVISOR') return 'Supervisor';
+    if (tipo === 'CLIENTE') return 'Cliente';
+    return 'Usuario';
+  }
+
+  private timeValue(fecha?: string): number {
+    const value = fecha ? new Date(fecha).getTime() : 0;
+    return Number.isNaN(value) ? 0 : value;
   }
 }

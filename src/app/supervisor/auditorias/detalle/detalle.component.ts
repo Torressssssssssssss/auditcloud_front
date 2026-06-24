@@ -39,6 +39,9 @@ export class AuditoriaDetalleComponent implements OnInit {
   auditoresAsignados = signal<any[]>([]);
   
   showAsignacion = signal<boolean>(false);
+  asignacionModo = signal<'asignar' | 'cambiar'>('asignar');
+  moduloAviso = signal<{ tipo: 'success' | 'error'; mensaje: string } | null>(null);
+  asignacionAviso = signal<{ tipo: 'success' | 'error'; mensaje: string } | null>(null);
   asignacionForm: FormGroup;
 
   showConfirmEstado = signal(false);
@@ -108,35 +111,89 @@ export class AuditoriaDetalleComponent implements OnInit {
       });
   }
 
+  get modulosUnicos(): number[] {
+    const ids = this.auditoria()?.modulos || [];
+    return [...new Set(ids.map(id => Number(id)))];
+  }
+
+  moduloYaAgregado(idModulo: number): boolean {
+    return this.modulosUnicos.includes(Number(idModulo));
+  }
+
   agregarModulo(idModulo: number): void {
     const current = this.auditoria();
     if (!current || !current.id_auditoria) return;
 
+    if (this.moduloYaAgregado(idModulo)) {
+      this.moduloAviso.set({ tipo: 'error', mensaje: 'Este módulo ya fue agregado.' });
+      return;
+    }
+
+    this.moduloAviso.set(null);
     this.apiService.post(`/api/supervisor/auditorias/${current.id_auditoria}/modulos`, { id_modulo: idModulo })
       .subscribe({
         next: () => {
-          alert('Módulo agregado');
+          this.moduloAviso.set({ tipo: 'success', mensaje: 'Módulo agregado correctamente.' });
           this.loadAuditoria(current.id_auditoria);
         },
-        error: (err) => alert(err.error?.message || 'Error al agregar módulo')
+        error: (err) => this.moduloAviso.set({ tipo: 'error', mensaje: err.error?.message || 'Error al agregar módulo' })
       });
+  }
+
+  abrirAsignacion(modo: 'asignar' | 'cambiar') {
+    this.asignacionModo.set(modo);
+    this.asignacionAviso.set(null);
+    this.asignacionForm.reset();
+    this.showAsignacion.set(true);
+  }
+
+  cerrarAsignacion() {
+    this.showAsignacion.set(false);
+    this.asignacionForm.reset();
   }
 
   asignarAuditor() {
     if (this.asignacionForm.invalid) return;
     const idAuditoria = this.auditoria()?.id_auditoria || 0;
-    const idAuditor = this.asignacionForm.value.id_auditor;
+    const idAuditor = Number(this.asignacionForm.value.id_auditor);
+    const actual = this.auditoresAsignados()[0];
 
-    this.apiService.post(`/api/supervisor/auditorias/${idAuditoria}/asignar`, { id_auditor: idAuditor })
-      .subscribe({
-        next: () => {
-          alert('Auditor asignado correctamente');
-          this.loadAuditoresAsignados(idAuditoria);
-          this.asignacionForm.reset();
-          this.showAsignacion.set(false);
-        },
-        error: (err) => alert(err.error?.message || 'Error al asignar')
-      });
+    if (actual && Number(actual.id_usuario) === idAuditor) {
+      this.asignacionAviso.set({ tipo: 'error', mensaje: 'Este auditor ya está asignado.' });
+      return;
+    }
+
+    const request$ = this.asignacionModo() === 'cambiar'
+      ? this.apiService.changeSupervisorAuditorToAuditoria(idAuditoria, idAuditor)
+      : this.apiService.assignSupervisorAuditorToAuditoria(idAuditoria, idAuditor);
+
+    request$.subscribe({
+      next: () => {
+        this.asignacionAviso.set({ tipo: 'success', mensaje: this.asignacionModo() === 'cambiar' ? 'Auditor cambiado correctamente.' : 'Auditor asignado correctamente.' });
+        this.loadAuditoresAsignados(idAuditoria);
+        this.loadAuditoria(idAuditoria);
+        this.asignacionForm.reset();
+        this.showAsignacion.set(false);
+      },
+      error: (err) => this.asignacionAviso.set({ tipo: 'error', mensaje: err.error?.message || 'Error al asignar auditor' })
+    });
+  }
+
+  quitarAuditor() {
+    const idAuditoria = this.auditoria()?.id_auditoria || 0;
+    if (!idAuditoria) return;
+    const confirmado = window.confirm('¿Quitar el auditor asignado? La auditoría quedará pendiente de asignar auditor.');
+    if (!confirmado) return;
+
+    this.apiService.removeSupervisorAuditorFromAuditoria(idAuditoria).subscribe({
+      next: () => {
+        this.asignacionAviso.set({ tipo: 'success', mensaje: 'Auditor removido. La auditoría queda pendiente de asignar auditor.' });
+        this.auditoresAsignados.set([]);
+        this.showAsignacion.set(false);
+        this.loadAuditoria(idAuditoria);
+      },
+      error: (err) => this.asignacionAviso.set({ tipo: 'error', mensaje: err.error?.message || 'Error al quitar auditor' })
+    });
   }
   
   solicitarCambioEstado(estado: number) {
@@ -167,9 +224,23 @@ export class AuditoriaDetalleComponent implements OnInit {
       });
   }
 
-  getEstadoNombre(id: number): string {
-    const estados: any = { 1: 'CREADA', 2: 'EN PROCESO', 3: 'FINALIZADA' };
-    return estados[id] || 'DESCONOCIDO';
+  getEstadoNombre(id: number | string): string {
+    const estados: Record<number, string> = { 1: 'Creada', 2: 'En proceso', 3: 'Finalizada' };
+    if (typeof id === 'number') return estados[id] || 'Desconocido';
+    return this.formatEstado(id);
+  }
+
+  formatEstado(estado: string): string {
+    const raw = String(estado || 'Desconocido').trim().replace(/_/g, ' ').replace(/\s+/g, ' ');
+    const normalizado = raw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const especiales: Record<string, string> = {
+      'en proceso': 'En proceso',
+      'pendiente asignar auditor': 'Pendiente de asignar auditor',
+      'pendiente de asignar auditor': 'Pendiente de asignar auditor',
+      'auditor asignado': 'Auditor asignado'
+    };
+    if (especiales[normalizado]) return especiales[normalizado];
+    return raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
   }
 
   getModuloNombre(id: number): string {

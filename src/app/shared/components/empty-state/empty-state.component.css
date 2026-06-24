@@ -11,22 +11,17 @@
   background: var(--bg-secondary);
 }
 
-.empty-icon {
-  font-size: 4rem;
-  line-height: 1;
-  opacity: 0.45;
-  color: var(--text-tertiary);
-}
-
 .empty-icon-svg {
   width: 72px;
   height: 72px;
-  border-radius: 999px;
+  border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
+  color: var(--accent-primary);
+  background: color-mix(in srgb, var(--accent-primary) 10%, var(--bg-secondary));
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 18%, var(--border-color));
+  box-shadow: 0 12px 28px rgba(31, 41, 55, 0.06);
 }
 
 .empty-message {
@@ -34,6 +29,6 @@
   font-size: 1rem;
   margin: 0;
   font-weight: 500;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   max-width: 28rem;
 }

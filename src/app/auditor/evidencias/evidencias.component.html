@@ -147,9 +147,9 @@
                 @if (evidencia.tipo === 'COMENTARIO') {
                   <span class="text-gray-400 italic">N/A</span>
                 } @else {
-                  <a [href]="evidencia.url" target="_blank" class="text-blue-600 hover:text-blue-800 font-medium underline">
+                  <button type="button" (click)="verArchivo(evidencia)" class="text-blue-600 hover:text-blue-800 font-medium underline">
                     Ver Archivo
-                  </a>
+                  </button>
                 }
               </td>
             </tr>

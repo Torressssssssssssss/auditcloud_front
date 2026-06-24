@@ -126,3 +126,153 @@ html.dark .modulo-tag {
     grid-template-columns: 1fr;
   }
 }
+
+
+.inline-alert {
+  margin: 0.75rem 0;
+  padding: 0.75rem 0.9rem;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.inline-alert.success {
+  background: rgba(5, 150, 105, 0.12);
+  border-color: rgba(5, 150, 105, 0.22);
+  color: #047857;
+}
+
+.inline-alert.error {
+  background: rgba(245, 158, 11, 0.14);
+  border-color: rgba(245, 158, 11, 0.28);
+  color: #92400e;
+}
+
+.modulos-actions .btn {
+  min-height: 38px;
+}
+
+.modulos-actions .btn.is-added,
+.modulos-actions .btn:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
+.auditores-list {
+  display: grid;
+  gap: 0.75rem;
+  margin-bottom: var(--spacing-md);
+}
+
+.auditor-assignment {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
+.auditor-assignment strong,
+.auditor-assignment small {
+  display: block;
+}
+
+.auditor-assignment strong {
+  margin-top: 0.4rem;
+  color: var(--text-primary);
+  font-size: 0.98rem;
+}
+
+.auditor-assignment small {
+  margin-top: 0.15rem;
+  color: var(--text-secondary);
+}
+
+.assignment-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.32rem 0.62rem;
+  border-radius: 999px;
+  background: #ede9fe;
+  border: 1px solid #c4b5fd;
+  color: #5b21b6;
+  font-size: 0.74rem;
+  font-weight: 800;
+}
+
+.assignment-actions,
+.estado-actions,
+.quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  align-items: center;
+}
+
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  margin-top: 0.75rem;
+}
+
+.quick-actions .btn {
+  min-height: 44px;
+  justify-content: center;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.quick-actions .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+  border-color: var(--accent-primary);
+}
+
+.btn-danger {
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #991b1b;
+}
+
+.btn-danger:hover {
+  background: #fecaca;
+}
+
+.asignacion-form .form-group {
+  display: grid;
+  gap: 0.45rem;
+  margin-bottom: 0.85rem;
+}
+
+.asignacion-form select {
+  width: min(100%, 280px);
+  min-height: 40px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+html.dark .assignment-status {
+  background: rgba(167, 139, 250, 0.18);
+  border-color: rgba(167, 139, 250, 0.38);
+  color: #c4b5fd;
+}
+
+@media (max-width: 640px) {
+  .assignment-actions,
+  .estado-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .assignment-actions .btn,
+  .estado-actions .btn {
+    width: 100%;
+  }
+}

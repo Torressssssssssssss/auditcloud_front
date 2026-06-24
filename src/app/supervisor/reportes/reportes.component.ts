@@ -9,6 +9,8 @@ import { LoadingSpinnerComponent } from '../../shared/components/loading-spinner
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { Auditoria } from '../../models/auditoria.model';
+import { environment } from '../../../environments/environment';
+import { FileService } from '../../services/file.service';
 
 interface Reporte {
   id_reporte: number;
@@ -42,6 +44,7 @@ export class ReportesComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private fb = inject(FormBuilder);
   private http = inject(HttpClient);
+  private fileService = inject(FileService);
 
   // Señales
   loading = signal<boolean>(true);
@@ -143,7 +146,7 @@ export class ReportesComponent implements OnInit {
     const token = localStorage.getItem('auditcloud_token');
     const headers = new HttpHeaders({ 'Authorization': `Bearer ${token}` });
 
-    this.http.post('http://localhost:3000/api/auditor/reportes', formData, { headers })
+    this.http.post(environment.apiUrl + '/api/auditor/reportes', formData, { headers })
       .subscribe({
         next: () => {
           alert('Reporte subido y auditoría finalizada.');
@@ -170,7 +173,7 @@ export class ReportesComponent implements OnInit {
   }
 
   descargarReporte(url: string | undefined): void {
-    if (url) window.open(url, '_blank');
+    this.fileService.download(url);
   }
 
   onAuditoriaChange(event: Event): void {

@@ -19,6 +19,11 @@ export interface Auditoria {
     id_empresa: number;
     nombre: string;
   };
+
+  empresa_cliente?: {
+    id_empresa: number;
+    nombre: string;
+  };
   
   cliente?: { // Para la vista del Supervisor (a quién audito)
     id_usuario?: number;

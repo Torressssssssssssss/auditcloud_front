@@ -19,9 +19,7 @@
     <div *ngIf="pendientes().length === 0" class="empty-state">
       <div class="empty-state-card">
         <div class="empty-state-icon" aria-hidden="true">
-          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h4m4 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
+          <app-icon name="document" [size]="42"></app-icon>
         </div>
         <div class="empty-state-content">
           <h3>No tienes pagos pendientes</h3>
@@ -52,7 +50,7 @@
             class="mp-pay-button"
             [disabled]="procesandoId() === solicitud.id_solicitud"
             (click)="pagarConMercadoPago(solicitud)">
-            {{ procesandoId() === solicitud.id_solicitud ? 'Redirigiendo...' : 'Pagar' }}
+            {{ procesandoId() === solicitud.id_solicitud ? 'Abriendo...' : 'Pagar' }}
           </button>
         </div>
       </article>
@@ -89,4 +87,42 @@
       <div class="history-empty">Aún no tienes pagos registrados.</div>
     </ng-template>
   </section>
+</div>
+
+<div *ngIf="modalPago().visible" class="payment-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="mp-modal-title">
+  <div class="payment-modal">
+    <div class="modal-status-icon" [class.modal-status-icon-error]="modalPago().error" aria-hidden="true">
+      <span *ngIf="!modalPago().error" class="spinner"></span>
+      <span *ngIf="modalPago().error">!</span>
+    </div>
+
+    <div class="modal-copy">
+      <h2 id="mp-modal-title">{{ modalPago().mensaje }}</h2>
+      <p>Se abrió una ventana segura para finalizar el pago.</p>
+      <p class="modal-detail">{{ modalPago().detalle }}</p>
+      <p *ngIf="modalPago().popupCerrado" class="modal-note">La ventana fue cerrada. Puedes verificar el estado cuando quieras.</p>
+    </div>
+
+    <div class="modal-actions">
+      <button
+        type="button"
+        class="modal-button modal-button-secondary"
+        (click)="abrirMercadoPagoManual()">
+        Abrir Mercado Pago
+      </button>
+      <button
+        type="button"
+        class="modal-button modal-button-primary"
+        [disabled]="modalPago().verificando"
+        (click)="verificarPagoActual()">
+        {{ modalPago().verificando ? 'Verificando...' : 'Ya pagué, verificar estado' }}
+      </button>
+      <button
+        type="button"
+        class="modal-button modal-button-ghost"
+        (click)="cancelarPago()">
+        Cancelar
+      </button>
+    </div>
+  </div>
 </div>

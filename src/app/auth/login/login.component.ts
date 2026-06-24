@@ -29,6 +29,11 @@ export class LoginComponent implements OnInit, AfterViewInit {
   showCompanyModal = signal<boolean>(false);
   companyForm: FormGroup;
   completingProfile = signal<boolean>(false);
+  demoUsers = [
+    { rol: 'Supervisor', correo: 'supervisor@auditcloud.com', password: '123456' },
+    { rol: 'Auditor', correo: 'auditor@auditcloud.com', password: '123456' },
+    { rol: 'Cliente', correo: 'cliente@auditcloud.com', password: '123456' }
+  ];
 
   constructor(
     private fb: FormBuilder,
@@ -184,6 +189,14 @@ export class LoginComponent implements OnInit, AfterViewInit {
         this.loading.set(false);
       }
     });
+  }
+
+  usarCredencialesDemo(usuario: { correo: string; password: string }): void {
+    this.loginForm.patchValue({
+      correo: usuario.correo,
+      password: usuario.password
+    });
+    this.errorMessage.set('');
   }
 
   onSubmit(): void {

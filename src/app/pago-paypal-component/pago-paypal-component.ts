@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, ViewChild, ElementRef, OnInit, 
 import { CommonModule } from '@angular/common';
 import { loadScript } from '@paypal/paypal-js';
 import { environment } from '../../environments/environment';
+import { IconComponent } from '../shared/components/icon/icon.component';
 
 // TODO: Configura tu Client ID de PayPal Sandbox/Production
 const PAYPAL_CLIENT_ID = 'AecrVLNqy9BcJV5i8xvwpz9u8aaD-KqVT6Wn3LI9gY_a_fzlWHPJYLnqFxMYuJhM7sePR3LZ9nrEpW4p';
@@ -9,7 +10,7 @@ const PAYPAL_CLIENT_ID = 'AecrVLNqy9BcJV5i8xvwpz9u8aaD-KqVT6Wn3LI9gY_a_fzlWHPJYL
 @Component({
   selector: 'app-pago-paypal',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, IconComponent],
   templateUrl: './pago-paypal-component.html',
   styleUrls: ['./pago-paypal-component.css']
 })

@@ -67,26 +67,36 @@ export class NotificacionesComponent implements OnInit {
   }
 
   getRutaNotificacion(notificacion: Notificacion): string | null {
-    // Si es mensaje nuevo, redirigir a mensajes con query param de conversación o empresa
-    if (notificacion.tipo === 'mensaje_nuevo') {
-      // Si la notificación tiene id_conversacion o id_empresa, usarlo
+    if (notificacion.tipo === "mensaje_nuevo") {
       const idConversacion = (notificacion as any).id_conversacion;
       const idEmpresa = (notificacion as any).id_empresa_auditora;
-      
+
       if (idConversacion) {
         return `/cliente/mensajes?conversacion=${idConversacion}`;
-      } else if (idEmpresa) {
-        return `/cliente/mensajes?empresa=${idEmpresa}`;
-      } else {
-        return '/cliente/mensajes';
       }
+      if (idEmpresa) {
+        return `/cliente/mensajes?empresa=${idEmpresa}`;
+      }
+      return "/cliente/mensajes";
     }
-    
-    if (notificacion.id_auditoria) {
+
+    if (notificacion.tipo === "reporte_subido") {
+      return notificacion.id_auditoria
+        ? `/cliente/reportes?auditoria=${notificacion.id_auditoria}`
+        : "/cliente/reportes";
+    }
+
+    if (notificacion.tipo === "evidencia_subida") {
+      return notificacion.id_auditoria
+        ? `/cliente/timeline?auditoria=${notificacion.id_auditoria}`
+        : "/cliente/timeline";
+    }
+
+    if (notificacion.tipo === "estado_cambiado" && notificacion.id_auditoria) {
       return `/cliente/auditorias/${notificacion.id_auditoria}`;
     }
-    
-    return '/cliente/dashboard';
+
+    return null;
   }
 
   navegarANotificacion(notificacion: Notificacion): void {
@@ -94,6 +104,8 @@ export class NotificacionesComponent implements OnInit {
     if (ruta) {
       this.router.navigateByUrl(ruta);
       this.cerrarDropdown();
+    } else {
+      alert("La notificación no tiene un destino válido.");
     }
   }
 }
