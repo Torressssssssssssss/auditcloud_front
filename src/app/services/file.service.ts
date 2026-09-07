@@ -99,7 +99,7 @@ export class FileService {
     }
 
     try {
-      const parsed = new URL(url, environment.apiUrl);
+      const parsed = new URL(url, new URL(environment.apiUrl || "/", window.location.origin));
       return decodeURIComponent(parsed.pathname.split('/').pop() || '');
     } catch {
       return url.split('/').pop() || null;
