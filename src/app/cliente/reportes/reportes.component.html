@@ -28,19 +28,22 @@
         <div class="reporte-card">
           <div class="card-header">
             <div class="card-icon" [style.background]="getCardGradient(reporte)">
-              <app-icon [name]="getIconoTipo(getTipoReporte(reporte.nombre))" [size]="32"></app-icon>
+              <app-icon
+                [name]="getIconoTipo(getTipoReporte(reporte.nombre))"
+                [size]="32"
+              ></app-icon>
             </div>
             <div class="card-badge">
               <span>{{ getTipoReporte(reporte.nombre) }}</span>
             </div>
           </div>
-          
+
           <div class="card-content">
             <h3 class="card-title">{{ reporte.nombre }}</h3>
             <div class="card-info">
               <div class="info-item">
                 <app-icon name="calendar" [size]="16"></app-icon>
-                <span>{{ reporte.fecha_elaboracion | date:'medium' }}</span>
+                <span>{{ reporte.fecha_elaboracion | date: 'medium' }}</span>
               </div>
               @if (reporte.auditoria) {
                 <div class="info-item">
@@ -56,16 +59,23 @@
           </div>
 
           <div class="card-footer">
-            <a 
-              [routerLink]="['/cliente/auditorias', reporte.id_auditoria]" 
-              class="btn btn-outline">
+            <a [routerLink]="['/cliente/auditorias', reporte.id_auditoria]" class="btn btn-outline">
               <app-icon name="eye" [size]="16"></app-icon>
               Ver Auditoría
             </a>
-            <button 
-              class="btn btn-primary" 
+            <button
+              class="btn btn-secondary"
+              (click)="verReporte(reporte)"
+              [disabled]="!reporte.url"
+            >
+              <app-icon name="eye" [size]="16"></app-icon>
+              Ver
+            </button>
+            <button
+              class="btn btn-primary"
               (click)="descargarReporte(reporte)"
-              [disabled]="!reporte.url">
+              [disabled]="!reporte.url"
+            >
               <app-icon name="download" [size]="16"></app-icon>
               Descargar
             </button>
@@ -75,4 +85,3 @@
     </div>
   }
 </div>
-

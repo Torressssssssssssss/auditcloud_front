@@ -29,10 +29,10 @@ interface Reporte {
     RouterModule,
     LoadingSpinnerComponent,
     EmptyStateComponent,
-    IconComponent
+    IconComponent,
   ],
   templateUrl: './reportes.component.html',
-  styleUrl: './reportes.component.css'
+  styleUrl: './reportes.component.css',
 })
 export class ClienteReportesComponent implements OnInit {
   loading = signal<boolean>(true);
@@ -44,12 +44,12 @@ export class ClienteReportesComponent implements OnInit {
     private apiService: ApiService,
     private authService: AuthService,
     private fileService: FileService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
-    this.route.queryParams.subscribe(params => {
-      const idAuditoria = Number(params["auditoria"]);
+    this.route.queryParams.subscribe((params) => {
+      const idAuditoria = Number(params['auditoria']);
       this.filtroAuditoria.set(idAuditoria || null);
     });
     this.loadAuditorias();
@@ -60,56 +60,61 @@ export class ClienteReportesComponent implements OnInit {
     const idCliente = this.authService.getIdUsuario();
     if (!idCliente) return;
 
-    this.apiService.get<any>(`/api/cliente/auditorias/${idCliente}`)
-      .subscribe({
-        next: (response) => {
-          const auditorias = Array.isArray(response) ? response : (response?.data || []);
-          this.auditorias.set(auditorias);
-        },
-        error: (error) => {
-          console.error('Error cargando auditorías:', error);
-        }
-      });
+    this.apiService.get<any>(`/api/cliente/auditorias/${idCliente}`).subscribe({
+      next: (response) => {
+        const auditorias = Array.isArray(response) ? response : response?.data || [];
+        this.auditorias.set(auditorias);
+      },
+      error: (error) => {
+        console.error('Error cargando auditorías:', error);
+      },
+    });
   }
 
   loadReportes(): void {
     this.loading.set(true);
     const idCliente = this.authService.getIdUsuario();
-    
+
     if (!idCliente) {
       this.loading.set(false);
       return;
     }
 
     // Endpoint: GET /api/cliente/reportes/:idCliente
-    this.apiService.get<any>(`/api/cliente/reportes/${idCliente}`)
-      .subscribe({
-        next: (response) => {
-          const reportes = Array.isArray(response) ? response : (response?.data || []);
-          this.reportes.set(reportes);
-          this.loading.set(false);
-        },
-        error: (error) => {
-          console.error('Error cargando reportes:', error);
-          this.loading.set(false);
-        }
-      });
+    this.apiService.get<any>(`/api/cliente/reportes/${idCliente}`).subscribe({
+      next: (response) => {
+        const reportes = Array.isArray(response) ? response : response?.data || [];
+        this.reportes.set(reportes);
+        this.loading.set(false);
+      },
+      error: (error) => {
+        console.error('Error cargando reportes:', error);
+        this.loading.set(false);
+      },
+    });
   }
 
   get reportesFiltrados(): Reporte[] {
     let result = this.reportes();
-    
+
     if (this.filtroAuditoria()) {
-      result = result.filter(r => r.id_auditoria === this.filtroAuditoria());
+      result = result.filter((r) => r.id_auditoria === this.filtroAuditoria());
     }
-    
+
     return result;
+  }
+
+  verReporte(reporte: Reporte): void {
+    this.fileService.openEndpoint(
+      `/api/cliente/auditorias/${reporte.id_auditoria}/reporte`,
+      `${reporte.nombre}.pdf`,
+    );
   }
 
   descargarReporte(reporte: Reporte): void {
     this.fileService.downloadEndpoint(
       `/api/cliente/auditorias/${reporte.id_auditoria}/reporte`,
-      `${reporte.nombre}.pdf`
+      `${reporte.nombre}.pdf`,
     );
   }
 
@@ -143,4 +148,3 @@ export class ClienteReportesComponent implements OnInit {
     return 'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%)';
   }
 }
-

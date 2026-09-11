@@ -3,7 +3,7 @@ import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http
 import { environment } from '../../environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class FileService {
   constructor(private http: HttpClient) {}
@@ -11,22 +11,22 @@ export class FileService {
   open(url: string | undefined | null, fileName?: string): void {
     try {
       this.fetchBlob(url).subscribe({
-        next: (blob) => this.openBlob(blob),
-        error: (error) => alert(this.getFileErrorMessage(error, "abrir"))
+        next: (blob) => this.openPreview(blob, fileName || this.getFileName(url) || 'archivo'),
+        error: (error) => alert(this.getFileErrorMessage(error, 'abrir')),
       });
     } catch (error) {
-      alert(this.getFileErrorMessage(error, "abrir"));
+      alert(this.getFileErrorMessage(error, 'abrir'));
     }
   }
 
   download(url: string | undefined | null, fileName?: string): void {
     try {
       this.fetchBlob(url).subscribe({
-        next: (blob) => this.downloadBlob(blob, fileName || this.getFileName(url) || "archivo"),
-        error: (error) => alert(this.getFileErrorMessage(error, "descargar"))
+        next: (blob) => this.downloadBlob(blob, fileName || this.getFileName(url) || 'archivo'),
+        error: (error) => alert(this.getFileErrorMessage(error, 'descargar')),
       });
     } catch (error) {
-      alert(this.getFileErrorMessage(error, "descargar"));
+      alert(this.getFileErrorMessage(error, 'descargar'));
     }
   }
 
@@ -45,7 +45,7 @@ export class FileService {
 
     return this.http.get(normalizedUrl, {
       headers,
-      responseType: 'blob'
+      responseType: 'blob',
     });
   }
 
@@ -71,15 +71,63 @@ export class FileService {
     }
   }
 
-  private openBlob(blob: Blob): void {
-    const blobUrl = window.URL.createObjectURL(blob);
-    const opened = window.open(blobUrl, '_blank', 'noopener,noreferrer');
-
-    if (!opened) {
-      this.downloadBlob(blob, 'archivo');
+  private openPreview(blob: Blob, fileName: string): void {
+    const objectUrl = window.URL.createObjectURL(blob);
+    const isPdf = blob.type === 'application/pdf' || /\.pdf$/i.test(fileName);
+    const overlay = document.createElement('div');
+    overlay.className = 'audit-file-preview-overlay';
+    overlay.innerHTML = `
+      <div class="audit-file-preview-dialog" role="dialog" aria-modal="true" aria-label="Vista previa de ${this.escapeHtml(fileName)}">
+        <div class="audit-file-preview-header">
+          <strong>${this.escapeHtml(fileName)}</strong>
+          <button type="button" class="audit-file-preview-close" aria-label="Cerrar">×</button>
+        </div>
+        <div class="audit-file-preview-body"></div>
+        <div class="audit-file-preview-actions">
+          <button type="button" class="btn btn-secondary audit-file-preview-close-action">Cerrar</button>
+          <button type="button" class="btn btn-primary audit-file-preview-download">Descargar</button>
+        </div>
+      </div>`;
+    const body = overlay.querySelector('.audit-file-preview-body') as HTMLElement;
+    if (isPdf) {
+      const frame = document.createElement('iframe');
+      frame.src = objectUrl;
+      frame.title = `Vista previa de ${fileName}`;
+      body.appendChild(frame);
+    } else {
+      const image = document.createElement('img');
+      image.src = objectUrl;
+      image.alt = fileName;
+      body.appendChild(image);
     }
+    const close = () => {
+      window.URL.revokeObjectURL(objectUrl);
+      overlay.remove();
+      document.removeEventListener('keydown', onKeyDown);
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') close();
+    };
+    overlay
+      .querySelectorAll('.audit-file-preview-close, .audit-file-preview-close-action')
+      .forEach((button) => button.addEventListener('click', close));
+    overlay
+      .querySelector('.audit-file-preview-download')
+      ?.addEventListener('click', () => this.downloadBlob(blob, fileName));
+    overlay.addEventListener('click', (event) => {
+      if (event.target === overlay) close();
+    });
+    document.addEventListener('keydown', onKeyDown);
+    document.body.appendChild(overlay);
+  }
 
-    window.setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60000);
+  private escapeHtml(value: string): string {
+    return value.replace(
+      /[&<>"']/g,
+      (character) =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character] ||
+        character,
+    );
   }
 
   private downloadBlob(blob: Blob, fileName: string): void {
@@ -99,7 +147,7 @@ export class FileService {
     }
 
     try {
-      const parsed = new URL(url, new URL(environment.apiUrl || "/", window.location.origin));
+      const parsed = new URL(url, new URL(environment.apiUrl || '/', window.location.origin));
       return decodeURIComponent(parsed.pathname.split('/').pop() || '');
     } catch {
       return url.split('/').pop() || null;

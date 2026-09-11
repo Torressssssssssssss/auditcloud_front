@@ -9,12 +9,14 @@
   @if (showForm()) {
     <div class="form-card">
       <h3>Registrar Evidencia</h3>
-      
+
       <form [formGroup]="evidenciaForm" (ngSubmit)="onSubmit()">
-        
         <div class="form-group">
           <label>Auditoría</label>
-          <select formControlName="id_auditoria" [class.error]="id_auditoria?.invalid && id_auditoria?.touched">
+          <select
+            formControlName="id_auditoria"
+            [class.error]="id_auditoria?.invalid && id_auditoria?.touched"
+          >
             <option value="">Seleccionar auditoría</option>
             @for (auditoria of auditorias(); track auditoria.id_auditoria) {
               <option [value]="auditoria.id_auditoria">
@@ -29,7 +31,10 @@
 
         <div class="form-group">
           <label>Módulo</label>
-          <select formControlName="id_modulo" [class.error]="id_modulo?.invalid && id_modulo?.touched">
+          <select
+            formControlName="id_modulo"
+            [class.error]="id_modulo?.invalid && id_modulo?.touched"
+          >
             <option value="">Seleccionar módulo</option>
             <option [value]="1">Agua</option>
             <option [value]="2">Residuos</option>
@@ -46,34 +51,36 @@
             <option value="FOTO">Fotografía</option>
             <option value="DOC">Documento PDF</option>
             <option value="VIDEO">Video</option>
-            <option value="COMENTARIO">Comentario / Nota</option> </select>
+            <option value="COMENTARIO">Comentario / Nota</option>
+          </select>
         </div>
 
         @if (tipo?.value !== 'COMENTARIO') {
           <div class="form-group">
             <label>Archivo</label>
-            <input 
-              type="file" 
+            <input
+              type="file"
               #fileInput
-              (change)="onFileSelect($event)" 
+              (change)="onFileSelect($event)"
               accept=".jpg,.jpeg,.png,.pdf"
-              class="file-input" 
+              class="file-input"
             />
             <p class="text-xs text-gray-500 mt-1">Formatos: JPG, PNG, PDF (Máx 5MB)</p>
-            
+
             @if (!selectedFile && evidenciaForm.touched) {
-               <span class="field-error text-red-500 text-sm">Debes seleccionar un archivo</span>
+              <span class="field-error text-red-500 text-sm">Debes seleccionar un archivo</span>
             }
           </div>
         }
 
         <div class="form-group">
           <label>Descripción</label>
-          <textarea 
-            formControlName="descripcion" 
-            rows="3" 
+          <textarea
+            formControlName="descripcion"
+            rows="3"
             placeholder="Describe la evidencia..."
-            [class.error]="descripcion?.invalid && descripcion?.touched">
+            [class.error]="descripcion?.invalid && descripcion?.touched"
+          >
           </textarea>
           @if (descripcion?.invalid && descripcion?.touched) {
             <span class="field-error">La descripción es obligatoria</span>
@@ -81,13 +88,20 @@
         </div>
 
         <div class="form-actions mt-4 flex justify-end gap-3">
-          <button type="button" class="btn btn-secondary" (click)="resetFormulario()">Cancelar</button>
-          
-          <button type="submit" class="btn btn-primary" [disabled]="evidenciaForm.invalid || (tipo?.value !== 'COMENTARIO' && !selectedFile) || enviando()">
+          <button type="button" class="btn btn-secondary" (click)="resetFormulario()">
+            Cancelar
+          </button>
+
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="
+              evidenciaForm.invalid || (tipo?.value !== 'COMENTARIO' && !selectedFile) || enviando()
+            "
+          >
             {{ enviando() ? 'Guardando...' : 'Guardar' }}
           </button>
         </div>
-
       </form>
     </div>
   }
@@ -126,7 +140,8 @@
             <th>Módulo</th>
             <th>Tipo</th>
             <th>Descripción</th>
-            <th>Fecha</th> <th>Archivo</th>
+            <th>Fecha</th>
+            <th>Archivo</th>
           </tr>
         </thead>
         <tbody>
@@ -139,17 +154,32 @@
                 </span>
               </td>
               <td>{{ evidencia.tipo }}</td>
-              <td class="max-w-xs truncate" title="{{ evidencia.descripcion }}">{{ evidencia.descripcion }}</td>
-              
-              <td>{{ evidencia.creado_en | date:'short' }}</td>
-              
+              <td class="max-w-xs truncate" title="{{ evidencia.descripcion }}">
+                {{ evidencia.descripcion }}
+              </td>
+
+              <td>{{ evidencia.creado_en | date: 'short' }}</td>
+
               <td>
                 @if (evidencia.tipo === 'COMENTARIO') {
                   <span class="text-gray-400 italic">N/A</span>
                 } @else {
-                  <button type="button" (click)="verArchivo(evidencia)" class="text-blue-600 hover:text-blue-800 font-medium underline">
-                    Ver Archivo
-                  </button>
+                  <div class="file-actions">
+                    <button
+                      type="button"
+                      (click)="verArchivo(evidencia)"
+                      class="btn btn-secondary btn-sm"
+                    >
+                      Ver
+                    </button>
+                    <button
+                      type="button"
+                      (click)="descargarArchivo(evidencia)"
+                      class="btn btn-outline btn-sm"
+                    >
+                      Descargar
+                    </button>
+                  </div>
                 }
               </td>
             </tr>

@@ -1,3 +1,4 @@
+import { environment } from '../../../environments/environment';
 import { Component, signal, OnInit, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -22,6 +23,7 @@ declare global {
 })
 
 export class LoginComponent implements OnInit, AfterViewInit {
+  readonly googleSignInEnabled = !environment.production || ('googleSignInEnabled' in environment && environment.googleSignInEnabled === true);
   loginForm: FormGroup;
   errorMessage = signal<string>('');
   loading = signal<boolean>(false);
@@ -55,6 +57,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
+    if (!this.googleSignInEnabled) return;
     window.handleGoogleCredential = (response: any) => {
       this.handleGoogleCredentialResponse(response);
     };
@@ -63,6 +66,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
   private googleButtonElement: HTMLElement | null = null;
 
   ngAfterViewInit(): void {
+    if (!this.googleSignInEnabled) return;
     const initializeGoogle = () => {
       if (window.google) {
         window.google.accounts.id.initialize({
@@ -102,6 +106,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
   }
 
   triggerGoogleSignIn(): void {
+    if (!this.googleSignInEnabled) return;
     if (!window.google) {
       this.errorMessage.set('Google Identity Services no está disponible. Por favor, recarga la página.');
       return;
@@ -167,6 +172,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
   }
 
   private handleGoogleCredentialResponse(response: any): void {
+    if (!this.googleSignInEnabled) return;
     if (!response.credential) return;
 
     this.loading.set(true);

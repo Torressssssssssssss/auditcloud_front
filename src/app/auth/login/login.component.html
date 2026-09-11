@@ -55,6 +55,7 @@
         }
       </div>
 
+      @if (googleSignInEnabled) {
       <button
         type="button"
         class="auth-button auth-button-google btn-google-custom"
@@ -72,6 +73,10 @@
       <div class="auth-divider divider">
         <span>o</span>
       </div>
+
+      } @else {
+        <p>Inicio de sesión con Google disponible próximamente</p>
+      }
 
         <button type="submit" class="auth-button auth-button-primary btn-login btn-elegant"
           [disabled]="loginForm.invalid || loading()">
