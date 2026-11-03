@@ -1,3 +1,4 @@
+import { finalize } from 'rxjs';
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -32,6 +33,9 @@ import { Auditoria } from '../../../models/auditoria.model';
   styleUrls: ['./detalle.component.css']
 })
 export class AuditoriaDetalleComponent implements OnInit {
+  descargandoReporte = signal(false);
+  errorReporte = signal<string | null>(null);
+
   loading = signal<boolean>(true);
   auditoria = signal<Auditoria | null>(null);
   
@@ -62,6 +66,39 @@ export class AuditoriaDetalleComponent implements OnInit {
   // 👇 3. AGREGAR EL GETTER PARA EL FORMULARIO (Soluciona TS2339 id_auditor)
   get id_auditor() {
     return this.asignacionForm.get('id_auditor');
+  }
+
+  descargarReporte(): void
+  {
+    const idAuditoria = this.auditoria()?.id_auditoria;
+    if (!idAuditoria || this.descargandoReporte())
+    {
+      return;
+    }
+
+    this.descargandoReporte.set(true);
+    this.errorReporte.set(null);
+
+    this.apiService.generarReporte(idAuditoria)
+      .pipe(finalize(() => this.descargandoReporte.set(false)))
+      .subscribe(
+      {
+        next: (archivo) =>
+        {
+          const url = window.URL.createObjectURL(archivo);
+          const enlace = document.createElement('a');
+          enlace.href = url;
+          enlace.download = 'reporte.pdf';
+          document.body.appendChild(enlace);
+          enlace.click();
+          enlace.remove();
+          window.setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+        },
+        error: () =>
+        {
+          this.errorReporte.set('No se pudo descargar el reporte. Inténtalo nuevamente.');
+        }
+      });
   }
 
   ngOnInit(): void {

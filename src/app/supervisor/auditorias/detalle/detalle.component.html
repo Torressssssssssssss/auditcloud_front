@@ -133,6 +133,9 @@
       <div class="info-card">
         <h3>Acciones Rápidas</h3>
         <div class="quick-actions">
+          <button type="button" class="btn btn-primary" (click)="descargarReporte()" [disabled]="descargandoReporte()" [attr.aria-busy]="descargandoReporte()">
+            Descargar Reporte PDF
+          </button>
           <a [routerLink]="['/supervisor/evidencias']" [queryParams]="{auditoria: auditoria()!.id_auditoria}" class="btn btn-secondary">
             Ver Evidencias
           </a>
@@ -140,6 +143,9 @@
             Ver Reportes
           </a>
         </div>
+        @if (errorReporte()) {
+          <p class="inline-alert error" role="alert">{{ errorReporte() }}</p>
+        }
       </div>
     </div>
 

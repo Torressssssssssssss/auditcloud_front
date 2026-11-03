@@ -106,6 +106,15 @@ export class ApiService {
     return this.http.get<T>(`${this.baseUrl}${endpoint}`, baseOptions);
   }
 
+  generarReporte(idAuditoria: number): Observable<Blob>
+  {
+    return this.http.get(`${this.baseUrl}/api/reportes/generar/${idAuditoria}`,
+    {
+      headers: this.getHeaders(),
+      responseType: 'blob'
+    });
+  }
+
   post<T>(endpoint: string, body: any): Observable<T> {
     return this.http.post<T>(`${this.baseUrl}${endpoint}`, body, {
       headers: this.getHeaders()

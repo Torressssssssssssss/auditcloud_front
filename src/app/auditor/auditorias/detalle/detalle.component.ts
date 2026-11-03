@@ -1,3 +1,4 @@
+import { finalize } from 'rxjs';
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -46,6 +47,9 @@ export class AuditoriaDetalleComponent implements OnInit {
   private route = inject(ActivatedRoute);
   public router = inject(Router);
 
+  descargandoReporte = signal(false);
+  errorReporte = signal<string | null>(null);
+
   loading = signal<boolean>(true);
   saving = signal<boolean>(false);
   auditoria = signal<Auditoria | null>(null);
@@ -65,6 +69,39 @@ export class AuditoriaDetalleComponent implements OnInit {
   // Control edición objetivo
   isEditingObjetivo = signal<boolean>(false);
   tempObjetivo: string = '';
+
+  descargarReporte(): void
+  {
+    const idAuditoria = this.auditoria()?.id_auditoria;
+    if (!idAuditoria || this.descargandoReporte())
+    {
+      return;
+    }
+
+    this.descargandoReporte.set(true);
+    this.errorReporte.set(null);
+
+    this.api.generarReporte(idAuditoria)
+      .pipe(finalize(() => this.descargandoReporte.set(false)))
+      .subscribe(
+      {
+        next: (archivo) =>
+        {
+          const url = window.URL.createObjectURL(archivo);
+          const enlace = document.createElement('a');
+          enlace.href = url;
+          enlace.download = 'reporte.pdf';
+          document.body.appendChild(enlace);
+          enlace.click();
+          enlace.remove();
+          window.setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+        },
+        error: () =>
+        {
+          this.errorReporte.set('No se pudo descargar el reporte. Inténtalo nuevamente.');
+        }
+      });
+  }
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
