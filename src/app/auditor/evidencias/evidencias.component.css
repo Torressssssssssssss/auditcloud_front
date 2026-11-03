@@ -4,6 +4,48 @@
   gap: var(--spacing-lg);
 }
 
+.consumo-toggle, .consumo-fields {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-md);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+}
+
+.consumo-toggle label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.consumo-toggle input {
+  width: auto;
+}
+
+.consumo-toggle p, .consumo-help, .consumo-grid small {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.consumo-fields legend {
+  padding: 0 0.5rem;
+  font-weight: 600;
+}
+
+.consumo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: var(--spacing-md);
+}
+
+.form-feedback.success {
+  color: var(--text-primary);
+  border-left: 4px solid #16834b;
+  padding: var(--spacing-md);
+  background: var(--bg-secondary);
+}
+
 .page-header {
   display: flex;
   justify-content: space-between;

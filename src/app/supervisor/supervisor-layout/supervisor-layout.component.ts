@@ -20,6 +20,7 @@ export class SupervisorLayoutComponent {
 
   navItems: NavItem[] = [
     { ruta: '/supervisor/dashboard', icono: 'dashboard', etiqueta: 'Dashboard' },
+    { ruta: '/supervisor/dashboard-directivo', icono: 'chart-line', etiqueta: 'Alta Dirección' },
     { ruta: '/supervisor/clientes', icono: 'building', etiqueta: 'Empresas Cliente' },
     { ruta: '/supervisor/auditorias', icono: 'document', etiqueta: 'Auditorías' },
     { ruta: '/supervisor/pagos', icono: 'credit-card', etiqueta: 'Solicitudes de Pago' },

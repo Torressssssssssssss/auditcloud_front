@@ -14,10 +14,11 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it('should render title', async () => {
+  it('debe contener el punto de montaje de las rutas', async () =>
+  {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, auditcloud_front');
+    const elemento = fixture.nativeElement as HTMLElement;
+    expect(elemento.querySelector('router-outlet')).not.toBeNull();
   });
 });

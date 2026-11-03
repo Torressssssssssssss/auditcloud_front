@@ -1,0 +1,50 @@
+<section class="dashboard-directivo" aria-labelledby="titulo-directivo">
+  <header>
+    <div>
+      <h2 id="titulo-directivo">Dashboard de Alta Dirección</h2>
+      <p>Consumos ambientales de las auditorías de tu empresa.</p>
+    </div>
+    <div class="acciones">
+      <label for="anio-directivo">Año</label>
+      <input id="anio-directivo" type="number" min="1000" max="9999" step="1"
+        [value]="anio()" (change)="cambiarAnio($event)" [attr.aria-invalid]="!!errorAnio()" />
+      <button class="btn btn-secondary" type="button" (click)="actualizar()" [disabled]="cargando()">Actualizar</button>
+    </div>
+  </header>
+  <p class="estado" role="status">
+    @switch (conexion()) {
+      @case ('conectado') { Conectado · actualización en tiempo real }
+      @case ('conectando') { Conectando al servicio en tiempo real… }
+      @case ('desconectado') { Sin conexión en tiempo real. Los datos pueden estar desactualizados. }
+      @case ('error') { No se pudo conectar al servicio en tiempo real. Comprueba tu sesión o conexión. }
+    }
+  </p>
+  @if (errorAnio()) { <p class="field-error" role="alert">{{ errorAnio() }}</p> }
+  @if (error()) { <p class="field-error" role="alert">{{ error() }}</p> }
+  @if (cargando()) { <p role="status">Actualizando consumos…</p> }
+  @if (actualizacion(); as fecha) { <p>Última actualización: {{ fecha | date: 'short' }}</p> }
+  <p>Mediciones agrupadas por el mes de fin del periodo, sin prorrateo. Agua en m³ y energía en kWh.</p>
+  <div class="graficas" [attr.aria-busy]="cargando()">
+    <article>
+      <h3>Consumo de Agua mensual</h3>
+      <div class="lienzo"><canvas #lienzoAgua role="img" aria-label="Consumo mensual de agua, en metros cúbicos"></canvas></div>
+    </article>
+    <article>
+      <h3>Consumo de Energía mensual</h3>
+      <div class="lienzo"><canvas #lienzoEnergia role="img" aria-label="Consumo mensual de energía, en kilovatios hora"></canvas></div>
+    </article>
+  </div>
+  @if (datos(); as resumen) {
+    <details>
+      <summary>Consultar valores mensuales de {{ resumen.anio }}</summary>
+      <table>
+        <thead><tr><th scope="col">Mes</th><th scope="col">Agua (m³)</th><th scope="col">Energía (kWh)</th></tr></thead>
+        <tbody>
+          @for (mes of meses; track mes; let posicion = $index) {
+            <tr><th scope="row">{{ mes }}</th><td>{{ resumen.agua[posicion] }}</td><td>{{ resumen.energia[posicion] }}</td></tr>
+          }
+        </tbody>
+      </table>
+    </details>
+  }
+</section>

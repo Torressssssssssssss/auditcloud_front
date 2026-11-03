@@ -1,3 +1,12 @@
+export interface ConsumoAmbiental {
+  id_evidencia: number;
+  tipo_recurso: 'Agua' | 'Energía' | 'Residuos' | 'Emisiones';
+  cantidad: string; // DECIMAL de MySQL: conservar exactitud, sin redondeo a Number.
+  unidad_medida: string;
+  fecha_inicio: string; // Fecha civil AAAA-MM-DD, sin zona horaria.
+  fecha_fin: string;
+}
+
 export interface Evidencia {
   id_evidencia: number;
   id_auditoria: number;
@@ -8,6 +17,7 @@ export interface Evidencia {
   tipo: 'FOTO' | 'DOC' | 'VIDEO' | 'COMENTARIO';
   
   descripcion: string;
+  consumo?: ConsumoAmbiental | null;
   url?: string;
   nombre_archivo?: string;
   

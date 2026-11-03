@@ -32,6 +32,10 @@ export const routes: Routes = [
         loadComponent: () => import('./supervisor/dashboard/dashboard.component').then(m => m.SupervisorDashboardComponent)
       },
       {
+        path: 'dashboard-directivo',
+        loadComponent: () => import('./supervisor/dashboard-directivo/dashboard-directivo.component').then(modulo => modulo.DashboardDirectivoComponent)
+      },
+      {
         path: 'clientes',
         loadComponent: () => import('./supervisor/clientes/clientes.component').then(m => m.ClientesComponent)
       },

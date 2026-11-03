@@ -1,16 +1,23 @@
 <div class="evidencias-page">
   <div class="page-header">
     <h2>Evidencias</h2>
-    <button class="btn btn-primary" (click)="showForm.set(!showForm())">
+    <button class="btn btn-primary" (click)="showForm.set(!showForm())" [disabled]="enviando()">
       {{ showForm() ? 'Cancelar' : '+ Nueva Evidencia' }}
     </button>
   </div>
+
+  @if (mensajeExito()) {
+    <p class="form-feedback success" role="status">{{ mensajeExito() }}</p>
+  }
 
   @if (showForm()) {
     <div class="form-card">
       <h3>Registrar Evidencia</h3>
 
       <form [formGroup]="evidenciaForm" (ngSubmit)="onSubmit()">
+        @if (errorFormulario()) {
+          <p class="field-error" role="alert">{{ errorFormulario() }}</p>
+        }
         <div class="form-group">
           <label>Auditoría</label>
           <select
@@ -50,7 +57,6 @@
           <select formControlName="tipo" [class.error]="tipo?.invalid && tipo?.touched">
             <option value="FOTO">Fotografía</option>
             <option value="DOC">Documento PDF</option>
-            <option value="VIDEO">Video</option>
             <option value="COMENTARIO">Comentario / Nota</option>
           </select>
         </div>
@@ -67,6 +73,10 @@
             />
             <p class="text-xs text-gray-500 mt-1">Formatos: JPG, PNG, PDF (Máx 5MB)</p>
 
+            @if (errorArchivo()) {
+              <span class="field-error" role="alert">{{ errorArchivo() }}</span>
+            }
+
             @if (!selectedFile && evidenciaForm.touched) {
               <span class="field-error text-red-500 text-sm">Debes seleccionar un archivo</span>
             }
@@ -74,21 +84,97 @@
         }
 
         <div class="form-group">
-          <label>Descripción</label>
+          <label for="evidencia-descripcion">Descripción</label>
           <textarea
+            id="evidencia-descripcion"
             formControlName="descripcion"
+            maxlength="5000"
             rows="3"
             placeholder="Describe la evidencia..."
             [class.error]="descripcion?.invalid && descripcion?.touched"
           >
           </textarea>
           @if (descripcion?.invalid && descripcion?.touched) {
-            <span class="field-error">La descripción es obligatoria</span>
+            <span class="field-error">Escribe una descripción de 5 a 5000 caracteres.</span>
           }
         </div>
 
+        <div class="consumo-toggle">
+          <label for="es-consumo">
+            <input id="es-consumo" type="checkbox" formControlName="es_consumo" />
+            Registrar consumo cuantificable
+          </label>
+          <p>Activa esta opción para registrar una medición de agua, energía, residuos o emisiones.</p>
+        </div>
+
+        @if (evidenciaForm.get('es_consumo')?.value) {
+          <fieldset formGroupName="consumo" class="consumo-fields" [disabled]="enviando()">
+            <legend>Datos de la medición</legend>
+            <p class="consumo-help">Todos los campos son obligatorios. Registra el total del periodo indicado.</p>
+            <div class="consumo-grid">
+              <div class="form-group">
+                <label for="consumo-recurso">Recurso medido</label>
+                <select id="consumo-recurso" formControlName="tipo_recurso"
+                  [class.error]="consumoInvalido('tipo_recurso')">
+                  <option value="">Seleccionar recurso</option>
+                  @for (recurso of recursos; track recurso) {
+                    <option [value]="recurso">{{ recurso }}</option>
+                  }
+                </select>
+                @if (consumoInvalido('tipo_recurso')) {
+                  <span class="field-error">Selecciona el recurso que has medido.</span>
+                }
+              </div>
+              <div class="form-group">
+                <label for="consumo-unidad">Unidad de medida</label>
+                <select id="consumo-unidad" formControlName="unidad_medida"
+                  [class.error]="consumoInvalido('unidad_medida')">
+                  <option value="">Seleccionar unidad</option>
+                  @for (unidad of unidadesDisponibles; track unidad) {
+                    <option [value]="unidad">{{ nombreUnidad(unidad) }}</option>
+                  }
+                </select>
+                @if (consumoInvalido('unidad_medida') ||
+                    (consumoForm.hasError('unidadIncompatible') && consumoForm.get('unidad_medida')?.touched)) {
+                  <span class="field-error">Selecciona una unidad compatible con el recurso.</span>
+                }
+              </div>
+              <div class="form-group">
+                <label for="consumo-cantidad">Cantidad total</label>
+                <input id="consumo-cantidad" type="text" inputmode="decimal"
+                  formControlName="cantidad" placeholder="Ej.: 125.500" maxlength="16"
+                  aria-describedby="cantidad-ayuda" [class.error]="consumoInvalido('cantidad')" />
+                <small id="cantidad-ayuda">Desde 0, hasta 12 enteros y 3 decimales. Usa punto decimal.</small>
+                @if (consumoInvalido('cantidad')) {
+                  <span class="field-error">Introduce una cantidad válida, por ejemplo 0, 125 o 125.500.</span>
+                }
+              </div>
+              <div class="form-group">
+                <label for="consumo-inicio">Inicio del periodo</label>
+                <input id="consumo-inicio" type="date" formControlName="fecha_inicio"
+                  min="1000-01-01" max="9999-12-31" [class.error]="consumoInvalido('fecha_inicio')" />
+                @if (consumoInvalido('fecha_inicio')) {
+                  <span class="field-error">Introduce una fecha inicial válida.</span>
+                }
+              </div>
+              <div class="form-group">
+                <label for="consumo-fin">Fin del periodo</label>
+                <input id="consumo-fin" type="date" formControlName="fecha_fin"
+                  [min]="consumoForm.get('fecha_inicio')?.value || '1000-01-01'"
+                  max="9999-12-31" [class.error]="consumoInvalido('fecha_fin') || consumoForm.hasError('periodoInvalido')" />
+                @if (consumoInvalido('fecha_fin')) {
+                  <span class="field-error">Introduce una fecha final válida.</span>
+                }
+                @if (consumoForm.hasError('periodoInvalido')) {
+                  <span class="field-error">La fecha final debe ser igual o posterior a la inicial.</span>
+                }
+              </div>
+            </div>
+          </fieldset>
+        }
+
         <div class="form-actions mt-4 flex justify-end gap-3">
-          <button type="button" class="btn btn-secondary" (click)="resetFormulario()">
+          <button type="button" class="btn btn-secondary" (click)="resetFormulario()" [disabled]="enviando()">
             Cancelar
           </button>
 
@@ -140,6 +226,7 @@
             <th>Módulo</th>
             <th>Tipo</th>
             <th>Descripción</th>
+            <th>Consumo</th>
             <th>Fecha</th>
             <th>Archivo</th>
           </tr>
@@ -156,6 +243,16 @@
               <td>{{ evidencia.tipo }}</td>
               <td class="max-w-xs truncate" title="{{ evidencia.descripcion }}">
                 {{ evidencia.descripcion }}
+              </td>
+
+              <td>
+                @if (evidencia.consumo; as consumo) {
+                  <strong>{{ consumo.tipo_recurso }}</strong>
+                  <div>{{ consumo.cantidad }} {{ nombreUnidad(consumo.unidad_medida) }}</div>
+                  <small>{{ consumo.fecha_inicio | date: 'dd/MM/yyyy' }} – {{ consumo.fecha_fin | date: 'dd/MM/yyyy' }}</small>
+                } @else {
+                  <span aria-label="Sin consumo registrado">—</span>
+                }
               </td>
 
               <td>{{ evidencia.creado_en | date: 'short' }}</td>

@@ -1,4 +1,5 @@
-import { Component, OnInit, signal, inject, ViewChild, ElementRef } from '@angular/core';
+import { Component, DestroyRef, OnInit, signal, inject, ViewChild, ElementRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
@@ -11,6 +12,7 @@ import { Auditoria } from '../../models/auditoria.model';
 import { ActivatedRoute } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { FileService } from '../../services/file.service';
+import { CANTIDAD_CONSUMO, UNIDADES_RECURSO, consumoCoherente, descripcionEvidencia, fechaReal } from './consumo.validators';
 
 @Component({
   selector: 'app-auditor-evidencia',
@@ -32,6 +34,12 @@ export class EvidenciasComponent implements OnInit {
   private fileService = inject(FileService);
   private fb = inject(FormBuilder);
   private route = inject(ActivatedRoute);
+  private destroyRef = inject(DestroyRef);
+
+  readonly recursos = Object.keys(UNIDADES_RECURSO);
+  errorFormulario = signal('');
+  errorArchivo = signal('');
+  mensajeExito = signal('');
 
   loading = signal<boolean>(true);
   enviando = signal<boolean>(false);
@@ -50,18 +58,39 @@ export class EvidenciasComponent implements OnInit {
 
   constructor() {
     this.evidenciaForm = this.fb.group({
-      id_auditoria: ['', Validators.required],
-      id_modulo: ['', Validators.required],
+      id_auditoria: ['', [Validators.required, Validators.pattern(/^[1-9]\d*$/)]],
+      id_modulo: ['', [Validators.required, Validators.pattern(/^[1-9]\d*$/)]],
       tipo: ['FOTO', Validators.required],
-      descripcion: ['', [Validators.required, Validators.minLength(5)]]
+      descripcion: ['', descripcionEvidencia],
+      es_consumo: [false],
+      consumo: this.fb.group({
+        tipo_recurso: ['', Validators.required],
+        cantidad: ['', [Validators.required, Validators.pattern(CANTIDAD_CONSUMO)]],
+        unidad_medida: ['', Validators.required],
+        fecha_inicio: ['', [Validators.required, fechaReal]],
+        fecha_fin: ['', [Validators.required, fechaReal]],
+      }, { validators: consumoCoherente }),
     });
+    this.consumoForm.disable({ emitEvent: false });
+    this.evidenciaForm.get('es_consumo')!.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe((enabled: boolean) => {
+        // Activar/desactivar emite valores de los hijos por defecto. Evitar que
+        // esos eventos borren la unidad o reactiven validadores durante el cambio.
+        if (enabled) this.consumoForm.enable({ emitEvent: false });
+        else this.consumoForm.disable({ emitEvent: false });
+        this.errorFormulario.set('');
+      });
+    this.consumoForm.get('tipo_recurso')!.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+        this.consumoForm.get('unidad_medida')!.setValue('');
+      });
   }
 
   ngOnInit(): void {
     this.loadAuditorias();
     
     // Si viene parámetro en URL (desde detalle auditoría)
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
       if (params['auditoria']) {
         const id = +params['auditoria'];
         this.filtroAuditoria.set(id);
@@ -109,11 +138,17 @@ export class EvidenciasComponent implements OnInit {
       });
   }
 
-  onFileSelect(event: any): void {
-    const file = event.target.files[0];
+  onFileSelect(event: Event): void {
+    this.errorArchivo.set('');
+    const file = (event.target as HTMLInputElement).files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        alert('El archivo es demasiado grande (Máx 5MB)');
+        this.errorArchivo.set('El archivo supera el máximo de 5 MB.');
+        this.limpiarArchivo();
+        return;
+      }
+      if (!['image/jpeg', 'image/png', 'application/pdf'].includes(file.type)) {
+        this.errorArchivo.set('Selecciona un archivo JPG, PNG o PDF.');
         this.limpiarArchivo();
         return;
       }
@@ -129,6 +164,9 @@ export class EvidenciasComponent implements OnInit {
   }
 
   onSubmit(): void {
+    if (this.enviando()) return;
+    this.errorFormulario.set('');
+    this.mensajeExito.set('');
     if (this.evidenciaForm.invalid) {
       this.evidenciaForm.markAllAsTouched();
       return;
@@ -138,7 +176,7 @@ export class EvidenciasComponent implements OnInit {
 
     // Validación manual de archivo (solo si NO es comentario)
     if (tipo !== 'COMENTARIO' && !this.selectedFile) {
-      alert('Para este tipo de evidencia debes subir un archivo.');
+      this.errorArchivo.set('Selecciona un archivo o elige Comentario / Nota.');
       return;
     }
 
@@ -152,7 +190,14 @@ export class EvidenciasComponent implements OnInit {
     formData.append('id_auditoria', this.evidenciaForm.get('id_auditoria')?.value);
     formData.append('id_modulo', this.evidenciaForm.get('id_modulo')?.value);
     formData.append('tipo', tipo);
-    formData.append('descripcion', this.evidenciaForm.get('descripcion')?.value);
+    formData.append('descripcion', this.evidenciaForm.get('descripcion')!.value.trim());
+    const esConsumo = this.evidenciaForm.get('es_consumo')!.value === true;
+    formData.append('es_consumo', String(esConsumo));
+    if (esConsumo) {
+      for (const [field, value] of Object.entries(this.consumoForm.getRawValue())) {
+        formData.append(field, String(value));
+      }
+    }
 
     const token = localStorage.getItem('auditcloud_token');
     const headers = new HttpHeaders({
@@ -162,14 +207,21 @@ export class EvidenciasComponent implements OnInit {
     this.http.post(environment.apiUrl + '/api/auditor/evidencias', formData, { headers })
       .subscribe({
         next: () => {
-          alert('Registrado correctamente');
+          this.mensajeExito.set('Evidencia registrada correctamente.');
           this.loadEvidencias();
           this.resetFormulario();
           this.enviando.set(false);
         },
         error: (err) => {
-          console.error('Error:', err);
-          alert(err.error?.message || 'Error al guardar');
+          this.errorFormulario.set(err.error?.message || 'No se pudo guardar. Inténtalo de nuevo.');
+          const errors = err.error?.errors as Record<string, string> | undefined;
+          for (const [field, message] of Object.entries(errors || {})) {
+            const control = this.consumoForm.get(field);
+            if (control) {
+              control.setErrors({ server: message });
+              control.markAsTouched();
+            }
+          }
           this.enviando.set(false);
         }
       });
@@ -181,8 +233,15 @@ export class EvidenciasComponent implements OnInit {
     const currentAudit = this.filtroAuditoria();
     this.evidenciaForm.reset({ 
       tipo: 'FOTO', 
-      id_auditoria: currentAudit || '' 
-    });
+      id_auditoria: currentAudit || '',
+      id_modulo: '',
+      descripcion: '',
+      es_consumo: false,
+      consumo: { tipo_recurso: '', cantidad: '', unidad_medida: '', fecha_inicio: '', fecha_fin: '' },
+    }, { emitEvent: false });
+    this.consumoForm.disable({ emitEvent: false });
+    this.errorFormulario.set('');
+    this.errorArchivo.set('');
     this.limpiarArchivo();
   }
 
@@ -208,6 +267,26 @@ export class EvidenciasComponent implements OnInit {
   get id_modulo() { return this.evidenciaForm.get('id_modulo'); }
   get tipo() { return this.evidenciaForm.get('tipo'); }
   get descripcion() { return this.evidenciaForm.get('descripcion'); }
+  get consumoForm(): FormGroup { return this.evidenciaForm.get('consumo') as FormGroup; }
+  get unidadesDisponibles(): readonly string[] {
+    const recurso: unknown = this.consumoForm.get('tipo_recurso')!.value;
+    return typeof recurso === 'string' && Object.hasOwn(UNIDADES_RECURSO, recurso)
+      ? UNIDADES_RECURSO[recurso]! : [];
+  }
+
+  consumoInvalido(field: string): boolean {
+    const control = this.consumoForm.get(field);
+    return !!control?.invalid && control.touched;
+  }
+
+  nombreUnidad(unidad: string): string {
+    const labels: Record<string, string> = {
+      L: 'L (litros)', m3: 'm³ (metros cúbicos)', kWh: 'kWh', MWh: 'MWh',
+      kg: 'kg (kilogramos)', t: 't (toneladas)',
+      kgCO2e: 'kg CO₂e', tCO2e: 't CO₂e',
+    };
+    return labels[unidad] || unidad;
+  }
 
   onAuditoriaChange(event: Event): void {
     const val = (event.target as HTMLSelectElement).value;
