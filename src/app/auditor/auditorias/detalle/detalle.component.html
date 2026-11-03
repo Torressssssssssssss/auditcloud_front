@@ -4,6 +4,10 @@
   } @else if (!auditoria()) {
     <app-empty-state mensaje="Auditoría no encontrada" />
   } @else {
+    @if (soloLectura) {
+      <p role="status">Auditoría FINALIZADA · Solo lectura. Se permite consultar y descargar el expediente.</p>
+    }
+    @if (avisoInmutabilidad()) { <p class="field-error" role="alert">{{ avisoInmutabilidad() }}</p> }
     <div class="page-header">
       <div>
         <button class="btn-back" (click)="router.navigate(['/auditor/auditorias'])">← Volver</button>
@@ -13,7 +17,7 @@
         <button type="button" class="btn btn-primary" (click)="descargarReporte()" [disabled]="descargandoReporte()" [attr.aria-busy]="descargandoReporte()">
           Descargar Reporte PDF
         </button>
-        <button class="btn btn-primary" (click)="abrirModalComentario()">
+        <button class="btn btn-primary" (click)="abrirModalComentario()" [disabled]="soloLectura">
           <app-icon name="message-square" [size]="18" class="mr-2"></app-icon>
           Agregar Actualización
         </button>
@@ -36,11 +40,11 @@
         <h3>Objetivo</h3>
         @if (!isEditingObjetivo()) {
           <p class="objetivo-text">{{ auditoria()?.objetivo || 'Sin objetivo' }}</p>
-          <button class="btn-link" (click)="startEditObjetivo()">Editar</button>
+          <button class="btn-link" (click)="startEditObjetivo()" [disabled]="soloLectura">Editar</button>
         } @else {
-          <textarea [(ngModel)]="tempObjetivo" class="form-control" rows="3"></textarea>
+          <textarea [(ngModel)]="tempObjetivo" [disabled]="soloLectura" class="form-control" rows="3"></textarea>
           <div class="flex gap-2 mt-2">
-            <button class="btn btn-sm btn-primary" (click)="saveObjetivo()">Guardar</button>
+            <button class="btn btn-sm btn-primary" (click)="saveObjetivo()" [disabled]="soloLectura || saving()">Guardar</button>
             <button class="btn btn-sm btn-secondary" (click)="cancelEditObjetivo()">Cancelar</button>
           </div>
         }
@@ -105,11 +109,11 @@
       <h3>Nueva Actualización</h3>
       <p class="text-sm text-gray-500 mb-4">Escribe un comentario sobre el avance o estado de la auditoría.</p>
       
-      <textarea [(ngModel)]="nuevoComentario" rows="4" class="form-control" placeholder="Escribe aquí..."></textarea>
+      <textarea [(ngModel)]="nuevoComentario" [disabled]="soloLectura" rows="4" class="form-control" placeholder="Escribe aquí..."></textarea>
       
       <div class="modal-actions">
         <button class="btn btn-secondary" (click)="showModalComentario.set(false)">Cancelar</button>
-        <button class="btn btn-primary" (click)="guardarComentario()" [disabled]="saving() || !nuevoComentario.trim()">
+        <button class="btn btn-primary" (click)="guardarComentario()" [disabled]="soloLectura || saving() || !nuevoComentario.trim()">
           {{ saving() ? 'Guardando...' : 'Publicar' }}
         </button>
       </div>

@@ -1,7 +1,7 @@
 <div class="evidencias-page">
   <div class="page-header">
     <h2>Evidencias</h2>
-    <button class="btn btn-primary" (click)="showForm.set(!showForm())" [disabled]="enviando()">
+    <button class="btn btn-primary" (click)="showForm.set(!showForm())" [disabled]="enviando() || (!showForm() && !hayAuditoriasEditables)">
       {{ showForm() ? 'Cancelar' : '+ Nueva Evidencia' }}
     </button>
   </div>
@@ -9,15 +9,15 @@
   @if (mensajeExito()) {
     <p class="form-feedback success" role="status">{{ mensajeExito() }}</p>
   }
+  @if (errorFormulario()) {
+    <p class="field-error" role="alert">{{ errorFormulario() }}</p>
+  }
 
   @if (showForm()) {
     <div class="form-card">
       <h3>Registrar Evidencia</h3>
 
       <form [formGroup]="evidenciaForm" (ngSubmit)="onSubmit()">
-        @if (errorFormulario()) {
-          <p class="field-error" role="alert">{{ errorFormulario() }}</p>
-        }
         <div class="form-group">
           <label>Auditoría</label>
           <select
@@ -26,8 +26,9 @@
           >
             <option value="">Seleccionar auditoría</option>
             @for (auditoria of auditorias(); track auditoria.id_auditoria) {
-              <option [value]="auditoria.id_auditoria">
+              <option [value]="auditoria.id_auditoria" [disabled]="auditoria.id_estado === 3">
                 #{{ auditoria.id_auditoria }} - {{ auditoria.cliente?.nombre_empresa || 'N/A' }}
+                {{ auditoria.id_estado === 3 ? '(Finalizada · solo lectura)' : '' }}
               </option>
             }
           </select>
@@ -36,6 +37,10 @@
           }
         </div>
 
+        @if (auditoriaFinalizada) {
+          <p role="status">Auditoría FINALIZADA: no se pueden subir ni modificar evidencias.</p>
+        }
+        <fieldset class="campos-evidencia" [disabled]="auditoriaFinalizada || enviando()">
         <div class="form-group">
           <label>Módulo</label>
           <select
@@ -173,6 +178,7 @@
           </fieldset>
         }
 
+        </fieldset>
         <div class="form-actions mt-4 flex justify-end gap-3">
           <button type="button" class="btn btn-secondary" (click)="resetFormulario()" [disabled]="enviando()">
             Cancelar
@@ -182,7 +188,7 @@
             type="submit"
             class="btn btn-primary"
             [disabled]="
-              evidenciaForm.invalid || (tipo?.value !== 'COMENTARIO' && !selectedFile) || enviando()
+              auditoriaFinalizada || evidenciaForm.invalid || (tipo?.value !== 'COMENTARIO' && !selectedFile) || enviando()
             "
           >
             {{ enviando() ? 'Guardando...' : 'Guardar' }}
@@ -192,6 +198,20 @@
     </div>
   }
 
+  @if (evidenciaEnEdicion(); as evidencia) {
+    <div class="form-card">
+      <h3>Editar evidencia #{{ evidencia.id_evidencia }}</h3>
+      <label for="editar-descripcion">Descripción</label>
+      <textarea id="editar-descripcion" [value]="descripcionEdicion()" (input)="cambiarDescripcion($event)"
+        maxlength="5000" [disabled]="!puedeModificarEvidencia(evidencia) || guardandoCambio()"></textarea>
+      @if (!puedeModificarEvidencia(evidencia)) {
+        <p role="status">La evidencia es de solo lectura.</p>
+      }
+      <button class="btn btn-primary" type="button" (click)="guardarEdicion()"
+        [disabled]="!puedeModificarEvidencia(evidencia) || guardandoCambio()">Guardar cambios</button>
+      <button class="btn btn-secondary" type="button" (click)="evidenciaEnEdicion.set(null)" [disabled]="guardandoCambio()">Cancelar</button>
+    </div>
+  }
   <div class="filters">
     <div class="filter-group">
       <label>Filtrar por auditoría:</label>
@@ -229,6 +249,7 @@
             <th>Consumo</th>
             <th>Fecha</th>
             <th>Archivo</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -278,6 +299,13 @@
                     </button>
                   </div>
                 }
+              </td>
+              <td>
+                <button class="btn btn-secondary btn-sm" type="button" (click)="editarEvidencia(evidencia)"
+                  [disabled]="!puedeModificarEvidencia(evidencia) || guardandoCambio()">Editar</button>
+                <button class="btn btn-danger btn-sm" type="button" (click)="eliminarEvidencia(evidencia)"
+                  [disabled]="!puedeModificarEvidencia(evidencia) || guardandoCambio()">Eliminar</button>
+                @if (!puedeModificarEvidencia(evidencia)) { <small>Solo lectura</small> }
               </td>
             </tr>
           }

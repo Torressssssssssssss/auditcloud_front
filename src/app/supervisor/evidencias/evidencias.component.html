@@ -83,6 +83,9 @@
         <button class="btn btn-sm btn-secondary" (click)="limpiarSeleccion()">Cerrar Vista</button>
       </div>
 
+      @if (audit.id_estado === 3) {
+        <p role="status">Auditoría FINALIZADA · Sus evidencias son de solo lectura.</p>
+      }
       @if (loadingEvidencias()) {
         <app-loading-spinner />
       } @else if (listaEvidencias().length === 0) {

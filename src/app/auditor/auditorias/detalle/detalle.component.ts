@@ -11,6 +11,7 @@ import { StatusBadgeComponent } from '../../../shared/components/status-badge/st
 import { Auditoria } from '../../../models/auditoria.model';
 import { IconComponent } from '../../../shared/components/icon/icon.component'; // Asegúrate de tener iconos
 import { FileService } from '../../../services/file.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 // Interfaz para la tabla unificada
 interface BitacoraItem {
@@ -69,6 +70,23 @@ export class AuditoriaDetalleComponent implements OnInit {
   // Control edición objetivo
   isEditingObjetivo = signal<boolean>(false);
   tempObjetivo: string = '';
+  avisoInmutabilidad = signal('');
+
+  get soloLectura(): boolean
+  {
+    return this.auditoria()?.id_estado === 3;
+  }
+
+  private detectarCierre(error: HttpErrorResponse): void
+  {
+    this.avisoInmutabilidad.set(error.error?.message || 'No se pudo guardar el cambio.');
+    if (error.error?.code === 'AUDITORIA_FINALIZADA')
+    {
+      this.auditoria.update(actual => actual ? { ...actual, id_estado: 3 } : actual);
+      this.isEditingObjetivo.set(false);
+      this.showModalComentario.set(false);
+    }
+  }
 
   descargarReporte(): void
   {
@@ -136,11 +154,13 @@ export class AuditoriaDetalleComponent implements OnInit {
   // --- COMENTARIOS ---
 
   abrirModalComentario() {
+    if (this.soloLectura) return;
     this.nuevoComentario = '';
     this.showModalComentario.set(true);
   }
 
   guardarComentario() {
+    if (this.soloLectura) return;
     if (!this.nuevoComentario.trim()) return;
     
     this.saving.set(true);
@@ -156,6 +176,7 @@ export class AuditoriaDetalleComponent implements OnInit {
         this.loadBitacora(this.auditoria()!.id_auditoria); // Recargar tabla
       },
       error: (err) => {
+        this.detectarCierre(err);
         console.error(err);
         this.saving.set(false);
       }
@@ -174,12 +195,17 @@ export class AuditoriaDetalleComponent implements OnInit {
 
 
   // --- OBJETIVO (Tu lógica existente) ---
-  startEditObjetivo() { this.tempObjetivo = this.auditoria()?.objetivo || ''; this.isEditingObjetivo.set(true); }
+  startEditObjetivo()
+  {
+    if (this.soloLectura) return;
+    this.tempObjetivo = this.auditoria()?.objetivo || '';
+    this.isEditingObjetivo.set(true);
+  }
   cancelEditObjetivo() { this.isEditingObjetivo.set(false); }
   
   saveObjetivo() {
     const current = this.auditoria();
-    if (!current) return;
+    if (!current || this.soloLectura) return;
     this.saving.set(true);
     this.api.patch<Auditoria>(`/api/auditor/auditorias/${current.id_auditoria}/objetivo`, { objetivo: this.tempObjetivo })
       .subscribe({
@@ -188,7 +214,11 @@ export class AuditoriaDetalleComponent implements OnInit {
           this.isEditingObjetivo.set(false);
           this.saving.set(false);
         },
-        error: () => this.saving.set(false)
+        error: (error) =>
+        {
+          this.detectarCierre(error);
+          this.saving.set(false);
+        }
       });
   }
 

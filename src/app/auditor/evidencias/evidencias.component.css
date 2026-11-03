@@ -4,6 +4,8 @@
   gap: var(--spacing-lg);
 }
 
+.campos-evidencia { border: 0; padding: 0; margin: 0; min-width: 0; }
+
 .consumo-toggle, .consumo-fields {
   margin-top: var(--spacing-md);
   padding: var(--spacing-md);

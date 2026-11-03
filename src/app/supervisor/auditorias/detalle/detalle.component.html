@@ -4,6 +4,10 @@
   } @else if (!auditoria()) {
     <app-empty-state mensaje="Auditoría no encontrada" />
   } @else {
+    @if (soloLectura) {
+      <p role="status">Auditoría FINALIZADA · Solo lectura. Se permite consultar y descargar el expediente.</p>
+    }
+    @if (avisoInmutabilidad()) { <p class="field-error" role="alert">{{ avisoInmutabilidad() }}</p> }
     <div class="page-header">
       <div>
         <button class="btn btn-secondary" (click)="router.navigate(['/supervisor/auditorias'])">
@@ -54,9 +58,9 @@
           </div>
         }
         <div class="modulos-actions">
-          <button class="btn btn-secondary" [class.is-added]="moduloYaAgregado(1)" [disabled]="moduloYaAgregado(1)" (click)="agregarModulo(1)">+ Agua</button>
-          <button class="btn btn-secondary" [class.is-added]="moduloYaAgregado(2)" [disabled]="moduloYaAgregado(2)" (click)="agregarModulo(2)">+ Residuos</button>
-          <button class="btn btn-secondary" [class.is-added]="moduloYaAgregado(3)" [disabled]="moduloYaAgregado(3)" (click)="agregarModulo(3)">+ Energía</button>
+          <button class="btn btn-secondary" [class.is-added]="moduloYaAgregado(1)" [disabled]="soloLectura || moduloYaAgregado(1)" (click)="agregarModulo(1)">+ Agua</button>
+          <button class="btn btn-secondary" [class.is-added]="moduloYaAgregado(2)" [disabled]="soloLectura || moduloYaAgregado(2)" (click)="agregarModulo(2)">+ Residuos</button>
+          <button class="btn btn-secondary" [class.is-added]="moduloYaAgregado(3)" [disabled]="soloLectura || moduloYaAgregado(3)" (click)="agregarModulo(3)">+ Energía</button>
         </div>
       </div>
 
@@ -71,7 +75,7 @@
 
         @if (auditoresAsignados().length === 0) {
           <p class="text-muted">No hay auditores asignados</p>
-          <button class="btn btn-primary" (click)="abrirAsignacion('asignar')">Asignar auditor</button>
+          <button class="btn btn-primary" (click)="abrirAsignacion('asignar')" [disabled]="soloLectura">Asignar auditor</button>
         } @else {
           <div class="auditores-list">
             @for (auditor of auditoresAsignados(); track auditor.id_usuario) {
@@ -85,13 +89,14 @@
             }
           </div>
           <div class="assignment-actions">
-            <button class="btn btn-secondary" type="button" (click)="abrirAsignacion('cambiar')">Cambiar auditor</button>
-            <button class="btn btn-danger" type="button" (click)="quitarAuditor()">Quitar auditor</button>
+            <button class="btn btn-secondary" type="button" (click)="abrirAsignacion('cambiar')" [disabled]="soloLectura">Cambiar auditor</button>
+            <button class="btn btn-danger" type="button" (click)="quitarAuditor()" [disabled]="soloLectura">Quitar auditor</button>
           </div>
         }
         
         @if (showAsignacion()) {
           <form [formGroup]="asignacionForm" (ngSubmit)="asignarAuditor()" class="asignacion-form">
+            <fieldset [disabled]="soloLectura">
             <div class="form-group">
               <label>{{ asignacionModo() === 'cambiar' ? 'Nuevo auditor:' : 'Seleccionar auditor:' }}</label>
               <select formControlName="id_auditor" [class.error]="id_auditor?.invalid && id_auditor?.touched">
@@ -102,12 +107,12 @@
               </select>
             </div>
             <div class="assignment-actions">
-              <button type="submit" class="btn btn-primary" [disabled]="asignacionForm.invalid">
+              <button type="submit" class="btn btn-primary" [disabled]="soloLectura || asignacionForm.invalid">
                 {{ asignacionModo() === 'cambiar' ? 'Guardar cambio' : 'Asignar' }}
               </button>
               <button type="button" class="btn btn-secondary" (click)="cerrarAsignacion()">Cancelar</button>
             </div>
-          </form>
+          </fieldset></form>
         }
       </div>
 
@@ -117,12 +122,12 @@
         <p>Estado actual: <strong>{{ getEstadoNombre(auditoria()!.id_estado) }}</strong></p>
         <div class="estado-actions">
           @if (auditoria()!.id_estado === 1) {
-            <button class="btn btn-primary" (click)="solicitarCambioEstado(2)">
+            <button class="btn btn-primary" (click)="solicitarCambioEstado(2)" [disabled]="soloLectura">
               Marcar como En proceso
             </button>
           }
           @if (auditoria()!.id_estado === 2) {
-            <button class="btn btn-primary" (click)="solicitarCambioEstado(3)">
+            <button class="btn btn-primary" (click)="solicitarCambioEstado(3)" [disabled]="soloLectura">
               Marcar como Finalizada
             </button>
           }

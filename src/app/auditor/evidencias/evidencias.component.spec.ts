@@ -22,7 +22,8 @@ describe('AC-01: formulario de evidencias cuantificables', () => {
       imports: [EvidenciasComponent],
       providers: [
         provideHttpClient(), provideHttpClientTesting(),
-        { provide: ApiService, useValue: { get: () => of([]) } },
+        { provide: ApiService, useValue: { get: (ruta: string) => of(ruta.includes('auditorias-asignadas')
+          ? [{ id_auditoria: 20, id_empresa_auditora: 11, id_cliente: 9, id_estado: 1 }] : []) } },
         { provide: AuthService, useValue: { getIdUsuario: () => 8 } },
         { provide: FileService, useValue: {} },
         { provide: ActivatedRoute, useValue: { queryParams: of({}) } },
@@ -126,5 +127,42 @@ describe('AC-01: formulario de evidencias cuantificables', () => {
     expect(component.consumoForm.get('cantidad')!.hasError('server')).toBe(true);
     expect(component.consumoForm.get('cantidad')!.value).toBe('125.500');
     expect(component.enviando()).toBe(false);
+  });
+  it('bloquea carga, edición y eliminación cuando la auditoría está finalizada', () =>
+  {
+    component.auditorias.update(lista => lista.map(auditoria => ({ ...auditoria, id_estado: 3 })));
+    const evidencia = { id_evidencia: 70, id_auditoria: 20, id_auditor: 8, id_modulo: 1,
+      tipo: 'COMENTARIO' as const, descripcion: 'Lectura original', creado_en: '2026-01-01' };
+    component.evidencias.set([evidencia]);
+    fixture.changeDetectorRef.markForCheck();
+    fixture.detectChanges();
+    component.onSubmit();
+    component.editarEvidencia(evidencia);
+    component.eliminarEvidencia(evidencia);
+    http.expectNone(`${environment.apiUrl}/api/auditor/evidencias`);
+    expect(component.evidenciaEnEdicion()).toBeNull();
+    expect(component.errorFormulario()).toContain('FINALIZADA');
+    const botones = Array.from(fixture.nativeElement.querySelectorAll('button')) as HTMLButtonElement[];
+    expect(botones.filter(boton => ['Editar', 'Eliminar', 'Guardar'].includes(boton.textContent!.trim()))
+      .every(boton => boton.disabled)).toBe(true);
+    expect((fixture.nativeElement.querySelector('.campos-evidencia') as HTMLFieldSetElement).disabled).toBe(true);
+  });
+
+  it('refleja un cierre ocurrido en otra sesión cuando el servidor devuelve 409', () =>
+  {
+    activarConsumo();
+    component.onSubmit();
+    http.expectOne(`${environment.apiUrl}/api/auditor/evidencias`).flush({
+      code: 'AUDITORIA_FINALIZADA', message: 'La auditoría está FINALIZADA y es de solo lectura.',
+    }, { status: 409, statusText: 'Conflict' });
+    expect(component.auditoriaFinalizada).toBe(true);
+    component.onSubmit();
+    http.expectNone(`${environment.apiUrl}/api/auditor/evidencias`);
+  });
+
+  it('no permite modificar evidencias propias cuyo expediente no se haya cargado', () =>
+  {
+    expect(component.puedeModificarEvidencia({ id_evidencia: 70, id_auditoria: 99, id_auditor: 8,
+      id_modulo: 1, tipo: 'COMENTARIO', descripcion: 'Lectura', creado_en: '2026-01-01' })).toBe(false);
   });
 });

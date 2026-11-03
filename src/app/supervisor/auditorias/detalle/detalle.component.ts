@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../../../services/api.service';
 import { AuthService } from '../../../services/auth.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 // 👇 1. IMPORTAR LOS COMPONENTES COMPARTIDOS QUE FALTABAN
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
@@ -50,6 +51,23 @@ export class AuditoriaDetalleComponent implements OnInit {
 
   showConfirmEstado = signal(false);
   nuevoEstado = signal<number | null>(null);
+  avisoInmutabilidad = signal('');
+
+  get soloLectura(): boolean
+  {
+    return this.auditoria()?.id_estado === 3;
+  }
+
+  private detectarCierre(error: HttpErrorResponse): void
+  {
+    if (error.error?.code === 'AUDITORIA_FINALIZADA')
+    {
+      this.auditoria.update(actual => actual ? { ...actual, id_estado: 3 } : actual);
+      this.showAsignacion.set(false);
+      this.showConfirmEstado.set(false);
+      this.avisoInmutabilidad.set(error.error.message);
+    }
+  }
 
   constructor(
     private route: ActivatedRoute,
@@ -158,6 +176,7 @@ export class AuditoriaDetalleComponent implements OnInit {
   }
 
   agregarModulo(idModulo: number): void {
+    if (this.soloLectura) return;
     const current = this.auditoria();
     if (!current || !current.id_auditoria) return;
 
@@ -173,11 +192,16 @@ export class AuditoriaDetalleComponent implements OnInit {
           this.moduloAviso.set({ tipo: 'success', mensaje: 'Módulo agregado correctamente.' });
           this.loadAuditoria(current.id_auditoria);
         },
-        error: (err) => this.moduloAviso.set({ tipo: 'error', mensaje: err.error?.message || 'Error al agregar módulo' })
+        error: (err) =>
+        {
+          this.detectarCierre(err);
+          this.moduloAviso.set({ tipo: 'error', mensaje: err.error?.message || 'Error al agregar módulo' });
+        }
       });
   }
 
   abrirAsignacion(modo: 'asignar' | 'cambiar') {
+    if (this.soloLectura) return;
     this.asignacionModo.set(modo);
     this.asignacionAviso.set(null);
     this.asignacionForm.reset();
@@ -190,6 +214,7 @@ export class AuditoriaDetalleComponent implements OnInit {
   }
 
   asignarAuditor() {
+    if (this.soloLectura) return;
     if (this.asignacionForm.invalid) return;
     const idAuditoria = this.auditoria()?.id_auditoria || 0;
     const idAuditor = Number(this.asignacionForm.value.id_auditor);
@@ -212,11 +237,16 @@ export class AuditoriaDetalleComponent implements OnInit {
         this.asignacionForm.reset();
         this.showAsignacion.set(false);
       },
-      error: (err) => this.asignacionAviso.set({ tipo: 'error', mensaje: err.error?.message || 'Error al asignar auditor' })
+      error: (err) =>
+      {
+        this.detectarCierre(err);
+        this.asignacionAviso.set({ tipo: 'error', mensaje: err.error?.message || 'Error al asignar auditor' });
+      }
     });
   }
 
   quitarAuditor() {
+    if (this.soloLectura) return;
     const idAuditoria = this.auditoria()?.id_auditoria || 0;
     if (!idAuditoria) return;
     const confirmado = window.confirm('¿Quitar el auditor asignado? La auditoría quedará pendiente de asignar auditor.');
@@ -229,11 +259,16 @@ export class AuditoriaDetalleComponent implements OnInit {
         this.showAsignacion.set(false);
         this.loadAuditoria(idAuditoria);
       },
-      error: (err) => this.asignacionAviso.set({ tipo: 'error', mensaje: err.error?.message || 'Error al quitar auditor' })
+      error: (err) =>
+      {
+        this.detectarCierre(err);
+        this.asignacionAviso.set({ tipo: 'error', mensaje: err.error?.message || 'Error al quitar auditor' });
+      }
     });
   }
   
   solicitarCambioEstado(estado: number) {
+    if (this.soloLectura) return;
     this.nuevoEstado.set(estado);
     this.showConfirmEstado.set(true);
   }
@@ -248,7 +283,7 @@ export class AuditoriaDetalleComponent implements OnInit {
     console.log('Cambiando estado a:', this.nuevoEstado());
     const estado = this.nuevoEstado();
 
-    if (!current || !estado) return;
+    if (!current || !estado || this.soloLectura) return;
 
     this.apiService.put(`/api/supervisor/auditorias/${current.id_auditoria}/estado`, { id_estado: estado })
       .subscribe({
@@ -257,7 +292,11 @@ export class AuditoriaDetalleComponent implements OnInit {
           this.showConfirmEstado.set(false);
           this.loadAuditoria(current.id_auditoria);
         },
-        error: (err) => alert(err.error?.message || 'Error al cambiar estado')
+        error: (err) =>
+        {
+          this.detectarCierre(err);
+          this.avisoInmutabilidad.set(err.error?.message || 'Error al cambiar estado');
+        }
       });
   }
 

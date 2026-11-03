@@ -40,6 +40,9 @@ export class EvidenciasComponent implements OnInit {
   errorFormulario = signal('');
   errorArchivo = signal('');
   mensajeExito = signal('');
+  evidenciaEnEdicion = signal<Evidencia | null>(null);
+  descripcionEdicion = signal('');
+  guardandoCambio = signal(false);
 
   loading = signal<boolean>(true);
   enviando = signal<boolean>(false);
@@ -167,6 +170,12 @@ export class EvidenciasComponent implements OnInit {
     if (this.enviando()) return;
     this.errorFormulario.set('');
     this.mensajeExito.set('');
+    const seleccionada = this.auditorias().find(auditoria => auditoria.id_auditoria === Number(this.id_auditoria?.value));
+    if (!seleccionada || seleccionada.id_estado === 3)
+    {
+      this.errorFormulario.set(seleccionada ? 'La auditoría está FINALIZADA y es de solo lectura.' : 'Selecciona una auditoría disponible.');
+      return;
+    }
     if (this.evidenciaForm.invalid) {
       this.evidenciaForm.markAllAsTouched();
       return;
@@ -213,6 +222,7 @@ export class EvidenciasComponent implements OnInit {
           this.enviando.set(false);
         },
         error: (err) => {
+          if (err.error?.code === 'AUDITORIA_FINALIZADA') this.marcarFinalizada(seleccionada.id_auditoria);
           this.errorFormulario.set(err.error?.message || 'No se pudo guardar. Inténtalo de nuevo.');
           const errors = err.error?.errors as Record<string, string> | undefined;
           for (const [field, message] of Object.entries(errors || {})) {
@@ -267,6 +277,90 @@ export class EvidenciasComponent implements OnInit {
   get id_modulo() { return this.evidenciaForm.get('id_modulo'); }
   get tipo() { return this.evidenciaForm.get('tipo'); }
   get descripcion() { return this.evidenciaForm.get('descripcion'); }
+  get auditoriaFinalizada(): boolean
+  {
+    return this.auditorias().find(auditoria => auditoria.id_auditoria === Number(this.id_auditoria?.value))?.id_estado === 3;
+  }
+
+  get hayAuditoriasEditables(): boolean
+  {
+    return this.auditorias().some(auditoria => auditoria.id_estado !== 3);
+  }
+
+  puedeModificarEvidencia(evidencia: Evidencia): boolean
+  {
+    const auditoria = this.auditorias().find(elemento => elemento.id_auditoria === evidencia.id_auditoria);
+    return !!auditoria && auditoria.id_estado !== 3 && evidencia.id_auditor === this.authService.getIdUsuario();
+  }
+
+  private marcarFinalizada(idAuditoria: number): void
+  {
+    this.auditorias.update(lista => lista.map(auditoria => auditoria.id_auditoria === idAuditoria
+      ? { ...auditoria, id_estado: 3 } : auditoria));
+  }
+
+  editarEvidencia(evidencia: Evidencia): void
+  {
+    if (!this.puedeModificarEvidencia(evidencia)) return;
+    this.evidenciaEnEdicion.set(evidencia);
+    this.descripcionEdicion.set(evidencia.descripcion);
+    this.errorFormulario.set('');
+  }
+
+  guardarEdicion(): void
+  {
+    const evidencia = this.evidenciaEnEdicion();
+    const descripcion = this.descripcionEdicion().trim();
+    if (!evidencia || !this.puedeModificarEvidencia(evidencia) || this.guardandoCambio()) return;
+    if (descripcion.length < 5 || descripcion.length > 5000)
+    {
+      this.errorFormulario.set('Escribe una descripción de 5 a 5000 caracteres.');
+      return;
+    }
+    this.guardandoCambio.set(true);
+    this.apiService.put(`/api/auditor/evidencias/${evidencia.id_evidencia}`, { descripcion }).subscribe({
+      next: () =>
+      {
+        this.guardandoCambio.set(false);
+        this.evidenciaEnEdicion.set(null);
+        this.loadEvidencias();
+        this.mensajeExito.set('Evidencia actualizada.');
+      },
+      error: (error) =>
+      {
+        this.guardandoCambio.set(false);
+        if (error.error?.code === 'AUDITORIA_FINALIZADA') this.marcarFinalizada(evidencia.id_auditoria);
+        this.errorFormulario.set(error.error?.message || 'No se pudo editar la evidencia.');
+      },
+    });
+  }
+
+  eliminarEvidencia(evidencia: Evidencia): void
+  {
+    if (!this.puedeModificarEvidencia(evidencia) || this.guardandoCambio()) return;
+    if (!window.confirm('¿Eliminar esta evidencia y su consumo asociado?')) return;
+    this.guardandoCambio.set(true);
+    this.apiService.delete(`/api/auditor/evidencias/${evidencia.id_evidencia}`).subscribe({
+      next: () =>
+      {
+        this.guardandoCambio.set(false);
+        this.evidenciaEnEdicion.set(null);
+        this.loadEvidencias();
+        this.mensajeExito.set('Evidencia eliminada.');
+      },
+      error: (error) =>
+      {
+        this.guardandoCambio.set(false);
+        if (error.error?.code === 'AUDITORIA_FINALIZADA') this.marcarFinalizada(evidencia.id_auditoria);
+        this.errorFormulario.set(error.error?.message || 'No se pudo eliminar la evidencia.');
+      },
+    });
+  }
+
+  cambiarDescripcion(evento: Event): void
+  {
+    this.descripcionEdicion.set((evento.target as HTMLTextAreaElement).value);
+  }
   get consumoForm(): FormGroup { return this.evidenciaForm.get('consumo') as FormGroup; }
   get unidadesDisponibles(): readonly string[] {
     const recurso: unknown = this.consumoForm.get('tipo_recurso')!.value;
