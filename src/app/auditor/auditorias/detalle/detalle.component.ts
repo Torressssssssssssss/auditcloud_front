@@ -1,4 +1,6 @@
 import { finalize } from 'rxjs';
+import { ConsumoAmbiental } from '../../../models/evidencia.model';
+import { ConsumoAmbientalComponent } from '../../../shared/components/consumo-ambiental/consumo-ambiental.component';
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -14,12 +16,13 @@ import { FileService } from '../../../services/file.service';
 import { HttpErrorResponse } from '@angular/common/http';
 
 // Interfaz para la tabla unificada
-interface BitacoraItem {
-  id_item: string;
-  tipo: 'EVIDENCIA' | 'COMENTARIO';
-  subtipo?: string; // FOTO, DOC
-  titulo: string;
-  contenido: string;
+interface BitacoraItem
+{
+  consumo?: ConsumoAmbiental | null;
+  id: string;
+  tipo: 'EVIDENCIA' | 'COMENTARIO' | 'AUDITORIA' | 'PAGO' | 'ASIGNACION' | 'MODULO' | 'REPORTE';
+  subtipo?: string;
+  descripcion: string;
   url?: string;
   nombre_archivo?: string;
   autor: string;
@@ -30,6 +33,7 @@ interface BitacoraItem {
   selector: 'app-auditor-auditoria-detalle',
   standalone: true,
   imports: [
+    ConsumoAmbientalComponent,
     CommonModule,
     DatePipe,
     RouterModule,

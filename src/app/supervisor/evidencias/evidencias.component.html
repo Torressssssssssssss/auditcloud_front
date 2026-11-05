@@ -100,6 +100,7 @@
                 <th>Auditor</th>
                 <th>Tipo</th>
                 <th>Descripción</th>
+                <th>Consumo</th>
                 <th>Archivo</th>
                 <th>Fecha Subida</th>
               </tr>
@@ -125,7 +126,7 @@
                     <option value="VIDEO">Video</option>
                   </select>
                 </td>
-                <td colspan="3"></td>
+                <td colspan="4"></td>
               </tr>
             </thead>
             <tbody>
@@ -146,6 +147,16 @@
                     {{ evidencia.descripcion }}
                   </td>
                   <td>
+                    @if(evidencia.consumo; as consumo)
+                    {
+                      <app-consumo-ambiental [consumo]="consumo" />
+                    }
+                    @else
+                    {
+                      <span aria-label="Sin consumo registrado">—</span>
+                    }
+                  </td>
+                  <td>
                     <button type="button" (click)="verArchivo(evidencia)" class="link-archivo">
                       <app-icon name="download" [size]="16"></app-icon>
                       {{ evidencia.nombre_archivo || 'Ver Archivo' }}
@@ -155,7 +166,7 @@
                 </tr>
               }
               @if (evidenciasFiltradas().length === 0) {
-                <tr><td colspan="7" class="text-center py-4">No hay evidencias con estos filtros.</td></tr>
+                <tr><td colspan="8" class="text-center py-4">No hay evidencias con estos filtros.</td></tr>
               }
             </tbody>
           </table>

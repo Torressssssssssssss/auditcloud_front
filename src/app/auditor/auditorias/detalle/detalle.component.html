@@ -73,7 +73,7 @@
               </tr>
             </thead>
             <tbody>
-              @for (item of bitacora(); track item.id_item) {
+              @for (item of bitacora(); track item.id) {
                 <tr>
                   <td>
                     <div class="flex flex-col">
@@ -84,10 +84,16 @@
                   <td>{{ item.autor }}</td>
                   <td>
                     <span [class]="'badge-type ' + item.tipo.toLowerCase()">
-                      {{ item.tipo === 'EVIDENCIA' ? 'ARCHIVO' : 'COMENTARIO' }}
+                      {{ item.tipo }}
                     </span>
                   </td>
-                  <td class="truncate-cell">{{ item.contenido }}</td>
+                  <td>
+                    <div>{{ item.descripcion }}</div>
+                    @if(item.consumo; as consumo)
+                    {
+                      <app-consumo-ambiental [consumo]="consumo" />
+                    }
+                  </td>
                   <td class="text-right">
                     <button class="btn-icon" (click)="verDetalleItem(item)" title="Ver Detalle Completo">
                       <app-icon name="eye" [size]="18"></app-icon>
@@ -138,8 +144,13 @@
         <p class="detail-author"><strong>Por:</strong> {{ itemSeleccionado()!.autor }}</p>
         
         <div class="detail-box">
-          {{ itemSeleccionado()!.contenido }}
+          {{ itemSeleccionado()!.descripcion }}
         </div>
+
+        @if(itemSeleccionado()!.consumo; as consumo)
+        {
+          <app-consumo-ambiental [consumo]="consumo" />
+        }
 
         @if (itemSeleccionado()!.tipo === 'EVIDENCIA' && itemSeleccionado()!.url) {
           <div class="attachment-area">

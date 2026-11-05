@@ -8,3 +8,8 @@ Dockerfile
 .gitignore
 coverage
 tmp
+.env
+.env.*
+.agents
+.aws
+.codex

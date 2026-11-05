@@ -1,3 +1,5 @@
+import { ConsumoAmbiental } from '../../models/evidencia.model';
+import { ConsumoAmbientalComponent } from '../../shared/components/consumo-ambiental/consumo-ambiental.component';
 import { Component, OnInit, Input, signal, inject, SimpleChanges, OnChanges } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -7,7 +9,9 @@ import { IconComponent, IconName } from '../../shared/components/icon/icon.compo
 import { ActivatedRoute } from '@angular/router';
 import { FileService } from '../../services/file.service';
 // Interfaz del ítem individual (Evidencia o Comentario)
-interface TimelineItem {
+interface TimelineItem
+{
+  consumo?: ConsumoAmbiental | null;
   id: string;
   tipo: 'EVIDENCIA' | 'COMENTARIO';
   subtipo?: string; 
@@ -30,7 +34,7 @@ interface AuditoriaGroup {
 @Component({
   selector: 'app-timeline',
   standalone: true,
-  imports: [CommonModule, FormsModule, IconComponent, DatePipe],
+  imports: [ConsumoAmbientalComponent, CommonModule, FormsModule, IconComponent, DatePipe],
   templateUrl: './timeline-component.html',
   styleUrls: ['./timeline-component.css']
 })

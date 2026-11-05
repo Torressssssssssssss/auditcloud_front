@@ -1,3 +1,5 @@
+import { ConsumoAmbiental } from '../../models/evidencia.model';
+import { ConsumoAmbientalComponent } from '../../shared/components/consumo-ambiental/consumo-ambiental.component';
 import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -20,7 +22,9 @@ interface AuditoriaRow {
   cliente?: { nombre_empresa: string }; // Dato enriquecido
 }
 
-interface EvidenciaRow {
+interface EvidenciaRow
+{
+  consumo?: ConsumoAmbiental | null;
   id_evidencia: number;
   id_auditoria: number;
   id_modulo: number;
@@ -38,6 +42,7 @@ interface EvidenciaRow {
   selector: 'app-supervisor-evidencias',
   standalone: true,
   imports: [
+    ConsumoAmbientalComponent,
     CommonModule, 
     FormsModule, 
     LoadingSpinnerComponent, 
