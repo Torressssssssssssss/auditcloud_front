@@ -1057,7 +1057,9 @@ button[type='submit'] {
     height: 48px !important;
   }
 
-  .stat-content h3 {
+  .stat-content h3
+  {
+    text-align: center;
     font-size: clamp(1.6rem, 10vw, 2rem) !important;
   }
 

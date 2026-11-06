@@ -34,15 +34,28 @@ export class AuthService {
       );
   }
 
-  loginWithGoogle(idToken: string, rol: number): Observable<LoginResponse> {
-    return this.apiService.post<LoginResponse>('/api/auth/google', { 
-      token: idToken
-    }).pipe(
-      tap(response => {
-        this.setSession(response);
-      }),
-      catchError(error => {
-        throw error;
+  iniciarSesionGoogle(credencial: string): Observable<LoginResponse>
+  {
+    return this.apiService.post<LoginResponse>('/api/auth/google', { token: credencial }).pipe(
+      tap(respuesta =>
+      {
+        this.setSession(respuesta);
+      })
+    );
+  }
+
+  completarPerfil(datosEmpresa:
+  {
+    nombre_empresa: string;
+    ciudad: string;
+    estado: string;
+    rfc?: string;
+  }): Observable<LoginResponse>
+  {
+    return this.apiService.post<LoginResponse>('/api/auth/complete-profile', datosEmpresa).pipe(
+      tap(respuesta =>
+      {
+        this.setSession(respuesta);
       })
     );
   }

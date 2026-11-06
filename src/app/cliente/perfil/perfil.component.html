@@ -3,6 +3,30 @@
 
   <div class="perfil-grid">
     <div class="info-card">
+      <h3>Perfil de la empresa</h3>
+      <p>Completa el RFC para crear auditorías y emitir reportes oficiales. Para empresas extranjeras puedes usar XEXX010101000.</p>
+      <p role="status">{{ mensajeEmpresa }}</p>
+      <form [formGroup]="formularioEmpresa" (ngSubmit)="guardarEmpresa()">
+        <div class="form-group">
+          <label for="empresa-nombre">Nombre de la empresa</label>
+          <input id="empresa-nombre" formControlName="nombre" maxlength="160" />
+        </div>
+        <div class="form-group">
+          <label for="empresa-ciudad">Ciudad</label>
+          <input id="empresa-ciudad" formControlName="ciudad" maxlength="120" />
+        </div>
+        <div class="form-group">
+          <label for="empresa-estado">Estado / región</label>
+          <input id="empresa-estado" formControlName="estado" maxlength="120" />
+        </div>
+        <div class="form-group">
+          <label for="empresa-rfc">RFC (obligatorio para operar)</label>
+          <input id="empresa-rfc" formControlName="rfc" maxlength="20" placeholder="XEXX010101000" />
+        </div>
+        <button type="submit" class="btn btn-primary" [disabled]="formularioEmpresa.invalid || guardandoEmpresa">Guardar empresa</button>
+      </form>
+    </div>
+    <div class="info-card">
       <h3>Información Personal</h3>
       <div class="info-item">
         <label>Nombre:</label>

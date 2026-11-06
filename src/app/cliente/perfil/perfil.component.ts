@@ -15,6 +15,9 @@ import { AuthService } from '../../services/auth.service';
   styleUrl: './perfil.component.css'
 })
 export class PerfilComponent implements OnInit {
+  formularioEmpresa: FormGroup;
+  mensajeEmpresa = '';
+  guardandoEmpresa = false;
   passwordForm: FormGroup;
   errorMessage = '';
   successMessage = '';
@@ -24,6 +27,13 @@ export class PerfilComponent implements OnInit {
     private authService: AuthService,
     private fb: FormBuilder
   ) {
+    this.formularioEmpresa = this.fb.group(
+    {
+      nombre: ['', [Validators.required, Validators.maxLength(160)]],
+      ciudad: ['', [Validators.required, Validators.maxLength(120)]],
+      estado: ['', [Validators.required, Validators.maxLength(120)]],
+      rfc: ['', Validators.maxLength(20)]
+    });
     this.passwordForm = this.fb.group({
       actual: ['', Validators.required],
       nueva: ['', [Validators.required, Validators.minLength(6)]],
@@ -31,7 +41,37 @@ export class PerfilComponent implements OnInit {
     }, { validators: this.passwordMatchValidator });
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void
+  {
+    this.apiService.get<{ nombre: string; ciudad: string | null; estado: string | null; rfc: string | null }>('/api/cliente/perfil-empresa').subscribe(
+    {
+      next: (empresa) => this.formularioEmpresa.patchValue(empresa),
+      error: () => this.mensajeEmpresa = 'No se pudieron cargar los datos de la empresa.'
+    });
+  }
+
+  guardarEmpresa(): void
+  {
+    if(this.formularioEmpresa.invalid || this.guardandoEmpresa)
+    {
+      this.formularioEmpresa.markAllAsTouched();
+      return;
+    }
+    this.guardandoEmpresa = true;
+    this.apiService.put('/api/cliente/perfil-empresa', this.formularioEmpresa.getRawValue()).subscribe(
+    {
+      next: () =>
+      {
+        this.guardandoEmpresa = false;
+        this.mensajeEmpresa = 'Perfil de empresa actualizado.';
+      },
+      error: (error) =>
+      {
+        this.guardandoEmpresa = false;
+        this.mensajeEmpresa = error.error?.message || 'No se pudo guardar el perfil.';
+      }
+    });
+  }
 
   passwordMatchValidator(form: FormGroup) {
     const nueva = form.get('nueva');

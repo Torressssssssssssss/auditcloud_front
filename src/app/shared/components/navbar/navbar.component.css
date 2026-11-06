@@ -27,20 +27,12 @@
   transition: background 0.3s ease, border-color 0.3s ease;
 }
 
-.logo-icon {
+.logo-icon
+{
   width: 40px;
   height: 40px;
   flex: 0 0 40px;
-  background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 700;
-  font-size: 1.25rem;
-  font-family: 'Playfair Display', serif;
-  box-shadow: var(--shadow-sm);
+  object-fit: contain;
 }
 
 .logo-text {

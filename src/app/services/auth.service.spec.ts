@@ -115,7 +115,7 @@ describe('AuthService', () => {
 
   it('guarda el JWT de la respuesta del login con Google', async () => {
     const service = TestBed.inject(AuthService);
-    const result = firstValueFrom(service.loginWithGoogle('google-id-token', Rol.AUDITOR));
+    const result = firstValueFrom(service.iniciarSesionGoogle('google-id-token'));
     const request = http.expectOne(`${environment.apiUrl}/api/auth/google`);
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual({ token: 'google-id-token' });
@@ -126,6 +126,21 @@ describe('AuthService', () => {
     expect(localStorage.getItem('auditcloud_user')).toBe(JSON.stringify(response.usuario));
     expect(service.currentUser()).toEqual(response.usuario);
     expect(service.isLoggedIn()).toBe(true);
+  });
+
+  it('renueva el JWT y la empresa de la sesión al completar el perfil', async () =>
+  {
+    const servicio = TestBed.inject(AuthService);
+    const datosEmpresa = { nombre_empresa: 'Empresa', ciudad: 'Puebla', estado: 'Puebla' };
+    const resultado = firstValueFrom(servicio.completarPerfil(datosEmpresa));
+    const solicitud = http.expectOne(`${environment.apiUrl}/api/auth/complete-profile`);
+    expect(solicitud.request.method).toBe('POST');
+    expect(solicitud.request.body).toEqual(datosEmpresa);
+    const respuestaActualizada = { ...response, token: 'jwt-con-empresa' };
+    solicitud.flush(respuestaActualizada);
+    await resultado;
+    expect(servicio.getToken()).toBe('jwt-con-empresa');
+    expect(servicio.getIdEmpresa()).toBe(response.usuario.id_empresa);
   });
 
   it('guarda la sesión recibida al registrar un cliente', async () => {

@@ -1,5 +1,8 @@
-export const environment = {
+export const environment =
+{
   production: false,
+  googleSignInEnabled: true,
+  identificadorClienteGoogle: '1027720323395-gbb01224ik463lpmnv7qav7v04fmltgq.apps.googleusercontent.com',
   // Base del origen: los endpoints ya incluyen /api o /uploads.
   apiUrl: ''
 };

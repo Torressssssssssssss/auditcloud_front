@@ -8,7 +8,9 @@ export interface Usuario {
   activo?: number | boolean;
 }
 
-export interface LoginResponse {
+export interface LoginResponse
+{
+  require_company_info?: boolean;
   token: string;
   usuario: Usuario;
 }
