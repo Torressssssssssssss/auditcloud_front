@@ -1,19 +1,20 @@
 import { finalize } from 'rxjs';
 import { ConsumoAmbiental } from '../../../models/evidencia.model';
 import { ConsumoAmbientalComponent } from '../../../shared/components/consumo-ambiental/consumo-ambiental.component';
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild, signal, inject } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { ApiService } from '../../../services/api.service';
-import { AuthService } from '../../../services/auth.service';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { Auditoria } from '../../../models/auditoria.model';
 import { IconComponent } from '../../../shared/components/icon/icon.component'; // Asegúrate de tener iconos
 import { FileService } from '../../../services/file.service';
-import { HttpErrorResponse } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
+import { descripcionEvidencia } from '../../evidencias/consumo.validators';
 
 // Interfaz para la tabla unificada
 interface BitacoraItem
@@ -38,6 +39,7 @@ interface BitacoraItem
     DatePipe,
     RouterModule,
     FormsModule,
+    ReactiveFormsModule,
     LoadingSpinnerComponent,
     EmptyStateComponent,
     StatusBadgeComponent,
@@ -48,6 +50,8 @@ interface BitacoraItem
 })
 export class AuditoriaDetalleComponent implements OnInit {
   private api = inject(ApiService);
+  private http = inject(HttpClient);
+  private fb = inject(FormBuilder);
   private fileService = inject(FileService);
   private route = inject(ActivatedRoute);
   public router = inject(Router);
@@ -66,6 +70,18 @@ export class AuditoriaDetalleComponent implements OnInit {
   // Control de Modales
   showModalComentario = signal<boolean>(false);
   showModalDetalle = signal<boolean>(false);
+  showModalEvidencia = signal(false);
+  subiendoEvidencia = signal(false);
+  errorEvidencia = signal('');
+  errorArchivoEvidencia = signal('');
+  mensajeEvidencia = signal('');
+  evidenciaForm = this.fb.group({
+    id_modulo: ['', Validators.required],
+    tipo: ['FOTO', Validators.required],
+    descripcion: ['', descripcionEvidencia],
+  });
+  archivoSeleccionado: File | null = null;
+  @ViewChild('archivoEvidencia') archivoEvidencia?: ElementRef<HTMLInputElement>;
   
   // Datos para modales
   nuevoComentario = '';
@@ -89,6 +105,7 @@ export class AuditoriaDetalleComponent implements OnInit {
       this.auditoria.update(actual => actual ? { ...actual, id_estado: 3 } : actual);
       this.isEditingObjetivo.set(false);
       this.showModalComentario.set(false);
+      this.showModalEvidencia.set(false);
     }
   }
 
@@ -153,6 +170,94 @@ export class AuditoriaDetalleComponent implements OnInit {
       },
       error: () => this.loadingBitacora.set(false)
     });
+  }
+
+  abrirModalEvidencia(): void {
+    const auditoria = this.auditoria();
+    if (!auditoria || this.soloLectura || !auditoria.modulos?.length) return;
+    this.evidenciaForm.reset({ id_modulo: '', tipo: 'FOTO', descripcion: '' });
+    this.archivoSeleccionado = null;
+    this.errorEvidencia.set('');
+    this.errorArchivoEvidencia.set('');
+    this.mensajeEvidencia.set('');
+    this.showModalEvidencia.set(true);
+  }
+
+  cerrarModalEvidencia(): void {
+    if (this.subiendoEvidencia()) return;
+    this.showModalEvidencia.set(false);
+    this.limpiarArchivoEvidencia();
+  }
+
+  limpiarArchivoEvidencia(): void {
+    this.archivoSeleccionado = null;
+    this.errorArchivoEvidencia.set('');
+    if (this.archivoEvidencia) this.archivoEvidencia.nativeElement.value = '';
+  }
+
+  seleccionarArchivoEvidencia(event: Event): void {
+    const archivo = (event.target as HTMLInputElement).files?.[0];
+    this.archivoSeleccionado = null;
+    this.errorArchivoEvidencia.set('');
+    if (!archivo) return;
+    if (archivo.size > 5 * 1024 * 1024) {
+      this.errorArchivoEvidencia.set('El archivo supera el máximo de 5 MB.');
+      (event.target as HTMLInputElement).value = '';
+      return;
+    }
+    const tipo = this.evidenciaForm.get('tipo')?.value;
+    const formatos = tipo === 'DOC' ? ['application/pdf'] : ['image/jpeg', 'image/png'];
+    if (!formatos.includes(archivo.type)) {
+      this.errorArchivoEvidencia.set(tipo === 'DOC' ? 'Selecciona un archivo PDF.' : 'Selecciona una imagen JPG o PNG.');
+      (event.target as HTMLInputElement).value = '';
+      return;
+    }
+    this.archivoSeleccionado = archivo;
+  }
+
+  guardarEvidencia(): void {
+    const auditoria = this.auditoria();
+    if (!auditoria || this.soloLectura || this.subiendoEvidencia()) return;
+    this.errorEvidencia.set('');
+    this.errorArchivoEvidencia.set('');
+    if (this.evidenciaForm.invalid) {
+      this.evidenciaForm.markAllAsTouched();
+      return;
+    }
+    const idModulo = Number(this.evidenciaForm.get('id_modulo')?.value);
+    if (!auditoria.modulos?.includes(idModulo)) {
+      this.errorEvidencia.set('Selecciona un módulo asignado a esta auditoría.');
+      return;
+    }
+    if (!this.archivoSeleccionado) {
+      this.errorArchivoEvidencia.set('Selecciona un archivo para la evidencia.');
+      return;
+    }
+
+    const datos = new FormData();
+    datos.append('id_auditoria', String(auditoria.id_auditoria));
+    datos.append('id_modulo', String(idModulo));
+    datos.append('tipo', this.evidenciaForm.get('tipo')!.value!);
+    datos.append('descripcion', this.evidenciaForm.get('descripcion')!.value!.trim());
+    datos.append('archivo', this.archivoSeleccionado);
+
+    const token = localStorage.getItem('auditcloud_token');
+    const headers = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    this.subiendoEvidencia.set(true);
+    this.http.post(`${environment.apiUrl}/api/auditor/evidencias`, datos, { headers })
+      .pipe(finalize(() => this.subiendoEvidencia.set(false)))
+      .subscribe({
+        next: () => {
+          this.showModalEvidencia.set(false);
+          this.archivoSeleccionado = null;
+          this.mensajeEvidencia.set('Evidencia registrada correctamente.');
+          this.loadBitacora(auditoria.id_auditoria);
+        },
+        error: (error: HttpErrorResponse) => {
+          if (error.error?.code === 'AUDITORIA_FINALIZADA') this.detectarCierre(error);
+          this.errorEvidencia.set(error.error?.message || 'No se pudo guardar la evidencia. Inténtalo de nuevo.');
+        }
+      });
   }
 
   // --- COMENTARIOS ---

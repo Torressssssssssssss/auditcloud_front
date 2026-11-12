@@ -7,7 +7,23 @@
 .page-header {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.detalle-action {
+  min-height: 44px;
+  padding: 0.75rem 1rem;
+  white-space: nowrap;
 }
 
 .page-header h2 {
@@ -215,6 +231,27 @@ html.dark .modulo-tag {
   border-radius: 16px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
   animation: modalFadeIn 0.2s ease-out;
+}
+
+.evidencia-modal {
+  max-height: min(90dvh, 760px);
+  overflow-y: auto;
+}
+
+.evidencia-modal .form-group {
+  margin-top: 1rem;
+}
+
+.evidencia-modal label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+}
+
+.evidencia-modal select,
+.evidencia-modal input[type="file"] {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 @keyframes modalFadeIn {

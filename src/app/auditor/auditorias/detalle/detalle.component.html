@@ -13,19 +13,25 @@
         <button class="btn-back" (click)="router.navigate(['/auditor/auditorias'])">← Volver</button>
         <h2>Auditoría #{{ auditoria()!.id_auditoria }}</h2>
       </div>
-      <div class="header-actions">
-        <button type="button" class="btn btn-primary" (click)="descargarReporte()" [disabled]="descargandoReporte()" [attr.aria-busy]="descargandoReporte()">
-          Descargar Reporte PDF
+      <div class="header-actions flex flex-wrap gap-4 items-center mt-6">
+        <button type="button" class="btn btn-primary detalle-action" (click)="descargarReporte()" [disabled]="descargandoReporte()" [attr.aria-busy]="descargandoReporte()">
+          Descargar reporte PDF
         </button>
-        <button class="btn btn-primary" (click)="abrirModalComentario()" [disabled]="soloLectura">
-          <app-icon name="message-square" [size]="18" class="mr-2"></app-icon>
-          Agregar Actualización
+        <button type="button" class="btn btn-primary detalle-action" (click)="abrirModalComentario()" [disabled]="soloLectura">
+          <app-icon name="message-square" [size]="18"></app-icon>
+          Agregar actualización
+        </button>
+        <button type="button" class="btn btn-primary detalle-action" (click)="abrirModalEvidencia()" [disabled]="soloLectura || !auditoria()?.modulos?.length">
+          Agregar evidencia
         </button>
       </div>
     </div>
 
     @if (errorReporte()) {
       <p class="text-red-600" role="alert">{{ errorReporte() }}</p>
+    }
+    @if (mensajeEvidencia()) {
+      <p class="form-feedback success" role="status">{{ mensajeEvidencia() }}</p>
     }
 
     <div class="detalle-grid">
@@ -108,6 +114,67 @@
     </div>
   }
 </div>
+
+@if (showModalEvidencia()) {
+  <div class="modal-overlay">
+    <div class="modal-content evidencia-modal" role="dialog" aria-modal="true" aria-labelledby="titulo-evidencia">
+      <h3 id="titulo-evidencia">Agregar evidencia a la auditoría #{{ auditoria()?.id_auditoria }}</h3>
+      <form [formGroup]="evidenciaForm" (ngSubmit)="guardarEvidencia()">
+        <div class="form-group">
+          <label for="evidencia-modulo">Módulo</label>
+          <select id="evidencia-modulo" formControlName="id_modulo" class="form-control">
+            <option value="">Seleccionar módulo</option>
+            @for (idModulo of auditoria()?.modulos || []; track idModulo) {
+              <option [value]="idModulo">{{ getModuloNombre(idModulo) }}</option>
+            }
+          </select>
+          @if (evidenciaForm.get('id_modulo')?.invalid && evidenciaForm.get('id_modulo')?.touched) {
+            <p class="field-error">Selecciona un módulo asignado a esta auditoría.</p>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="evidencia-tipo">Tipo de evidencia</label>
+          <select id="evidencia-tipo" formControlName="tipo" class="form-control" (change)="limpiarArchivoEvidencia()">
+            <option value="FOTO">Fotografía</option>
+            <option value="DOC">Documento PDF</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="evidencia-archivo">Archivo</label>
+          <input id="evidencia-archivo" #archivoEvidencia type="file" class="form-control"
+            [accept]="evidenciaForm.get('tipo')?.value === 'DOC' ? '.pdf,application/pdf' : '.jpg,.jpeg,.png,image/jpeg,image/png'"
+            (change)="seleccionarArchivoEvidencia($event)" />
+          <small>JPG, PNG o PDF, máximo 5 MB.</small>
+          @if (errorArchivoEvidencia()) {
+            <p class="field-error" role="alert">{{ errorArchivoEvidencia() }}</p>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="evidencia-descripcion">Descripción</label>
+          <textarea id="evidencia-descripcion" formControlName="descripcion" class="form-control"
+            rows="3" maxlength="5000" placeholder="Describe la evidencia..."></textarea>
+          @if (evidenciaForm.get('descripcion')?.invalid && evidenciaForm.get('descripcion')?.touched) {
+            <p class="field-error">Escribe una descripción de 5 a 5000 caracteres.</p>
+          }
+        </div>
+
+        @if (errorEvidencia()) {
+          <p class="field-error" role="alert">{{ errorEvidencia() }}</p>
+        }
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" (click)="cerrarModalEvidencia()" [disabled]="subiendoEvidencia()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" [disabled]="soloLectura || subiendoEvidencia()">
+            {{ subiendoEvidencia() ? 'Subiendo...' : 'Guardar evidencia' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
 
 @if (showModalComentario()) {
   <div class="modal-overlay">
