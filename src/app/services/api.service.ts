@@ -106,6 +106,14 @@ export class ApiService {
     return this.http.get<T>(`${this.baseUrl}${endpoint}`, baseOptions);
   }
 
+  subirEvidencia(datos: FormData): Observable<unknown>
+  {
+    return this.http.post(`${this.baseUrl}/api/auditor/evidencias`, datos,
+    {
+      headers: this.getHeaders().delete('Content-Type')
+    });
+  }
+
   generarReporte(idAuditoria: number): Observable<Blob>
   {
     return this.http.get(`${this.baseUrl}/api/reportes/generar/${idAuditoria}`,

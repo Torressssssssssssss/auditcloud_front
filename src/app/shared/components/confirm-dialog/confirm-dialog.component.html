@@ -1,24 +1,17 @@
-@if (visible) {
-  <div class="dialog-overlay" (click)="onCancel()">
-    <div class="dialog-content" (click)="$event.stopPropagation()">
-      <h3 class="dialog-title">{{ titulo }}</h3>
-      <p class="dialog-message">{{ mensaje }}</p>
+@if(visible)
+{
+  <div class="dialog-overlay" (click)="cancelar()">
+    <section #contenido class="dialog-content" role="dialog" aria-modal="true"
+      [attr.aria-labelledby]="identificador + '-titulo'" [attr.aria-describedby]="identificador + '-mensaje'"
+      [attr.aria-busy]="ocupado" (click)="$event.stopPropagation()" (keydown.tab)="mantenerFoco($event)">
+      <h3 class="dialog-title" [id]="identificador + '-titulo'">{{ titulo }}</h3>
+      <p class="dialog-message" [id]="identificador + '-mensaje'">{{ mensaje }}</p>
       <div class="dialog-actions">
-        <button type="button" class="btn btn-secondary" (click)="onCancel()">
-          Cancelar
-        </button>
-        <button type="button" class="btn btn-primary" (click)="onConfirm()">
-          Confirmar
+        <button type="button" class="btn btn-secondary" [disabled]="ocupado" (click)="cancelar()">Cancelar</button>
+        <button type="button" class="btn btn-primary" [disabled]="ocupado" (click)="confirmar()">
+          {{ ocupado ? 'Guardando…' : 'Confirmar' }}
         </button>
       </div>
-    </div>
+    </section>
   </div>
 }
-
-
-
-
-
-
-
-

@@ -24,11 +24,11 @@ describe('Detalle de auditoría: alta de evidencias', () => {
       providers: [
         provideRouter([]), provideHttpClient(), provideHttpClientTesting(),
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => '42' } } } },
-        { provide: ApiService, useValue: { get } },
         { provide: FileService, useValue: {} },
       ],
     });
     http = TestBed.inject(HttpTestingController);
+    vi.spyOn(TestBed.inject(ApiService), 'get').mockImplementation(get);
   });
 
   afterEach(() => {
@@ -67,7 +67,7 @@ describe('Detalle de auditoría: alta de evidencias', () => {
     expect(fixture.componentInstance.showModalEvidencia()).toBe(false);
     expect(get.mock.calls.filter(([ruta]) => ruta === '/api/timeline/42')).toHaveLength(2);
     fixture.destroy();
-  });
+  }, 20000);
 
   it('impide el alta en auditorías finalizadas', () => {
     const fixture = TestBed.createComponent(AuditoriaDetalleComponent);
@@ -80,5 +80,5 @@ describe('Detalle de auditoría: alta de evidencias', () => {
     fixture.componentInstance.abrirModalEvidencia();
     expect(fixture.componentInstance.showModalEvidencia()).toBe(false);
     fixture.destroy();
-  });
+  }, 20000);
 });

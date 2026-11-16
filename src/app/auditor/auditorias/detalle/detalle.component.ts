@@ -5,7 +5,7 @@ import { Component, ElementRef, OnInit, ViewChild, signal, inject } from '@angul
 import { CommonModule, DatePipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ApiService } from '../../../services/api.service';
 import { LoadingSpinnerComponent } from '../../../shared/components/loading-spinner/loading-spinner.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
@@ -13,7 +13,6 @@ import { StatusBadgeComponent } from '../../../shared/components/status-badge/st
 import { Auditoria } from '../../../models/auditoria.model';
 import { IconComponent } from '../../../shared/components/icon/icon.component'; // Asegúrate de tener iconos
 import { FileService } from '../../../services/file.service';
-import { environment } from '../../../../environments/environment';
 import { descripcionEvidencia } from '../../evidencias/consumo.validators';
 
 // Interfaz para la tabla unificada
@@ -50,7 +49,6 @@ interface BitacoraItem
 })
 export class AuditoriaDetalleComponent implements OnInit {
   private api = inject(ApiService);
-  private http = inject(HttpClient);
   private fb = inject(FormBuilder);
   private fileService = inject(FileService);
   private route = inject(ActivatedRoute);
@@ -135,9 +133,9 @@ export class AuditoriaDetalleComponent implements OnInit {
           enlace.remove();
           window.setTimeout(() => window.URL.revokeObjectURL(url), 1000);
         },
-        error: () =>
+        error: (error: HttpErrorResponse) =>
         {
-          this.errorReporte.set('No se pudo descargar el reporte. Inténtalo nuevamente.');
+          this.errorReporte.set(error.error?.message || 'No se pudo descargar el reporte. Inténtalo nuevamente.');
         }
       });
   }
@@ -241,10 +239,8 @@ export class AuditoriaDetalleComponent implements OnInit {
     datos.append('descripcion', this.evidenciaForm.get('descripcion')!.value!.trim());
     datos.append('archivo', this.archivoSeleccionado);
 
-    const token = localStorage.getItem('auditcloud_token');
-    const headers = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
     this.subiendoEvidencia.set(true);
-    this.http.post(`${environment.apiUrl}/api/auditor/evidencias`, datos, { headers })
+    this.api.subirEvidencia(datos)
       .pipe(finalize(() => this.subiendoEvidencia.set(false)))
       .subscribe({
         next: () => {

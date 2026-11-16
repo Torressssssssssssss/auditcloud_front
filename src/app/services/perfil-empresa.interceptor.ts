@@ -23,7 +23,14 @@ export const interceptorPerfilEmpresa: HttpInterceptorFn = (solicitud, siguiente
     {
       if(error.status === 403 && datos?.code === 'PERFIL_EMPRESA_INCOMPLETO')
       {
-        window.alert(datos.message);
+        return throwError(() => new HttpErrorResponse(
+        {
+          error: datos,
+          headers: error.headers,
+          status: error.status,
+          statusText: error.statusText,
+          url: error.url ?? undefined
+        }));
       }
       return throwError(() => error);
     }));

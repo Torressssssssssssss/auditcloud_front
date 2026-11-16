@@ -1,4 +1,11 @@
 <div class="detalle-page">
+  @if(avisoEstado())
+  {
+    <div class="inline-alert" [class.success]="avisoEstado()!.tipo === 'success'"
+      [class.error]="avisoEstado()!.tipo === 'error'" role="status" aria-live="polite">
+      {{ avisoEstado()!.mensaje }}
+    </div>
+  }
   @if (loading()) {
     <app-loading-spinner />
   } @else if (!auditoria()) {
@@ -156,10 +163,19 @@
 
     <app-confirm-dialog
       [visible]="showConfirmEstado()"
+      [ocupado]="guardandoEstado()"
       titulo="Confirmar cambio de estado"
       [mensaje]="'¿Estás seguro de cambiar el estado a ' + (nuevoEstado() ? getEstadoNombre(nuevoEstado()!) : '') + '?'"
       (confirm)="confirmarCambioEstado()"
       (cancel)="cancelarCambioEstado()">
+    </app-confirm-dialog>
+    <app-confirm-dialog
+      [visible]="mostrarConfirmacionRetiro()"
+      [ocupado]="retirandoAuditor()"
+      titulo="Quitar auditor"
+      mensaje="¿Quitar el auditor asignado? La auditoría quedará pendiente de asignar auditor."
+      (confirm)="confirmarRetiroAuditor()"
+      (cancel)="cancelarRetiroAuditor()">
     </app-confirm-dialog>
   }
 </div>

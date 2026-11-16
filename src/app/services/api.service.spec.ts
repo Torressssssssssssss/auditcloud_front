@@ -43,4 +43,20 @@ describe('ApiService: cabecera de autenticación', () => {
     request.flush({});
     await result;
   });
+  it('sube evidencias al endpoint del auditor con JWT y sin Content-Type JSON', async () =>
+  {
+    localStorage.setItem('auditcloud_token', 'token-evidencia');
+    const datos = new FormData();
+    datos.append('id_auditoria', '42');
+    datos.append('archivo', new File(['datos'], 'evidencia.pdf', { type: 'application/pdf' }));
+    const resultado = firstValueFrom(service.subirEvidencia(datos));
+    const solicitud = http.expectOne(`${environment.apiUrl}/api/auditor/evidencias`);
+    expect(solicitud.request.method).toBe('POST');
+    expect(solicitud.request.body).toBe(datos);
+    expect(solicitud.request.headers.get('Authorization')).toBe('Bearer token-evidencia');
+    expect(solicitud.request.headers.has('Content-Type')).toBe(false);
+    solicitud.flush({ evidencia: { id_evidencia: 1 } });
+    await resultado;
+  });
+
 });

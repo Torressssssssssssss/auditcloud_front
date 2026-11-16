@@ -49,6 +49,10 @@ export class AuditoriaDetalleComponent implements OnInit {
   asignacionAviso = signal<{ tipo: 'success' | 'error'; mensaje: string } | null>(null);
   asignacionForm: FormGroup;
 
+  guardandoEstado = signal(false);
+  mostrarConfirmacionRetiro = signal(false);
+  retirandoAuditor = signal(false);
+  avisoEstado = signal<{ tipo: 'success' | 'error'; mensaje: string } | null>(null);
   showConfirmEstado = signal(false);
   nuevoEstado = signal<number | null>(null);
   avisoInmutabilidad = signal('');
@@ -112,9 +116,9 @@ export class AuditoriaDetalleComponent implements OnInit {
           enlace.remove();
           window.setTimeout(() => window.URL.revokeObjectURL(url), 1000);
         },
-        error: () =>
+        error: (error: HttpErrorResponse) =>
         {
-          this.errorReporte.set('No se pudo descargar el reporte. Inténtalo nuevamente.');
+          this.errorReporte.set(error.error?.message || 'No se pudo descargar el reporte. Inténtalo nuevamente.');
         }
       });
   }
@@ -245,15 +249,31 @@ export class AuditoriaDetalleComponent implements OnInit {
     });
   }
 
-  quitarAuditor() {
+  quitarAuditor()
+  {
     if (this.soloLectura) return;
     const idAuditoria = this.auditoria()?.id_auditoria || 0;
     if (!idAuditoria) return;
-    const confirmado = window.confirm('¿Quitar el auditor asignado? La auditoría quedará pendiente de asignar auditor.');
-    if (!confirmado) return;
+    if(this.retirandoAuditor()) return;
+    this.mostrarConfirmacionRetiro.set(true);
+  }
 
-    this.apiService.removeSupervisorAuditorFromAuditoria(idAuditoria).subscribe({
+  cancelarRetiroAuditor(): void
+  {
+    if(!this.retirandoAuditor()) this.mostrarConfirmacionRetiro.set(false);
+  }
+
+  confirmarRetiroAuditor(): void
+  {
+    const idAuditoria = this.auditoria()?.id_auditoria;
+    if(!idAuditoria || this.soloLectura || this.retirandoAuditor()) return;
+    this.retirandoAuditor.set(true);
+
+    this.apiService.removeSupervisorAuditorFromAuditoria(idAuditoria)
+      .pipe(finalize(() => this.retirandoAuditor.set(false)))
+      .subscribe({
       next: () => {
+        this.mostrarConfirmacionRetiro.set(false);
         this.asignacionAviso.set({ tipo: 'success', mensaje: 'Auditor removido. La auditoría queda pendiente de asignar auditor.' });
         this.auditoresAsignados.set([]);
         this.showAsignacion.set(false);
@@ -262,40 +282,53 @@ export class AuditoriaDetalleComponent implements OnInit {
       error: (err) =>
       {
         this.detectarCierre(err);
+        this.mostrarConfirmacionRetiro.set(false);
         this.asignacionAviso.set({ tipo: 'error', mensaje: err.error?.message || 'Error al quitar auditor' });
       }
     });
   }
   
-  solicitarCambioEstado(estado: number) {
-    if (this.soloLectura) return;
+  solicitarCambioEstado(estado: number)
+  {
+    if(this.soloLectura || this.guardandoEstado()) return;
+    this.avisoEstado.set(null);
     this.nuevoEstado.set(estado);
     this.showConfirmEstado.set(true);
   }
 
-  cancelarCambioEstado() {
+  cancelarCambioEstado()
+  {
+    if(this.guardandoEstado()) return;
     this.showConfirmEstado.set(false);
     this.nuevoEstado.set(null);
   }
 
-  confirmarCambioEstado() {
-    const current = this.auditoria();
-    console.log('Cambiando estado a:', this.nuevoEstado());
+  confirmarCambioEstado(): void
+  {
+    const auditoriaActual = this.auditoria();
     const estado = this.nuevoEstado();
+    if(!auditoriaActual || !estado || this.soloLectura || this.guardandoEstado()) return;
 
-    if (!current || !estado || this.soloLectura) return;
-
-    this.apiService.put(`/api/supervisor/auditorias/${current.id_auditoria}/estado`, { id_estado: estado })
-      .subscribe({
-        next: () => {
-          alert('Estado actualizado correctamente');
-          this.showConfirmEstado.set(false);
-          this.loadAuditoria(current.id_auditoria);
-        },
-        error: (err) =>
+    this.guardandoEstado.set(true);
+    this.avisoEstado.set(null);
+    this.apiService.put(`/api/supervisor/auditorias/${auditoriaActual.id_auditoria}/estado`, { id_estado: estado })
+      .pipe(finalize(() => this.guardandoEstado.set(false)))
+      .subscribe(
+      {
+        next: () =>
         {
-          this.detectarCierre(err);
-          this.avisoInmutabilidad.set(err.error?.message || 'Error al cambiar estado');
+          this.auditoria.update(actual => actual ? { ...actual, id_estado: estado } : actual);
+          this.showConfirmEstado.set(false);
+          this.nuevoEstado.set(null);
+          this.avisoEstado.set({ tipo: 'success', mensaje: 'Estado actualizado correctamente.' });
+        },
+        error: (error: HttpErrorResponse) =>
+        {
+          this.detectarCierre(error);
+          this.showConfirmEstado.set(false);
+          this.nuevoEstado.set(null);
+          this.avisoEstado.set({ tipo: 'error', mensaje: error.error?.message ||
+            (error.status === 0 ? 'No hay conexión con el servidor. Inténtalo nuevamente.' : 'No se pudo cambiar el estado.') });
         }
       });
   }
