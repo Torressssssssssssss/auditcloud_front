@@ -39,9 +39,12 @@ describe('AC-06: controles de edición de auditorías', () =>
     vista.componentInstance.loading.set(false);
     vista.detectChanges();
     const botones = Array.from(vista.nativeElement.querySelectorAll('button')) as HTMLButtonElement[];
+    const botonConTexto = (texto: string) => botones.find(boton =>
+      boton.textContent?.toLowerCase().includes(texto.toLowerCase()));
     expect(botones.find(boton => boton.textContent!.trim() === 'Editar')!.disabled).toBe(true);
-    expect(botones.find(boton => boton.textContent!.includes('Agregar Actualización'))!.disabled).toBe(true);
-    expect(botones.find(boton => boton.textContent!.includes('Descargar Reporte'))!.disabled).toBe(false);
+    expect(botonConTexto('Agregar actualización')?.disabled).toBe(true);
+    expect(botonConTexto('Agregar evidencia')?.disabled).toBe(true);
+    expect(botonConTexto('Descargar reporte')?.disabled).toBe(false);
     vista.componentInstance.startEditObjetivo();
     vista.componentInstance.saveObjetivo();
     vista.componentInstance.guardarComentario();
